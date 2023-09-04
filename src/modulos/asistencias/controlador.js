@@ -77,7 +77,7 @@ module.exports = function(dbInyectada){
             Created_at: fecha,
             Created_by: body.IdUsuarios,
             Updated_at: fecha,
-            Update_by: '',
+            Update_by: 0,
         } 
         const respuesta = await db.agregar(TABLA, asistencias);
          return resultadoValidacion;
