@@ -49,7 +49,7 @@ function uno(tabla, id){
 
 function infoUno(tabla, id){
     return new Promise((resolve, reject)=>{
-        conexion.query(`SELECT * FROM ${tabla} WHERE idUsuarios=${id}`, (error, result) =>{
+        conexion.query(`SELECT Apellidos FROM ${tabla} WHERE idUsuarios=${id}`, (error, result) =>{
             return error ? reject(error) : resolve(result);
         })
     });
@@ -96,13 +96,45 @@ function eliminar(tabla, data){
 //Funcion para Sacar los id de toda la tabla 
 function registrarFaltas(tabla,tabla2, consulta){
     return new Promise((resolve, reject)=>{
-       
-        conexion.query(`SELECT U.IdUsuario FROM ${tabla} U LEFT JOIN ${tabla2} R ON U.IdUsuario = R.IdUsuario AND
-        DATE(R.Fecha) = CURDATE() WHERE R.IdUsuario IS NULL;)`, consulta, (error, result) =>{
-            return error ? reject(error) : resolve(result[0]);
+        conexion.query(`SELECT U.IdUsuarios FROM ${tabla} U LEFT JOIN ${tabla2} R ON U.IdUsuarios = R.IdUsuarios AND DATE(R.Fecha) = CURDATE() WHERE R.IdUsuarios IS NULL`, consulta, (error, result) =>{
+            if (error) {
+                reject(error);
+              } else {
+                // Transforma los resultados en un arreglo
+                const usuariosSinRegistro = result.map((row) => row.IdUsuarios);
+                resolve(usuariosSinRegistro);
+              }       
+
         })
     });
 }
+
+//Tabla de parametrizaciones
+async function obtenerTablaParametrizacion(tabla) {
+    try {
+        const query = `SELECT * FROM ${tabla}`; // Consulta SQL para seleccionar todos los registros
+        const [rows] = await db.query(query);
+        return rows; // Retorna los datos de la tabla de parametrización
+    } catch (error) {
+        throw error;
+    }
+}
+async function usuarioYaMarcoHoy(tabla,IdUsuarios, IdTipoMarcacion, fechaHoy) {
+    try {
+        const query = `SELECT * FROM ${tabla} WHERE IdUsuarios = ? AND IdTipoMarcacion = ? AND Fecha = ?`;
+        const [rows] = await db.query(query, [IdUsuarios, IdTipoMarcacion, fechaHoy]);
+
+        if (rows.length > 0) {
+            return true; // El usuario ya marcó hoy con el mismo IdTipoMarcacion
+        } else {
+            return false; // El usuario no ha marcado hoy con el mismo IdTipoMarcacion
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+ 
+
 
 module.exports = {
     todos,
@@ -111,5 +143,8 @@ module.exports = {
     eliminar,
     query,
     registrarFaltas,
-    infoUno
+    infoUno,
+    registrarFaltas,
+    obtenerTablaParametrizacion,
+    usuarioYaMarcoHoy
 }

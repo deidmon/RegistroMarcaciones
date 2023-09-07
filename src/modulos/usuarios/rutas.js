@@ -8,8 +8,8 @@ const router = express.Router();
 
 //router.get('/',todos);
 router.get('/:id',uno);
-router.get('/', seguridad(),login);
-router.post('/', agregar);
+router.get('/', seguridad(),consultarUser);
+router.post('/actualizar', agregar);
 router.put('/', eliminar);
 
 
@@ -42,9 +42,9 @@ async function uno(req, res,next){
     }
 };  */
 
-async function login(req, res, next) {
+async function consultarUser(req, res, next) {
     try{
-        const user = await controlador.login(req.body.Usuario, req.body.Contraseña);
+        const user = await controlador.consultarUser(req.body.Usuario, req.body.Contraseña);
         respuesta.success(req, res, user, 200);
     }catch(err){
         next(err);

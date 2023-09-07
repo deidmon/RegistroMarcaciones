@@ -8,7 +8,7 @@ module.exports = function(dbInyectada){
     if(!db){
         db = require('../../DB/mysql');
     }
-    async function login(usuario, password){
+    async function consultarUser(usuario, password){
         if (!usuario) {
             throw new Error("Datos faltantes");
         }
@@ -68,6 +68,6 @@ module.exports = function(dbInyectada){
         agregar,
         eliminar,
         infoUno,
-        login
+        consultarUser
     }
 }

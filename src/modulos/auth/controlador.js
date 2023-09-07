@@ -14,7 +14,7 @@ module.exports = function(dbInyectada){
 
         return bcrypt.compare(password, data.Contraseña)
         .then(resultado =>{
-            if(resultado == true){
+            if(resultado){//resultado == true
                 const payload = {
                     /* IdUsuarios:data.IdUsuarios,
                     Nombres: data.Nombres,
