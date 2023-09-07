@@ -8,12 +8,35 @@ module.exports = function(dbInyectada){
     if(!db){
         db = require('../../DB/mysql');
     }
+    async function login(usuario, password){
+        if (!usuario) {
+            throw new Error("Datos faltantes");
+        }
+        const data = await db.query(TABLA, {Usuario: usuario});
+        if (!data) {
+            throw new Error("Usuario incorrecto");
+        }
+        const id = data.IdUsuarios;
+
+        return bcrypt.compare(password, data.Contraseña)
+        .then(resultado =>{
+            if(resultado == true){
+                
+                return infoUno(id)
+            }else{
+                throw new Error("Credenciales inválidas");
+            }
+        })
+    }
 
     function todos(){
         return db.todos(TABLA);
     }
     function uno(id){
         return db.uno(TABLA, id);
+    }
+    function infoUno(id){
+        return db.infoUno(TABLA, id);
     }
     async function agregar(body){
         let user = body.usuario || '';
@@ -43,6 +66,8 @@ module.exports = function(dbInyectada){
         todos,
         uno,
         agregar,
-        eliminar
+        eliminar,
+        infoUno,
+        login
     }
 }

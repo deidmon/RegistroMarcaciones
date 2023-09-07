@@ -16,10 +16,14 @@ module.exports = function(dbInyectada){
         .then(resultado =>{
             if(resultado == true){
                 const payload = {
-                    IdUsuarios:data.IdUsuarios,
+                    /* IdUsuarios:data.IdUsuarios,
                     Nombres: data.Nombres,
                     Apellidos: data.Apellidos,
-                    Usuario: data.Usuario,
+                    Usuario: data.Usuario, */
+                    randomData: Math.random(),
+               // otherRandomValue: 'SomeRandomValue',
+                //exp: Math.floor(Date.now() / 1000) + 3600,
+                exp: Math.floor(Date.now() / 1000) + 3600,
 
                 };
                 // const token = auth.asignarToken(payload, SECRET_KEY, { expiresIn: '1h' });

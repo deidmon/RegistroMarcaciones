@@ -1,4 +1,5 @@
 const mysql = require('mysql');
+//const mysql = require('mysql2');
 const config = require('../config');
 
 const bdconfig = {
@@ -40,7 +41,15 @@ function todos(tabla){
 //funcion para obtener todos un registro de la tabla
 function uno(tabla, id){
     return new Promise((resolve, reject)=>{
-        conexion.query(`SELECT * FROM ${tabla} WHERE id=${id}`, (error, result) =>{
+        conexion.query(`SELECT * FROM ${tabla} WHERE idUsuarios=${id}`, (error, result) =>{
+            return error ? reject(error) : resolve(result);
+        })
+    });
+}
+
+function infoUno(tabla, id){
+    return new Promise((resolve, reject)=>{
+        conexion.query(`SELECT * FROM ${tabla} WHERE idUsuarios=${id}`, (error, result) =>{
             return error ? reject(error) : resolve(result);
         })
     });
@@ -62,13 +71,28 @@ function eliminar(tabla, data){
     });
 }
 //Funcion para consultar datos de la tabla y comparar
-function query(tabla, consulta){
+ function query(tabla, consulta){
     return new Promise((resolve, reject)=>{
+        console.log(consulta)
         conexion.query(`SELECT * FROM ${tabla} WHERE ?`, consulta, (error, result) =>{
             return error ? reject(error) : resolve(result[0]);
         })
     });
-}
+} 
+//------------------------------
+/* function query(tabla, consulta) {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT * FROM ${tabla} WHERE ?`;
+        const values = [consulta]; // Coloca el objeto consulta en un arreglo
+        
+        console.log(values)
+        
+        conexion.execute(sql, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0]);
+        });
+    });
+} */ 
+
 //Funcion para Sacar los id de toda la tabla 
 function registrarFaltas(tabla,tabla2, consulta){
     return new Promise((resolve, reject)=>{
@@ -86,5 +110,6 @@ module.exports = {
     agregar,
     eliminar,
     query,
-    registrarFaltas
+    registrarFaltas,
+    infoUno
 }

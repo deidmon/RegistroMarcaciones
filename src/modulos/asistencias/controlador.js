@@ -55,15 +55,15 @@ module.exports = function(dbInyectada){
                 const idValidacion = fila.IdValidacion;
                         switch (idValidacion) {
                         case 1:
-                            return 'Conforme';
+                            return 1;
                         case 2:
-                            return 'Tardanza';
+                            return 2;
                         default:
-                            return 'Desconocido'; // Manejo de otros casos
+                            return 0; // Manejo de otros casos
                         }
                     }
                 }
-            return 'Falta';
+            return 3;
     }
     const resultadoValidacion = validarHora(horaFormateada);
 
@@ -72,12 +72,12 @@ module.exports = function(dbInyectada){
             IdUsuarios: body.IdUsuarios,
             Fecha: fecha,
             Hora: horaFormateada,
-            TMarcacion: body.TMarcacion ,
-            Validacion: resultadoValidacion,
+            idTMarcacion: body.IdTipoMarcacion ,
+            idValidacion: resultadoValidacion,
             Created_at: fecha,
             Created_by: body.IdUsuarios,
             Updated_at: fecha,
-            Update_by: 0,
+            Updated_by: 0,
         } 
         const respuesta = await db.agregar(TABLA, asistencias);
          return resultadoValidacion;

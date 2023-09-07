@@ -6,13 +6,14 @@ const controlador = require('./index');
 
 const router = express.Router();
 
-router.get('/',todos);
+//router.get('/',todos);
 router.get('/:id',uno);
+router.get('/', seguridad(),login);
 router.post('/', agregar);
 router.put('/', eliminar);
 
 
-async function todos(req, res, next){
+/* async function todos(req, res, next){
     try{
         const items = await controlador.todos();
         respuesta.success(req, res, items, 200);
@@ -20,16 +21,35 @@ async function todos(req, res, next){
         next(err);
     };  
 } 
-        
+  */       
 
-async function uno(req, res){
+async function uno(req, res,next){
     try{
         const items = await controlador.uno(req.params.id);
         respuesta.success(req, res, items, 200); 
     }catch(err){
-        respuesta.error(req, res, err, 500);
+        //respuesta.error(req, res, err, 500
+        next(err);
     }
 }; 
+/* async function infoUno(req, res,next){
+    try{
+        const items = await controlador.infoUno(req.body.idUsuario);
+        respuesta.success(req, res, items, 200); 
+    }catch(err){
+        //respuesta.error(req, res, err, 500
+        next(err);
+    }
+};  */
+
+async function login(req, res, next) {
+    try{
+        const user = await controlador.login(req.body.Usuario, req.body.Contraseña);
+        respuesta.success(req, res, user, 200);
+    }catch(err){
+        next(err);
+    }
+}
 async function agregar(req, res, next){
     try{
         const items = await controlador.agregar(req.body);
