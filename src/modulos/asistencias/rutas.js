@@ -32,6 +32,7 @@ async function uno(req, res){
 async function agregar(req, res, next){
     try{
         const resultadoValidacion  = await controlador.agregar(req.body);
+        
        if(req.body.IdAsistencias == 0){ 
             mensaje = "Guardado con exito";
        }else{

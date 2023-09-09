@@ -1,4 +1,5 @@
 const TABLA = 'asistencias';
+const TABLAUSER = 'usuarios';
 const parametrizacion = 'parametrizacion';
 module.exports = function(dbInyectada){
 
@@ -13,28 +14,30 @@ module.exports = function(dbInyectada){
     function uno(id){
         return db.uno(TABLA, id);
     }
-    async function obtenerTablaParametrizacion() {
-        //obtener la tabla de parametrización
-        return db.obtenerTablaParametrizacion(parametrizacion); // Debes implementar esta función en tu base de datos
-    }
 
-    async function usuarioYaMarcoHoy(IdUsuarios, IdTipoMarcacion) {
-        //verificar si el usuario ya marcó hoy con el mismo IdTipoMarcacion
-        const fechaHoy = new Date();
-        return db.usuarioYaMarcoHoy(TABLA, IdUsuarios, IdTipoMarcacion, fechaHoy);
-    }
     async function agregar(body){
+        const data = await db.query(TABLAUSER, {IdUsuarios: body.IdUsuarios});
+        if (!data) {
+            throw new Error("Usuario incorrecto");
+        }
+        const id = data.IdUsuarios;
 
-        let fecha = new Date() || '';
-        const hora = fecha.getHours();
-        const minutos = fecha.getMinutes();
-        const segundos = fecha.getSeconds();
+        let fechaInicial = new Date() || '';
+        let dia = fechaInicial.getDate().toString().padStart(2, '0'); // Agrega ceros a la izquierda si es necesario
+        let mes = (fechaInicial.getMonth() + 1).toString().padStart(2, '0'); // Agrega ceros a la izquierda si es necesario
+        let año = fechaInicial.getFullYear().toString();
+
+        let fecha = `${año}-${mes}-${dia}`; 
+       // console.log(fecha)
+        const hora = fechaInicial.getHours();
+        const minutos = fechaInicial.getMinutes();
+        const segundos = fechaInicial.getSeconds(); 
  
     // Obtiene la tabla de parametrización desde la base de datos
-    const tablaParametrizacion = await obtenerTablaParametrizacion();
+    const tablaParametrizacion = await db.obtenerTablaParametrizacion(parametrizacion, body.idTMarcacion);
     // Compara la hora enviada con la tabla de parametrización
     //const horaFormateada = `${hora}:${minutos}`;
-    const horaFormateada = '12:00'//`${hora}:${minutos}`;
+    const horaFormateada = `${hora}:${minutos}`;
     
     // Función para validar la hora
     function validarHora(horaFormateada) {
@@ -57,16 +60,35 @@ module.exports = function(dbInyectada){
                         case 2:
                             return 2;
                         default:
-                            return 0; // Manejo de otros casos
+                            return 3; // Manejo de otros casos
                         }
                     }
                 }
             return 3;
     }
+    //const fecha2 = '2023-09-08'; 
+
     const resultadoValidacion = validarHora(horaFormateada);
-    const yaMarcoHoy = await usuarioYaMarcoHoy(body.IdUsuarios, body.IdTipoMarcacion);
-    if (yaMarcoHoy) {
-        return 'El usuario ya marcó hoy con el mismo IdTipoMarcacion';
+    let b = '';
+
+  if (resultadoValidacion === 1) {
+    b = 'conforme';
+  } else if (resultadoValidacion === 2) {
+    b = 'tardanza';
+  } else if (resultadoValidacion === 3) {
+    b = 'falta';
+  } 
+  const yaMarcoHoy = await db.usuarioYaMarcoHoy(TABLA, body.IdUsuarios,fecha, body.idTMarcacion);
+  
+ // console.log(yaMarcoHoy)
+    var a = false;
+    if (yaMarcoHoy.length>0){
+        a=true    
+    }else{
+        a=false
+    }
+    if (a) {
+        return 'El usuario ya marcó hoy en este tipo de marcación';
     }
 
         const asistencias = {
@@ -74,15 +96,16 @@ module.exports = function(dbInyectada){
             IdUsuarios: body.IdUsuarios,
             Fecha: fecha,
             Hora: horaFormateada,
-            idTMarcacion: body.IdTipoMarcacion ,
+            idTMarcacion: body.idTMarcacion ,
             idValidacion: resultadoValidacion,
             Created_at: fecha,
             Created_by: body.IdUsuarios,
-            Updated_at: fecha,
+            Updated_at: '',
             Updated_by: 0,
         } 
+        
         const respuesta = await db.agregar(TABLA, asistencias);
-         return resultadoValidacion;
+         return b;
     }
         
     function eliminar(body){

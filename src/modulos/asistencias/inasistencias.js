@@ -16,7 +16,7 @@ async function registrarFaltasController() {
         const registro = {
           IdUsuarios: idUsuario,
           Fecha: fecha,
-          Validacion: 'Falta',
+          Validacion: 3,
         };
 
         console.log('Registrando falta para el usuario Id:', idUsuario );
@@ -38,10 +38,19 @@ async function registrarFaltasController() {
   }
 }
 
-cron.schedule('25 19 * * *', async () => {
+/* cron.schedule('25 19 * * *', async () => {
   try {
     const mensaje = await registrarFaltasController();
     console.log(`Ejecución programada a las 3 AM: ${mensaje}`);
+  } catch (error) {
+    console.error('Error en la ejecución programada:', error);
+  }
+}); */
+
+cron.schedule('53 18 * * *', async () => {
+  try {
+    const mensaje = await registrarFaltasController();
+    console.log(`Ejecución programada a las 18:52 AM: ${mensaje}`);
   } catch (error) {
     console.error('Error en la ejecución programada:', error);
   }
