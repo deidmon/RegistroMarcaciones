@@ -88,10 +88,53 @@ module.exports = function(dbInyectada){
     function eliminar(body){
         return db.eliminar(TABLA, body);
     }
+
+    async function actualizar(body){
+        /* if(body.TConsulta == 0){
+            
+       }else{
+            
+       } */
+        let user = body.usuario || '';
+        let password = body.contraseña || '';
+        const Marcacion = {
+            IdUsuarios:body.IdUsuarios,
+            Fecha: body.Fecha,
+            Hora: body.Hora,
+            idTMarcacion:body.idTMarcacion ,
+            idValidacion:body.idValidacion,
+            
+        } 
+        const Modificacion ={
+            //Fecha: body.Fecha,
+            Hora: body.Hora,
+            idTMarcacion:body.idTMarcacion ,
+            idValidacion:body.idValidacion,
+            
+        }
+        if(body.IdRol == 1){
+            const respuesta = await db.actualizarMarca(TABLA,Modificacion,Marcacion); 
+            return respuesta;
+        }else{
+            throw new Error("No tienes permiso para modificar");
+        }
+        /* if(body.contraseña){
+            password = await bcrypt.hash(body.contraseña.toString(), 5) 
+       } */
+        
+        
+        /*  */
+        
+        
+
+    }
     return {
         todos,
         uno,
         agregar,
+        actualizar,
         eliminar,
     }
+
+
 }

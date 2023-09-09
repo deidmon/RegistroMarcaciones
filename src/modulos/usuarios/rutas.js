@@ -3,12 +3,14 @@ const seguridad = require('./seguridad');
 const respuesta = require('../../red/respuesta');
 
 const controlador = require('./index');
+const { actualizar } = require('../../DB/mysql');
 
 const router = express.Router();
 
 //router.get('/',todos);
-router.get('/:id',uno);
+//router.get('/:id',uno);
 router.get('/', seguridad(),consultarUser);
+router.get('/marcacion', seguridad(),consultarMarcas); 
 router.post('/actualizar', agregar);
 router.put('/', eliminar);
 
@@ -50,10 +52,19 @@ async function consultarUser(req, res, next) {
         next(err);
     }
 }
+async function consultarMarcas(req, res, next) {
+    try{
+        const user = await controlador.consultarMarcas(req.body.idRol, req.body.idUsuario);
+        respuesta.success(req, res, user, 200);
+    }catch(err){
+        next(err);
+    }
+}
 async function agregar(req, res, next){
     try{
+        //const items = await controlador.agregar(req.body);
         const items = await controlador.agregar(req.body);
-       if(req.body.id == 0){
+       if(req.body.IdUsuario == 0){
             mensaje = 'Item guardado con exito';
        }else{
             mensaje = 'Item actualizado con exito';

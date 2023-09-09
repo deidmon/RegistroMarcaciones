@@ -9,6 +9,7 @@ const router = express.Router();
 router.get('/',todos);
 router.get('/:id',uno);
 router.post('/',seguridad(), agregar);
+router.post('/actualizar',seguridad(), actualizar);
 router.put('/', eliminar);
 
 async function todos(req, res, next){
@@ -37,6 +38,24 @@ async function agregar(req, res, next){
             mensaje = 'Item actualizado con exito';
        }
        respuesta.success(req, res, resultadoValidacion,201);
+    }catch(err){
+        next(err);
+    }
+}; 
+async function actualizar(req, res, next){
+    try{
+        const actualizacion  = await controlador.actualizar(req.body);
+        if (actualizacion) {
+            console.log(actualizacion)
+            mensaje = 'Marcación actualizada con éxito';
+            respuesta.success(req, res, mensaje, 201);
+        } else {
+            mensaje = 'Marcación no actualizada';
+            respuesta.error(req, res, mensaje, 400);
+
+            // Cambia el código de estado según corresponda
+        }
+       
     }catch(err){
         next(err);
     }

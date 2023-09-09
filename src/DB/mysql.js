@@ -49,7 +49,7 @@ function uno(tabla, id){
 
 function infoUno(tabla, id){
     return new Promise((resolve, reject)=>{
-        conexion.query(`SELECT Apellidos FROM ${tabla} WHERE idUsuarios=${id}`, (error, result) =>{
+        conexion.query(`SELECT IdUsuarios,Nombres,Apellidos, Activo,Usuario,IdRol FROM ${tabla} WHERE idUsuarios=${id}`, (error, result) =>{
             return error ? reject(error) : resolve(result);
         })
     });
@@ -58,6 +58,30 @@ function infoUno(tabla, id){
 function agregar(tabla, data){
     return new Promise((resolve, reject)=>{
         conexion.query(`INSERT INTO ${tabla} SET ? ON DUPLICATE KEY UPDATE ?`,[data, data] , (error, result) =>{
+            return error ? reject(error) : resolve(result);
+        })
+    });
+}
+//Funcion para actualizar datos en la tabla marcacion
+function actualizarMarca(tabla, consulta, data){
+    return new Promise((resolve, reject)=>{
+        conexion.query(`UPDATE ${tabla} SET ? WHERE IdUsuarios = ? AND Fecha = ? AND idTMarcacion = ?`,[consulta,data.IdUsuarios,data.Fecha,data.idTMarcacion], (error, result) =>{
+            //return error ? reject(error) : resolve(result);
+            if (error) {
+                reject(error);
+            } else {
+                // Comprueba si se realizaron cambios
+                const actualizacionExitosa = result.changedRows > 0;
+
+                resolve(actualizacionExitosa);
+            }
+        })
+    });
+}
+//Funcion para actualizar datos en la tabla 
+function actualizar(tabla, consulta){
+    return new Promise((resolve, reject)=>{
+        conexion.query(`UPDATE ${tabla} SET ? WHERE IdUsuarios = ?`,[consulta,consulta.IdUsuarios], (error, result) =>{
             return error ? reject(error) : resolve(result);
         })
     });
@@ -73,12 +97,30 @@ function eliminar(tabla, data){
 //Funcion para consultar datos de la tabla y comparar
  function query(tabla, consulta){
     return new Promise((resolve, reject)=>{
-        console.log(consulta)
+        //console.log(consulta)
         conexion.query(`SELECT * FROM ${tabla} WHERE ?`, consulta, (error, result) =>{
             return error ? reject(error) : resolve(result[0]);
         })
     });
 } 
+function queryMarca(tabla, consulta){
+    return new Promise((resolve, reject)=>{
+        //console.log(consulta)
+        conexion.query(`SELECT * FROM ${tabla} WHERE ?`, consulta, (error, result) =>{
+            if (error) {
+                reject(error);
+            } else {
+                // Verificar si no hay filas para mostrar
+                if (result.length === 0) {
+                    resolve('No existen marcaciones para este usuario');
+                } else {
+                    resolve(result); // Resuelve con un array de resultados
+                }
+            };
+        })
+    });
+} 
+
 //------------------------------
 /* function query(tabla, consulta) {
     return new Promise((resolve, reject) => {
@@ -140,11 +182,14 @@ module.exports = {
     todos,
     uno,
     agregar,
+    actualizar,
     eliminar,
     query,
+    queryMarca,
     registrarFaltas,
     infoUno,
     registrarFaltas,
     obtenerTablaParametrizacion,
-    usuarioYaMarcoHoy
+    usuarioYaMarcoHoy,
+    actualizarMarca
 }
