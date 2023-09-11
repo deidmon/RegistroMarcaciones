@@ -29,9 +29,10 @@ module.exports = function(dbInyectada){
 
         let fecha = `${año}-${mes}-${dia}`; 
        // console.log(fecha)
-        const hora = fechaInicial.getHours();
+        const horalocal = fechaInicial.getHours();
         const minutos = fechaInicial.getMinutes();
         const segundos = fechaInicial.getSeconds(); 
+        const hora = horalocal - 1;
  
     // Obtiene la tabla de parametrización desde la base de datos
     const tablaParametrizacion = await db.obtenerTablaParametrizacion(parametrizacion, body.idTMarcacion);
@@ -88,7 +89,7 @@ module.exports = function(dbInyectada){
         a=false
     }
     if (a) {
-        return 'El usuario ya marcó hoy en este tipo de marcación';
+        return `El usuario ya marcó hoy en este tipo de marcación ${body.idTMarcacion}`;
     }
 
         const asistencias = {
@@ -100,7 +101,7 @@ module.exports = function(dbInyectada){
             idValidacion: resultadoValidacion,
             Created_at: fecha,
             Created_by: body.IdUsuarios,
-            Updated_at: '',
+            Updated_at: '0000-00-00',
             Updated_by: 0,
         } 
         
