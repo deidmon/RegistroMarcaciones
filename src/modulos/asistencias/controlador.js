@@ -24,7 +24,7 @@ module.exports = function(dbInyectada){
         }
         const id = data.IdUsuarios;
 
-        let fechaInicial = new Date() || '';
+        /* let fechaInicial = new Date() || '';
         let dia = fechaInicial.getDate().toString().padStart(2, '0'); // Agrega ceros a la izquierda si es necesario
         let mes = (fechaInicial.getMonth() + 1).toString().padStart(2, '0'); // Agrega ceros a la izquierda si es necesario
         let año = fechaInicial.getFullYear().toString();
@@ -37,27 +37,27 @@ module.exports = function(dbInyectada){
         //const hora = horalocal - 1;
         //const hora = horalocal; 
         console.log(hora)
-        //console.log(horalocal)
+        //console.log(horalocal) */
         //----------------------------------------
-        /* let fechaInicial =  moment();
+        let fechaInicial =  moment();
         let dia = fechaInicial.format('DD'); // Agrega ceros a la izquierda si es necesario
         let mes = fechaInicial.format('MM'); // Agrega ceros a la izquierda si es necesario
         let año = fechaInicial.format('YYYY');
 
         let fecha = `${año}-${mes}-${dia}`; 
        // console.log(fecha)
-        const horalocal = fechaInicial.format('HH');
+        const hora = fechaInicial.format('HH');
         const minutos = fechaInicial.format('mm');
         const segundos = fechaInicial.format('ss'); 
         //const hora = horalocal - 1;
-        const hora = horalocal; */
+        //const hora = horalocal;
  
     // Obtiene la tabla de parametrización desde la base de datos
     const tablaParametrizacion = await db.obtenerTablaParametrizacion(parametrizacion, body.idTMarcacion);
     // Compara la hora enviada con la tabla de parametrización
-    //const horaFormateada = `${hora}:${minutos}`;
-    const horaFormateada = '09:06';
-    console.log(horaFormateada)
+    const horaFormateada = `${hora}:${minutos}`;
+    //const horaFormateada = '13:05';
+    //console.log(horaFormateada)
      // Función para validar la hora
     function validarHora(horaFormateada) {
         const [hora, minutos] = horaFormateada.split(':'); // Convierte la cadena en dos números
@@ -89,7 +89,7 @@ module.exports = function(dbInyectada){
     //const fecha2 = '2023-09-08'; 
     //------------------opcion 2
     const resultadoValidacion = validarHora(horaFormateada);
-    console.log(resultadoValidacion);
+    //console.log(resultadoValidacion);
     let b = '';
     if (resultadoValidacion === 0) {
         b = 'Estás marcando en un horario no permitido';
