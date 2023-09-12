@@ -164,6 +164,7 @@ function obtenerTablaParametrizacion(tabla,idTipoMarcaciones) {
         });
     });
 }
+
 // //Tabla de parametrizaciones
 // function obtenerTablaParametrizacion(tabla,) {
 //     return new Promise((resolve, reject) => {
@@ -205,5 +206,6 @@ module.exports = {
     registrarFaltas,
     obtenerTablaParametrizacion,
     usuarioYaMarcoHoy,
-    actualizarMarca
+    actualizarMarca,
+    
 }

@@ -1,6 +1,8 @@
+const moment = require('moment-timezone');
 const TABLA = 'asistencias';
 const TABLAUSER = 'usuarios';
 const parametrizacion = 'parametrizacion';
+moment.tz.setDefault('America/Lima');
 module.exports = function(dbInyectada){
 
     let db = dbInyectada;
@@ -29,32 +31,48 @@ module.exports = function(dbInyectada){
 
         let fecha = `${año}-${mes}-${dia}`; 
        // console.log(fecha)
-        const horalocal = fechaInicial.getHours();
+        const hora = fechaInicial.getHours();
         const minutos = fechaInicial.getMinutes();
         const segundos = fechaInicial.getSeconds(); 
-        const hora = horalocal - 1;
+        //const hora = horalocal - 1;
+        //const hora = horalocal; 
+        console.log(hora)
+        //console.log(horalocal)
+        //----------------------------------------
+        /* let fechaInicial =  moment();
+        let dia = fechaInicial.format('DD'); // Agrega ceros a la izquierda si es necesario
+        let mes = fechaInicial.format('MM'); // Agrega ceros a la izquierda si es necesario
+        let año = fechaInicial.format('YYYY');
+
+        let fecha = `${año}-${mes}-${dia}`; 
+       // console.log(fecha)
+        const horalocal = fechaInicial.format('HH');
+        const minutos = fechaInicial.format('mm');
+        const segundos = fechaInicial.format('ss'); 
+        //const hora = horalocal - 1;
+        const hora = horalocal; */
  
     // Obtiene la tabla de parametrización desde la base de datos
     const tablaParametrizacion = await db.obtenerTablaParametrizacion(parametrizacion, body.idTMarcacion);
     // Compara la hora enviada con la tabla de parametrización
     //const horaFormateada = `${hora}:${minutos}`;
-    const horaFormateada = `${hora}:${minutos}`;
-    
-    // Función para validar la hora
+    const horaFormateada = '09:06';
+    console.log(horaFormateada)
+     // Función para validar la hora
     function validarHora(horaFormateada) {
         const [hora, minutos] = horaFormateada.split(':'); // Convierte la cadena en dos números
 
         for (const fila of tablaParametrizacion) {
             const [horaInicio, minutosInicio] = fila.HoraInicio.split(':'); // Convierte las cadenas en dos números
             const [horaFin, minutosFin] = fila.HoraFin.split(':'); // Convierte las cadenas en dos números
-
+            
             const horaEnMinutos = parseInt(hora) * 60 + parseInt(minutos);
             const horaInicioEnMinutos = parseInt(horaInicio) * 60 + parseInt(minutosInicio);
             const horaFinEnMinutos = parseInt(horaFin) * 60 + parseInt(minutosFin);
 
             if (horaEnMinutos >= horaInicioEnMinutos && horaEnMinutos <= horaFinEnMinutos) {
             // La hora enviada está dentro del rango de la tabla de parametrización
-                const idValidacion = fila.IdValidacion;
+                const idValidacion = fila.idValidacion;
                         switch (idValidacion) {
                         case 1:
                             return 1;
@@ -65,11 +83,29 @@ module.exports = function(dbInyectada){
                         }
                     }
                 }
-            return 3;
+            //return 3;
+            return 0;
     }
     //const fecha2 = '2023-09-08'; 
-
+    //------------------opcion 2
     const resultadoValidacion = validarHora(horaFormateada);
+    console.log(resultadoValidacion);
+    let b = '';
+    if (resultadoValidacion === 0) {
+        b = 'Estás marcando en un horario no permitido';
+        return b
+      } else if (resultadoValidacion === 1) {
+        b = 'Conforme';
+      } else if (resultadoValidacion === 2) {
+        b = 'Tardanza';
+      } else if (resultadoValidacion === 3) {
+        b = 'Falta';
+      } 
+
+
+    //_---------------------------------------------
+/*     const resultadoValidacion = validarHora(horaFormateada);
+    console.log(resultadoValidacion);
     let b = '';
 
   if (resultadoValidacion === 1) {
@@ -78,7 +114,7 @@ module.exports = function(dbInyectada){
     b = 'tardanza';
   } else if (resultadoValidacion === 3) {
     b = 'falta';
-  } 
+  }  */
   const yaMarcoHoy = await db.usuarioYaMarcoHoy(TABLA, body.IdUsuarios,fecha, body.idTMarcacion);
   
  // console.log(yaMarcoHoy)
