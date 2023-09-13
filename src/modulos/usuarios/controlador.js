@@ -52,10 +52,22 @@ module.exports = function(dbInyectada){
         })
     } */
     async function consultarMarcas(IdRol, idUsuario){
-        if (!IdRol) {
+        if (IdRol!=1) {
             throw new Error("Datos incorrectos");
         }
         const data = await db.queryMarca(TABLAMARCA, {idUsuarios: idUsuario});
+        if (!data) {
+            throw new Error("Usuario incorrecto");
+        } else{
+            return data;
+        }
+        
+    }
+    async function consultarMarcasDia(IdRol, fecha){
+        if (IdRol!=1) {
+            throw new Error("Datos incorrectos");
+        }
+        const data = await db.queryMarca(TABLAMARCA, {Fecha: fecha});
         if (!data) {
             throw new Error("Usuario incorrecto");
         } else{
@@ -123,6 +135,7 @@ module.exports = function(dbInyectada){
         eliminar,
         infoUno,
         consultarUser,
-        consultarMarcas
+        consultarMarcas,
+        consultarMarcasDia
     }
 }

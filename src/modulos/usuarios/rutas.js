@@ -11,6 +11,7 @@ const router = express.Router();
 //router.get('/:id',uno);
 router.get('/', seguridad(),consultarUser);
 router.get('/marcacion', seguridad(),consultarMarcas); 
+router.get('/marcacionDia', seguridad(),consultarMarcasDia); 
 router.post('/actualizar', agregar);
 router.put('/', eliminar);
 
@@ -55,6 +56,14 @@ async function consultarUser(req, res, next) {
 async function consultarMarcas(req, res, next) {
     try{
         const user = await controlador.consultarMarcas(req.body.idRol, req.body.idUsuario);
+        respuesta.success(req, res, user, 200);
+    }catch(err){
+        next(err);
+    }
+}
+async function consultarMarcasDia(req, res, next) {
+    try{
+        const user = await controlador.consultarMarcasDia(req.body.idRol, req.body.Fecha);
         respuesta.success(req, res, user, 200);
     }catch(err){
         next(err);

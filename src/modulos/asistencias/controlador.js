@@ -4,7 +4,12 @@ const TABLAUSER = 'usuarios';
 const parametrizacion = 'parametrizacion';
 moment.tz.setDefault('America/Lima');
 module.exports = function(dbInyectada){
+    let fechaInicial =  moment();
+        let dia = fechaInicial.format('DD'); // Agrega ceros a la izquierda si es necesario
+        let mes = fechaInicial.format('MM'); // Agrega ceros a la izquierda si es necesario
+        let año = fechaInicial.format('YYYY');
 
+        let fecha = `${año}-${mes}-${dia}`; 
     let db = dbInyectada;
 
     if(!db){
@@ -170,6 +175,9 @@ module.exports = function(dbInyectada){
             Hora: body.Hora,
             idTMarcacion:body.idTMarcacion ,
             idValidacion:body.idValidacion,
+            Updated_by: body.IdUsuariosM,
+            Updated_at: fecha,
+
             
         }
         if(body.IdRol == 1){
