@@ -138,7 +138,7 @@ function queryMarca(tabla, consulta){
 //Funcion para Sacar los id de toda la tabla 
 function registrarFaltas(tabla,tabla2, consulta){
     return new Promise((resolve, reject)=>{
-        conexion.query(`SELECT U.IdUsuarios FROM ${tabla} U LEFT JOIN ${tabla2} R ON U.IdUsuarios = R.IdUsuarios AND DATE(R.Fecha) = CURDATE() WHERE R.IdUsuarios IS NULL`, consulta, (error, result) =>{
+        conexion.query(`SELECT DISTINCT U.IdUsuarios FROM ${tabla} U LEFT JOIN ${tabla2} R ON U.IdUsuarios = R.IdUsuarios AND DATE(R.Fecha) = CURDATE() WHERE (R.IdUsuarios IS NULL OR R.idTMarcacion <> ?) AND U.IdRol != 2;`, consulta, (error, result) =>{
             if (error) {
                 reject(error);
               } else {
@@ -146,11 +146,9 @@ function registrarFaltas(tabla,tabla2, consulta){
                 const usuariosSinRegistro = result.map((row) => row.IdUsuarios);
                 resolve(usuariosSinRegistro);
               }       
-
         })
     });
 }
-
 //Tabla de parametrizaciones
 function obtenerTablaParametrizacion(tabla,idTipoMarcaciones) {
     return new Promise((resolve, reject) => {

@@ -1,14 +1,41 @@
+const moment = require('moment-timezone');
 const cron = require('node-cron');
 const express = require('express');
 const db = require('../../DB/mysql'); 
 const TABLA = 'asistencias';
 const tabla2 = 'usuarios'
+moment.tz.setDefault('America/Lima');
 
 async function registrarFaltasController() {
+/*   const fechaInicial = new Date() || '';
+  const horaInicial = fechaInicial.getHours();
+  const min = fechaInicial.getMinutes();
+  const segundos = fechaInicial.getSeconds();  */
+  
+  /// usando moment()
+  let fechaInicial =  moment();
+  const horaInicial = fechaInicial.format('HH');
+  const min = fechaInicial.format('mm');
+  const segundos = fechaInicial.format('ss');
+  //----------------
+  const horaFormateada = '15:17'//`${horaInicial}:${min}`;
+  const [hora, minutos] = horaFormateada.split(':');
+  const horaEnMinutos = parseInt(hora) * 60 + parseInt(minutos);
 
+  //comprobar la hora
+  if(horaEnMinutos >= 556 && horaEnMinutos <= 719){
+    idTMarcacion = 1
+  }else if (horaEnMinutos  >= 796 && horaEnMinutos <= 834){
+    idTMarcacion = 2
+  }else if (horaEnMinutos  >= 905 && horaEnMinutos <= 1079){
+    idTMarcacion = 3
+  }else if (horaEnMinutos >= 1205 && horaEnMinutos <= 1439){
+    idTMarcacion = 4
+  }
+   
   let fecha = new Date() || '';
   try {
-    const usuariosSinRegistro = await db.registrarFaltas(tabla2,TABLA);
+    const usuariosSinRegistro = await db.registrarFaltas(tabla2,TABLA, idTMarcacion);
     console.log('Resultado de la consulta:', usuariosSinRegistro);
 
     if (usuariosSinRegistro && usuariosSinRegistro.length > 0) {
@@ -16,7 +43,8 @@ async function registrarFaltasController() {
         const registro = {
           IdUsuarios: idUsuario,
           Fecha: fecha,
-          Validacion: 3,
+          idTMarcacion: idTMarcacion,
+          idValidacion: 3,
         };
 
         console.log('Registrando falta para el usuario Id:', idUsuario );
@@ -38,16 +66,34 @@ async function registrarFaltasController() {
   }
 }
 
-/* cron.schedule('25 19 * * *', async () => {
+cron.schedule('58 11 * * *', async () => {
   try {
     const mensaje = await registrarFaltasController();
-    console.log(`Ejecución programada a las 3 AM: ${mensaje}`);
+    console.log(`Ejecución programada a las 18:52 AM: ${mensaje}`);
   } catch (error) {
     console.error('Error en la ejecución programada:', error);
   }
-}); */
+});
 
-cron.schedule('53 18 * * *', async () => {
+cron.schedule('53 13 * * *', async () => {
+  try {
+    const mensaje = await registrarFaltasController();
+    console.log(`Ejecución programada a las 18:52 AM: ${mensaje}`);
+  } catch (error) {
+    console.error('Error en la ejecución programada:', error);
+  }
+});
+
+cron.schedule('58 17 * * *', async () => {
+  try {
+    const mensaje = await registrarFaltasController();
+    console.log(`Ejecución programada a las 18:52 AM: ${mensaje}`);
+  } catch (error) {
+    console.error('Error en la ejecución programada:', error);
+  }
+});
+
+cron.schedule('58 23 * * *', async () => {
   try {
     const mensaje = await registrarFaltasController();
     console.log(`Ejecución programada a las 18:52 AM: ${mensaje}`);
