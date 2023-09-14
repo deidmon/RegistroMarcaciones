@@ -189,7 +189,47 @@ function usuarioYaMarcoHoy(tabla, IdUsuarios,fechaHoy,idTMarcacion) {
     });
 }
  
-
+//funcion para comparar las ubicaciones del usuario con la de direcciones
+function CompararUbicacion(tabla,tabla2,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT IdUsuarios, IdDireccion,Direccion FROM ${tabla} u INNER JOIN ${tabla2} d ON u.IdDirec = d.IdDireccion 
+        WHERE
+        u.IdUsuarios = ? AND
+        6371 * 2 * ASIN(SQRT(
+            POWER(SIN(RADIANS(? - d.Latitud) / 2), 2) +
+            COS(RADIANS(?)) * COS(RADIANS(d.Latitud)) *
+            POWER(SIN(RADIANS(? - d.Longitud) / 2), 2)
+        )) * 1000 <= ?
+    
+        UNION ALL
+ 
+        SELECT IdUsuarios, IdDirecSecu,Direccion FROM ${tabla} u INNER JOIN ${tabla2} d ON u.IdDirecSecu = d.IdDireccion
+        WHERE
+        u.IdUsuarios = ? AND
+            6371 * 2 * ASIN(SQRT(
+                POWER(SIN(RADIANS(? - d.Latitud) / 2), 2) +
+                COS(RADIANS(?)) * COS(RADIANS(d.Latitud)) *
+                POWER(SIN(RADIANS(? - d.Longitud) / 2), 2)
+            )) * 1000 <= ?;`;
+            // const params = [
+            //     data.IdUsuarios,
+            //     data.latitudUsuario, data.latitudUsuario,
+            //     data.longitudUsuario, data.radioMetros,
+            //     data.IdUsuarios,
+            //     data.latitudUsuario, data.latitudUsuario,
+            //     data.longitudUsuario, data.radioMetros
+            // ];
+        conexion.query(query, [IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros], (error, result) => {
+            console.log(query)
+            if (error) {
+                reject(error);
+            } else {
+                resolve(result);
+            }
+        });
+    });
+}
+ 
 
 module.exports = {
     todos,
@@ -205,5 +245,6 @@ module.exports = {
     obtenerTablaParametrizacion,
     usuarioYaMarcoHoy,
     actualizarMarca,
+    CompararUbicacion
     
 }

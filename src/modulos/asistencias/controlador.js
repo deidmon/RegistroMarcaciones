@@ -2,6 +2,7 @@ const moment = require('moment-timezone');
 const TABLA = 'asistencias';
 const TABLAUSER = 'usuarios';
 const parametrizacion = 'parametrizacion';
+const direcciones = 'direcciones';
 moment.tz.setDefault('America/Lima');
 module.exports = function(dbInyectada){
     let fechaInicial =  moment();
@@ -23,27 +24,30 @@ module.exports = function(dbInyectada){
     }
 
     async function agregar(body){
+        const radioMetros = 50;
+        // const params = [ 
+        //     idUsuario,
+        //     data.latitudUsuario, data.latitudUsuario,
+        //     data.longitudUsuario, data.radioMetros,
+        //     idUsuario,
+        //     data.latitudUsuario, data.latitudUsuario,
+        //     data.longitudUsuario, data.radioMetros
+        // ];
+        const ubicaciones =await db.CompararUbicacion(TABLAUSER,direcciones,body.IdUsuarios,body.IdLatitud,body.IdLatitud,body.IdLongitud,radioMetros,body.IdUsuarios,body.IdLatitud,body.IdLatitud,body.IdLongitud,radioMetros)
+        console.log("ubicaciones",ubicaciones)
+        if (ubicaciones.length > 0) {
+            // Acceder al valor de IdDireccion del primer resultado
+            const primerResultado = ubicaciones[0];
+            const IdDireccion = primerResultado.IdDireccion;
+            const NDireccion =primerResultado.Direccion
+            console.log("IdDireccion:", IdDireccion);
+
         const data = await db.query(TABLAUSER, {IdUsuarios: body.IdUsuarios});
         if (!data) {
             throw new Error("Usuario incorrecto");
         }
         const id = data.IdUsuarios;
 
-        /* let fechaInicial = new Date() || '';
-        let dia = fechaInicial.getDate().toString().padStart(2, '0'); // Agrega ceros a la izquierda si es necesario
-        let mes = (fechaInicial.getMonth() + 1).toString().padStart(2, '0'); // Agrega ceros a la izquierda si es necesario
-        let año = fechaInicial.getFullYear().toString();
-
-        let fecha = `${año}-${mes}-${dia}`; 
-       // console.log(fecha)
-        const hora = fechaInicial.getHours();
-        const minutos = fechaInicial.getMinutes();
-        const segundos = fechaInicial.getSeconds(); 
-        //const hora = horalocal - 1;
-        //const hora = horalocal; 
-        console.log(hora)
-        //console.log(horalocal) */
-        //----------------------------------------
         let fechaInicial =  moment();
         let dia = fechaInicial.format('DD'); // Agrega ceros a la izquierda si es necesario
         let mes = fechaInicial.format('MM'); // Agrega ceros a la izquierda si es necesario
@@ -61,9 +65,7 @@ module.exports = function(dbInyectada){
     const tablaParametrizacion = await db.obtenerTablaParametrizacion(parametrizacion, body.idTMarcacion);
     // Compara la hora enviada con la tabla de parametrización
     const horaFormateada = `${hora}:${minutos}`;
-    //const horaFormateada = '13:05';
-    //console.log(horaFormateada)
-     // Función para validar la hora
+ 
     function validarHora(horaFormateada) {
         const [hora, minutos] = horaFormateada.split(':'); // Convierte la cadena en dos números
 
@@ -107,19 +109,6 @@ module.exports = function(dbInyectada){
         b = 'Falta';
       } 
 
-
-    //_---------------------------------------------
-/*     const resultadoValidacion = validarHora(horaFormateada);
-    console.log(resultadoValidacion);
-    let b = '';
-
-  if (resultadoValidacion === 1) {
-    b = 'conforme';
-  } else if (resultadoValidacion === 2) {
-    b = 'tardanza';
-  } else if (resultadoValidacion === 3) {
-    b = 'falta';
-  }  */
   const yaMarcoHoy = await db.usuarioYaMarcoHoy(TABLA, body.IdUsuarios,fecha, body.idTMarcacion);
   
  // console.log(yaMarcoHoy)
@@ -136,6 +125,7 @@ module.exports = function(dbInyectada){
         const asistencias = {
             IdAsistencias:body.id,
             IdUsuarios: body.IdUsuarios,
+            IdDirec: IdDireccion,
             Fecha: fecha,
             Hora: horaFormateada,
             idTMarcacion: body.idTMarcacion ,
@@ -147,8 +137,13 @@ module.exports = function(dbInyectada){
         } 
         
         const respuesta = await db.agregar(TABLA, asistencias);
-         return b;
+        return [`Registrado como: ${b}`,`Ubicacion: ${NDireccion}`]
+        }else{
+            return  mensajeUbicacion = 'Estas fuera del rango de la ubicacion';
+        }
+        
     }
+
         
     function eliminar(body){
         return db.eliminar(TABLA, body);

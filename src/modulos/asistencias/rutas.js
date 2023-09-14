@@ -33,11 +33,11 @@ async function agregar(req, res, next){
     try{
         const resultadoValidacion  = await controlador.agregar(req.body);
         
-       if(req.body.IdAsistencias == 0){ 
+      /*  if(req.body.IdAsistencias == 0){ 
             mensaje = "Guardado con exito";
        }else{
             mensaje = 'Item actualizado con exito';
-       }
+       } */
        respuesta.success(req, res, resultadoValidacion,201);
     }catch(err){
         next(err);
