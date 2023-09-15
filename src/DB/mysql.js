@@ -122,6 +122,25 @@ function queryMarca(tabla,tabla2 ,consulta){
         })
     });
 } 
+function queryMarca2(tabla,tabla2 ,consulta){
+    return new Promise((resolve, reject)=>{
+        //console.log(consulta)
+        conexion.query(`SELECT a.IdUsuarios, a.IdDirec,d.Direccion ,DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS Fecha, a.Hora, a.idTMarcacion,a.idValidacion, v.descripcion FROM ${tabla} a INNER JOIN ${tabla2} v ON a.idValidacion = v.idValidacion 
+        LEFT JOIN direcciones d ON a.IdDirec = d.IdDireccion
+        WHERE MONTH(a.Fecha) = MONTH(CURRENT_DATE()) AND YEAR(a.Fecha) = YEAR(CURRENT_DATE())  AND a.Fecha=?`, consulta, (error, result) =>{
+            if (error) {
+                reject(error);
+            } else {
+                // Verificar si no hay filas para mostrar
+                if (result.length === 0) {
+                    resolve('No existen marcaciones para este usuario');
+                } else {
+                    resolve(result); // Resuelve con un array de resultados
+                }
+            };
+        })
+    });
+} 
 
 //------------------------------
 /* function query(tabla, consulta) {
@@ -241,6 +260,7 @@ module.exports = {
     eliminar,
     query,
     queryMarca,
+    queryMarca2,
     registrarFaltas,
     infoUno,
     registrarFaltas,

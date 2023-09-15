@@ -9,6 +9,7 @@ const router = express.Router();
 
 //router.get('/',todos);
 //router.get('/:id',uno);
+router.get('/tiposmarcacion', todosTipoMarcacion);
 router.get('/', seguridad(),consultarUser);
 router.get('/marcacion', seguridad(),consultarMarcas); 
 router.get('/marcacionDia', seguridad(),consultarMarcasDia); 
@@ -92,5 +93,12 @@ async function eliminar(req, res, next){
         next(err);
     }
 }; 
-
+async function todosTipoMarcacion(req, res, next) {
+    try{
+        const user = await controlador.todosTipoMarcacion();
+        respuesta.success(req, res, user, 200);
+    }catch(err){
+        next(err);
+    }
+}
 module.exports = router;   

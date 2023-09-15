@@ -64,7 +64,7 @@ module.exports = function(dbInyectada){
     // Obtiene la tabla de parametrización desde la base de datos
     const tablaParametrizacion = await db.obtenerTablaParametrizacion(parametrizacion, body.idTMarcacion);
     // Compara la hora enviada con la tabla de parametrización
-    const horaFormateada = /* '19:00' */ `${hora}:${minutos}`;
+    const horaFormateada =  /* '09:00' */ `${hora}:${minutos}`;
  
     function validarHora(horaFormateada) {
         const [hora, minutos] = horaFormateada.split(':'); // Convierte la cadena en dos números

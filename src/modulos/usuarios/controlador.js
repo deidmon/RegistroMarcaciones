@@ -1,4 +1,5 @@
 const TABLA = 'usuarios';
+const tipomarcacion='tipomarcaciones';
 const TABLAMARCA = 'asistencias';
 const TABLAVALIDACION = 'validacion';
 const bcrypt =require ('bcrypt');
@@ -68,13 +69,16 @@ module.exports = function(dbInyectada){
         if (IdRol!=1) {
             throw new Error("Datos incorrectos");
         }
-        const data = await db.queryMarca(TABLAMARCA, {Fecha: fecha});
+        const data = await db.queryMarca2(TABLAMARCA,TABLAVALIDACION, fecha);
         if (!data) {
             throw new Error("Usuario incorrecto");
         } else{
             return data;
         }
         
+    }
+    async function todosTipoMarcacion(){
+        return db.todos(tipomarcacion);
     }
     function todos(){
         return db.todos(TABLA);
@@ -137,6 +141,7 @@ module.exports = function(dbInyectada){
         infoUno,
         consultarUser,
         consultarMarcas,
-        consultarMarcasDia
+        consultarMarcasDia,
+        todosTipoMarcacion
     }
 }
