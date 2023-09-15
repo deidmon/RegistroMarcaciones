@@ -73,14 +73,13 @@ module.exports = function(dbInyectada){
             IdRol: body.IdRol,
         }  
         if (body.IdUsuario === 0) {
-            // Agregar un nuevo registro
             const respuesta = await db.agregar(TABLA, usuario);
             return respuesta;
         } else if (body.IdUsuario !== 0) {
             const respuesta = await db.actualizar(TABLA, usuario);
             return respuesta;
         } else {
-            // Manejar un valor inesperado
+            
             throw new Error('El valor de TConsulta no es válido');}
         
         

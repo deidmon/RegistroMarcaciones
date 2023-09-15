@@ -30,7 +30,6 @@ async function consultarMarcas(req, res, next) {
 
 async function agregar(req, res, next){
     try{
-        //const items = await controlador.agregar(req.body);
         const items = await controlador.agregar(req.body);
        if(req.body.IdUsuario == 0){
             mensaje = 'Item guardado con exito';
