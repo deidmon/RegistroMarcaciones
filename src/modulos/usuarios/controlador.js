@@ -71,6 +71,8 @@ module.exports = function(dbInyectada){
             Usuario:user ,
             Contraseña:password,
             IdRol: body.IdRol,
+            IdDirec: body.IdDirec,	
+            IdDirecSecu:body.IdDirecSecu	
         }  
         if (body.IdUsuario === 0) {
             const respuesta = await db.agregar(TABLA, usuario);
