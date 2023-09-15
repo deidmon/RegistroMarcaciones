@@ -7,17 +7,12 @@ const tabla2 = 'usuarios'
 moment.tz.setDefault('America/Lima');
 
 async function registrarFaltasController() {
-/*   const fechaInicial = new Date() || '';
-  const horaInicial = fechaInicial.getHours();
-  const min = fechaInicial.getMinutes();
-  const segundos = fechaInicial.getSeconds();  */
-  
-  /// usando moment()
+
   let fechaInicial =  moment();
   const horaInicial = fechaInicial.format('HH');
   const min = fechaInicial.format('mm');
   const segundos = fechaInicial.format('ss');
-  //----------------
+
   const horaFormateada = '15:17'//`${horaInicial}:${min}`;
   const [hora, minutos] = horaFormateada.split(':');
   const horaEnMinutos = parseInt(hora) * 60 + parseInt(minutos);
