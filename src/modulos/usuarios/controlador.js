@@ -13,6 +13,7 @@ module.exports = function(dbInyectada){
     if(!db){
         db = require('../../DB/mysql');
     }
+
     async function consultarUser(usuario, password){
         if (!usuario || !password) {
             throw new Error("Datos faltantes");
@@ -33,26 +34,7 @@ module.exports = function(dbInyectada){
             }
         })
     }
-/*     async function consultarMarcas(usuario, password){
-        if (!usuario) {
-            throw new Error("Datos faltantes");
-        }
-        const data = await db.query(TABLA, {Usuario: usuario});
-        if (!data) {
-            throw new Error("Usuario incorrecto");
-        }
-        const id = data.IdUsuarios;
 
-        return bcrypt.compare(password, data.Contraseña)
-        .then(resultado =>{
-            if(resultado == true){
-                
-                return queryMarca(TABLAMARCA, {IdUsuarios: id})
-            }else{
-                throw new Error("Credenciales inválidas");
-            }
-        })
-    } */
     async function consultarMarcas(idUsuario){
         if (!idUsuario) {
             throw new Error("Ingrese usuario");
@@ -65,36 +47,16 @@ module.exports = function(dbInyectada){
         }
         
     }
-    async function consultarMarcasDia(IdRol, fecha){
-        if (IdRol!=1) {
-            throw new Error("Datos incorrectos");
-        }
-        const data = await db.queryMarca2(TABLAMARCA,TABLAVALIDACION, fecha);
-        if (!data) {
-            throw new Error("Usuario incorrecto");
-        } else{
-            return data;
-        }
-        
-    }
+
     async function todosTipoMarcacion(){
         return db.todos(tipomarcacion);
     }
-    function todos(){
-        return db.todos(TABLA);
-    }
-    function uno(id){
-        return db.uno(TABLA, id);
-    }
+
     function infoUno(id){
         return db.infoUno(TABLA, id);
     }
+
     async function agregar(body){
-        /* if(body.TConsulta == 0){
-            
-       }else{
-            
-       } */
         let user = body.usuario || '';
         let password = body.contraseña || '';
 
@@ -115,33 +77,21 @@ module.exports = function(dbInyectada){
             const respuesta = await db.agregar(TABLA, usuario);
             return respuesta;
         } else if (body.IdUsuario !== 0) {
-            // Modificar un registro existente
-            /* const condicion = {
-                IdUsuarios: body.id, // Debes especificar la condición para identificar el registro que deseas modificar
-            }
-            const respuesta = await db.actualizar(TABLA, usuario, condicion); */
             const respuesta = await db.actualizar(TABLA, usuario);
             return respuesta;
         } else {
-            // Manejar un valor inesperado de TConsulta
+            // Manejar un valor inesperado
             throw new Error('El valor de TConsulta no es válido');}
         
         
 
     }
     
-    function eliminar(body){
-        return db.eliminar(TABLA, body);
-    }
     return {
-        todos,
-        uno,
         agregar,
-        eliminar,
         infoUno,
         consultarUser,
         consultarMarcas,
-        consultarMarcasDia,
         todosTipoMarcacion
     }
 }

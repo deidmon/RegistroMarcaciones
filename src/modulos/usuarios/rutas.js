@@ -1,50 +1,14 @@
 const express = require('express');
 const seguridad = require('./seguridad');
 const respuesta = require('../../red/respuesta');
-
 const controlador = require('./index');
 const { actualizar } = require('../../DB/mysql');
 
 const router = express.Router();
-
-//router.get('/',todos);
-//router.get('/:id',uno);
 router.get('/tiposmarcacion', todosTipoMarcacion);
 router.get('/', seguridad(),consultarUser);
 router.get('/marcacion', seguridad(),consultarMarcas); 
-router.get('/marcacionDia', seguridad(),consultarMarcasDia); 
 router.post('/actualizar', agregar);
-router.put('/', eliminar);
-
-
-/* async function todos(req, res, next){
-    try{
-        const items = await controlador.todos();
-        respuesta.success(req, res, items, 200);
-    }catch(err){
-        next(err);
-    };  
-} 
-  */       
-
-async function uno(req, res,next){
-    try{
-        const items = await controlador.uno(req.params.id);
-        respuesta.success(req, res, items, 200); 
-    }catch(err){
-        //respuesta.error(req, res, err, 500
-        next(err);
-    }
-}; 
-/* async function infoUno(req, res,next){
-    try{
-        const items = await controlador.infoUno(req.body.idUsuario);
-        respuesta.success(req, res, items, 200); 
-    }catch(err){
-        //respuesta.error(req, res, err, 500
-        next(err);
-    }
-};  */
 
 async function consultarUser(req, res, next) {
     try{
@@ -54,6 +18,7 @@ async function consultarUser(req, res, next) {
         next(err);
     }
 }
+
 async function consultarMarcas(req, res, next) {
     try{
         const user = await controlador.consultarMarcas(req.body.idUsuario);
@@ -62,14 +27,7 @@ async function consultarMarcas(req, res, next) {
         next(err);
     }
 }
-async function consultarMarcasDia(req, res, next) {
-    try{
-        const user = await controlador.consultarMarcasDia(req.body.idRol, req.body.Fecha);
-        respuesta.success(req, res, user, 200);
-    }catch(err){
-        next(err);
-    }
-}
+
 async function agregar(req, res, next){
     try{
         //const items = await controlador.agregar(req.body);
@@ -85,14 +43,6 @@ async function agregar(req, res, next){
     }
 }; 
 
-async function eliminar(req, res, next){
-    try{
-        const items = await controlador.eliminar(req.body);
-        respuesta.success(req, res, 'item elimnado satisfactoriamente', 200); 
-    }catch(err){
-        next(err);
-    }
-}; 
 async function todosTipoMarcacion(req, res, next) {
     try{
         const user = await controlador.todosTipoMarcacion();
