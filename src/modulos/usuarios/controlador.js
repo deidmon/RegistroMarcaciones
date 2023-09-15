@@ -1,5 +1,6 @@
 const TABLA = 'usuarios';
 const TABLAMARCA = 'asistencias';
+const TABLAVALIDACION = 'validacion';
 const bcrypt =require ('bcrypt');
 const { query } = require('express');
 const { queryMarca } = require('../../DB/mysql');
@@ -51,11 +52,11 @@ module.exports = function(dbInyectada){
             }
         })
     } */
-    async function consultarMarcas(IdRol, idUsuario){
-        if (IdRol!=1) {
-            throw new Error("Datos incorrectos");
+    async function consultarMarcas(idUsuario){
+        if (!idUsuario) {
+            throw new Error("Ingrese usuario");
         }
-        const data = await db.queryMarca(TABLAMARCA, {idUsuarios: idUsuario});
+        const data = await db.queryMarca(TABLAMARCA,TABLAVALIDACION, idUsuario);
         if (!data) {
             throw new Error("Usuario incorrecto");
         } else{

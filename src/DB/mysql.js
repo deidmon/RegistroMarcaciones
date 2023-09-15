@@ -103,10 +103,12 @@ function eliminar(tabla, data){
         })
     });
 } 
-function queryMarca(tabla, consulta){
+function queryMarca(tabla,tabla2 ,consulta){
     return new Promise((resolve, reject)=>{
         //console.log(consulta)
-        conexion.query(`SELECT * FROM ${tabla} WHERE ?`, consulta, (error, result) =>{
+        conexion.query(`SELECT a.IdUsuarios, a.IdDirec,d.Direccion ,DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS Fecha, a.Hora, a.idTMarcacion,a.idValidacion, v.descripcion FROM ${tabla} a INNER JOIN ${tabla2} v ON a.idValidacion = v.idValidacion 
+        LEFT JOIN direcciones d ON a.IdDirec = d.IdDireccion
+        WHERE MONTH(a.Fecha) = MONTH(CURRENT_DATE()) AND YEAR(a.Fecha) = YEAR(CURRENT_DATE()) AND a.idTMarcacion = 1 AND a.IdUsuarios=?`, consulta, (error, result) =>{
             if (error) {
                 reject(error);
             } else {

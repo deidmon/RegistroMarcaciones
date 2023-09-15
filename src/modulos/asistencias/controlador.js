@@ -33,7 +33,7 @@ module.exports = function(dbInyectada){
         //     data.latitudUsuario, data.latitudUsuario,
         //     data.longitudUsuario, data.radioMetros
         // ];
-        const ubicaciones =await db.CompararUbicacion(TABLAUSER,direcciones,body.IdUsuarios,body.IdLatitud,body.IdLatitud,body.IdLongitud,radioMetros,body.IdUsuarios,body.IdLatitud,body.IdLatitud,body.IdLongitud,radioMetros)
+        const ubicaciones =await db.CompararUbicacion(TABLAUSER,direcciones,body.IdUsuarios,body.Latitud,body.Latitud,body.Longitud,radioMetros,body.IdUsuarios,body.Latitud,body.Latitud,body.Longitud,radioMetros)
         console.log("ubicaciones",ubicaciones)
         if (ubicaciones.length > 0) {
             // Acceder al valor de IdDireccion del primer resultado
@@ -64,7 +64,7 @@ module.exports = function(dbInyectada){
     // Obtiene la tabla de parametrización desde la base de datos
     const tablaParametrizacion = await db.obtenerTablaParametrizacion(parametrizacion, body.idTMarcacion);
     // Compara la hora enviada con la tabla de parametrización
-    const horaFormateada = `${hora}:${minutos}`;
+    const horaFormateada = /* '19:00' */ `${hora}:${minutos}`;
  
     function validarHora(horaFormateada) {
         const [hora, minutos] = horaFormateada.split(':'); // Convierte la cadena en dos números

@@ -55,7 +55,7 @@ async function consultarUser(req, res, next) {
 }
 async function consultarMarcas(req, res, next) {
     try{
-        const user = await controlador.consultarMarcas(req.body.idRol, req.body.idUsuario);
+        const user = await controlador.consultarMarcas(req.body.idUsuario);
         respuesta.success(req, res, user, 200);
     }catch(err){
         next(err);
