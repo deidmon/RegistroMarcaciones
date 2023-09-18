@@ -3,7 +3,8 @@ const cron = require('node-cron');
 const express = require('express');
 const db = require('../../DB/mysql'); 
 const TABLA = 'asistencias';
-const tabla2 = 'usuarios'
+const tabla2 = 'usuarios';
+const TABLACRON = 'horariocron';
 moment.tz.setDefault('America/Lima');
 
 async function registrarFaltasController() {
@@ -13,7 +14,7 @@ async function registrarFaltasController() {
   const min = fechaInicial.format('mm');
   const segundos = fechaInicial.format('ss');
 
-  const horaFormateada = '15:17'//`${horaInicial}:${min}`;
+  const horaFormateada = /* '15:17' */`${horaInicial}:${min}`;
   const [hora, minutos] = horaFormateada.split(':');
   const horaEnMinutos = parseInt(hora) * 60 + parseInt(minutos);
 
@@ -61,38 +62,34 @@ async function registrarFaltasController() {
   }
 }
 
-cron.schedule('58 11 * * *', async () => {
-  try {
-    const mensaje = await registrarFaltasController();
-    console.log(`Ejecución programada a las 18:52 AM: ${mensaje}`);
-  } catch (error) {
-    console.error('Error en la ejecución programada:', error);
-  }
-});
 
-cron.schedule('53 13 * * *', async () => {
-  try {
-    const mensaje = await registrarFaltasController();
-    console.log(`Ejecución programada a las 18:52 AM: ${mensaje}`);
-  } catch (error) {
-    console.error('Error en la ejecución programada:', error);
+async function iniciarProgramacion() {
+  function programarTarea(cronExpression) {
+    cron.schedule(cronExpression, async () => {
+      try {
+        const mensaje = await registrarFaltasController();
+        console.log(`Ejecución programada a las ${cronExpression}: ${mensaje}`);
+      } catch (error) {
+        console.error('Error en la ejecución programada:', error);
+      }
+    });
   }
-});
+  
+  const tablacron = await db.todos(TABLACRON);
+  const horasCron = tablacron.map((row) => {
+          const hora = row.Horario.split(':'); 
+          const minutos = hora[1];
+          const horas = hora[0];
+        
+          return `${minutos} ${horas} * * *`;
+        });
+  console.log(horasCron);
+  
+  
+  horasCron.forEach((cronExpression) => {
+    programarTarea(cronExpression);
+  });
+}
 
-cron.schedule('58 17 * * *', async () => {
-  try {
-    const mensaje = await registrarFaltasController();
-    console.log(`Ejecución programada a las 18:52 AM: ${mensaje}`);
-  } catch (error) {
-    console.error('Error en la ejecución programada:', error);
-  }
-});
+iniciarProgramacion();
 
-cron.schedule('58 23 * * *', async () => {
-  try {
-    const mensaje = await registrarFaltasController();
-    console.log(`Ejecución programada a las 18:52 AM: ${mensaje}`);
-  } catch (error) {
-    console.error('Error en la ejecución programada:', error);
-  }
-});

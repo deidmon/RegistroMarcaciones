@@ -48,8 +48,7 @@ module.exports = function(dbInyectada){
         const segundos = fechaInicial.format('ss'); 
  
     const tablaParametrizacion = await db.obtenerTablaParametrizacion(parametrizacion, body.idTMarcacion);
-
-    const horaFormateada =  /* '09:00' */ `${hora}:${minutos}`;
+    const horaFormateada =   `${hora}:${minutos}`;
  
     function validarHora(horaFormateada) {
         const [hora, minutos] = horaFormateada.split(':'); 
