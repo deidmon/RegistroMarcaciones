@@ -37,9 +37,10 @@ function todos(tabla){
     });
 }
 
-function infoUno(tabla, id){
+function infoUno(tabla,tabla2, id){
     return new Promise((resolve, reject)=>{
-        conexion.query(`SELECT IdUsuarios,Nombres,Apellidos, Activo,Usuario,IdRol FROM ${tabla} WHERE idUsuarios=${id}`, (error, result) =>{
+        conexion.query(`SELECT IdUsuarios,Nombres,Apellidos, Activo,Usuario,IdRol,IdDirec,d1.Direccion AS DireccionPrimaria, IdDirecSecu, 
+        d2.Direccion AS DireccionSecundaria FROM ${tabla} u INNER JOIN ${tabla2} d1  ON u.IdDirec=d1.IdDireccion INNER JOIN ${tabla2} d2 ON u.IdDirecSecu = d2.IdDireccion WHERE idUsuarios=${id}`, (error, result) =>{
             return error ? reject(error) : resolve(result);
         })
     });
@@ -88,10 +89,11 @@ function query(tabla, consulta){
 function queryMarca(tabla,tabla2 ,consulta){
     return new Promise((resolve, reject)=>{
         
-        conexion.query(`SELECT a.IdUsuarios, a.IdDirec,d.Direccion ,DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS Fecha, a.Hora,
-         a.idTMarcacion,a.idValidacion, v.descripcion FROM ${tabla} a INNER JOIN ${tabla2} v ON a.idValidacion = v.idValidacion 
+        conexion.query(`SELECT a.IdUsuarios, a.IdDirec,d.Direccion ,DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS Fecha, DAYNAME (a.Fecha) AS Día,a.Hora,
+         a.idTMarcacion,a.idValidacion, v.descripcion 
+        FROM ${tabla} a INNER JOIN ${tabla2} v ON a.idValidacion = v.idValidacion 
         LEFT JOIN direcciones d ON a.IdDirec = d.IdDireccion
-        WHERE MONTH(a.Fecha) = MONTH(CURRENT_DATE()) AND YEAR(a.Fecha) = YEAR(CURRENT_DATE()) AND a.idTMarcacion = 1 AND a.IdUsuarios=?`, consulta, (error, result) =>{
+        WHERE YEAR(a.Fecha) = YEAR(CURRENT_DATE()) AND WEEK(a.Fecha) = WEEK(CURRENT_DATE()) AND a.idTMarcacion = 1 AND a.IdUsuarios=?`, consulta, (error, result) =>{
             if (error) {
                 reject(error);
             } else {
@@ -105,7 +107,27 @@ function queryMarca(tabla,tabla2 ,consulta){
         })
     });
 } 
-
+function queryMarcaMes(tabla,tabla2 ,consulta){
+    return new Promise((resolve, reject)=>{
+        
+        conexion.query(`SELECT a.IdUsuarios,a.idValidacion, v.descripcion, count(*) AS Cantidad
+        FROM ${tabla} a INNER JOIN ${tabla2} v ON a.idValidacion = v.idValidacion 
+        LEFT JOIN direcciones d ON a.IdDirec = d.IdDireccion
+        WHERE YEAR(a.Fecha) = YEAR(CURRENT_DATE()) AND MONTH(a.Fecha) = MONTH(CURRENT_DATE())AND a.idTMarcacion = 1 AND a.IdUsuarios=?
+        GROUP BY v.idValidacion`, consulta, (error, result) =>{
+            if (error) {
+                reject(error);
+            } else {
+                
+                if (result.length === 0) {
+                    resolve('No existen marcaciones para este usuario');
+                } else {
+                    resolve(result); 
+                }
+            };
+        })
+    });
+}
 
 
 function registrarFaltas(tabla,tabla2, consulta){
@@ -191,6 +213,7 @@ module.exports = {
     actualizar,
     query,
     queryMarca,
+    queryMarcaMes,
     registrarFaltas,
     infoUno,
     registrarFaltas,

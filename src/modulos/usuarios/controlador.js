@@ -2,6 +2,7 @@ const TABLA = 'usuarios';
 const tipomarcacion='tipomarcaciones';
 const TABLAMARCA = 'asistencias';
 const TABLAVALIDACION = 'validacion';
+const TABLADIRECCIONES ='direcciones';
 const bcrypt =require ('bcrypt');
 const { query } = require('express');
 const { queryMarca } = require('../../DB/mysql');
@@ -40,10 +41,11 @@ module.exports = function(dbInyectada){
             throw new Error("Ingrese usuario");
         }
         const data = await db.queryMarca(TABLAMARCA,TABLAVALIDACION, idUsuario);
+        const dataSemana = await db.queryMarcaMes(TABLAMARCA,TABLAVALIDACION, idUsuario);
         if (!data) {
             throw new Error("Usuario incorrecto");
         } else{
-            return data;
+            return [data,dataSemana];
         }
         
     }
@@ -53,7 +55,7 @@ module.exports = function(dbInyectada){
     }
 
     function infoUno(id){
-        return db.infoUno(TABLA, id);
+        return db.infoUno(TABLA,TABLADIRECCIONES, id);
     }
 
     async function agregar(body){
