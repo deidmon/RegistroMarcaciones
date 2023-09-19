@@ -129,6 +129,24 @@ function queryMarcaMes(tabla,tabla2 ,consulta){
     });
 }
 
+function consultarMarcasDia(tabla,tabla2, tabla3, IdUsuario, Fecha){
+    return new Promise((resolve, reject)=>{
+        //console.log(consulta)
+        conexion.query(`SELECT a.idTMarcacion, a.idValidacion, t.descripcion, v.descripcion FROM ${tabla} a INNER JOIN ${tabla2} t ON a.idTMarcacion = t.idTMarcaciones INNER JOIN ${tabla3} v ON a.idValidacion = v.idValidacion WHERE a.IdUsuarios = ? AND a.Fecha = ? `, [IdUsuario, Fecha], (error, result) =>{
+            return error ? reject(error) : resolve(result);
+            // if (error) {
+            //     reject(error);
+            // } else {
+            //     // Verificar si no hay filas para mostrar
+            //     if (result.length === 0) {
+            //         resolve('No existen marcaciones para este usuario');
+            //     } else {
+            //         resolve(result); // Resuelve con un array de resultados
+            //     }
+            // };
+        })
+    });
+} 
 
 function registrarFaltas(tabla,tabla2, consulta){
     return new Promise((resolve, reject)=>{
@@ -220,6 +238,7 @@ module.exports = {
     obtenerTablaParametrizacion,
     usuarioYaMarcoHoy,
     actualizarMarca,
-    CompararUbicacion
+    CompararUbicacion,
+    consultarMarcasDia
     
 }

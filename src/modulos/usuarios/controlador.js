@@ -1,3 +1,5 @@
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/Lima');
 const TABLA = 'usuarios';
 const tipomarcacion='tipomarcaciones';
 const TABLAMARCA = 'asistencias';
@@ -13,6 +15,25 @@ module.exports = function(dbInyectada){
 
     if(!db){
         db = require('../../DB/mysql');
+    }
+
+    let fechaInicial =  moment();
+    let dia = fechaInicial.format('DD'); // Agrega ceros a la izquierda si es necesario
+    let mes = fechaInicial.format('MM'); // Agrega ceros a la izquierda si es necesario
+    let año = fechaInicial.format('YYYY');
+
+    let fecha = `${año}-${mes}-${dia}`; 
+    async function consultarMarcasDia(IdUsuarios){
+        if (!IdUsuarios) {
+            throw new Error("No viene usuario");
+        }
+        const data = await db.consultarMarcasDia(TABLAMARCA,tipomarcacion,TABLAVALIDACION, IdUsuarios, fecha);
+        if (!data) {
+            throw new Error("No existe marcaciones para este usuario");
+        } else{
+            return data;
+        }
+        
     }
 
     async function consultarUser(usuario, password){
@@ -52,6 +73,13 @@ module.exports = function(dbInyectada){
 
     async function todosTipoMarcacion(){
         return db.todos(tipomarcacion);
+    }
+
+    async function TiposValidacion(){
+        return db.todos(TABLAVALIDACION);
+    }
+    function todos(){
+        return db.todos(TABLA);
     }
 
     function infoUno(id){
@@ -95,6 +123,8 @@ module.exports = function(dbInyectada){
         infoUno,
         consultarUser,
         consultarMarcas,
-        todosTipoMarcacion
+        consultarMarcasDia,
+        todosTipoMarcacion,
+        TiposValidacion
     }
 }

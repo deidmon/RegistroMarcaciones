@@ -6,9 +6,11 @@ const { actualizar } = require('../../DB/mysql');
 
 const router = express.Router();
 router.get('/tiposmarcacion', todosTipoMarcacion);
+router.get('/TiposValidacion',TiposValidacion);
 router.get('/', seguridad(),consultarUser);
 router.get('/marcacion', seguridad(),consultarMarcas); 
 router.post('/actualizar', agregar);
+router.get('/marcacionDia', seguridad(),consultarMarcasDia);
 
 async function consultarUser(req, res, next) {
     try{
@@ -22,6 +24,15 @@ async function consultarUser(req, res, next) {
 async function consultarMarcas(req, res, next) {
     try{
         const user = await controlador.consultarMarcas(req.body.idUsuario);
+        respuesta.success(req, res, user, 200);
+    }catch(err){
+        next(err);
+    }
+}
+
+async function consultarMarcasDia(req, res, next) {
+    try{
+        const user = await controlador.consultarMarcasDia(req.body.IdUsuarios);
         respuesta.success(req, res, user, 200);
     }catch(err){
         next(err);
@@ -45,6 +56,15 @@ async function agregar(req, res, next){
 async function todosTipoMarcacion(req, res, next) {
     try{
         const user = await controlador.todosTipoMarcacion();
+        respuesta.success(req, res, user, 200);
+    }catch(err){
+        next(err);
+    }
+}
+
+async function TiposValidacion(req, res, next) {
+    try{
+        const user = await controlador.TiposValidacion();
         respuesta.success(req, res, user, 200);
     }catch(err){
         next(err);
