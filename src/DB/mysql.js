@@ -29,15 +29,26 @@ function conMysql(){
     })
 }
 conMysql();
-function todos(tabla){
+/* function todos(tabla){
     return new Promise((resolve, reject)=>{
         conexion.query(`SELECT * FROM ${tabla}`, (error, result) =>{
             return error ? reject(error) : resolve(result);  
         })
     });
+} */
+function todos(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM ??';
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
 }
 
-function infoUno(tabla,tabla2, id){
+
+/* function infoUno(tabla,tabla2, id){
     return new Promise((resolve, reject)=>{
         conexion.query(`SELECT IdUsuarios,Nombres,Apellidos, Activo,Usuario,IdRol,IdDirec,d1.Direccion AS DireccionPrimaria, IdDirecSecu, 
         d2.Direccion AS DireccionSecundaria FROM ${tabla} u INNER JOIN ${tabla2} d1  ON u.IdDirec=d1.IdDireccion INNER JOIN ${tabla2} d2 ON u.IdDirecSecu = d2.IdDireccion WHERE idUsuarios=${id}`, (error, result) =>{
@@ -45,14 +56,44 @@ function infoUno(tabla,tabla2, id){
         })
     });
 }
+ */
+function infoUno(tabla, tabla2, id) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT IdUsuarios, Nombres, Apellidos, Activo, Usuario, IdRol, IdDirec, d1.Direccion AS DireccionPrimaria, IdDirecSecu, d2.Direccion AS DireccionSecundaria 
+            FROM ?? u 
+            INNER JOIN ?? d1 ON u.IdDirec = d1.IdDireccion 
+            INNER JOIN ?? d2 ON u.IdDirecSecu = d2.IdDireccion 
+            WHERE idUsuarios = ?`;
 
-function agregar(tabla, data){
+        const values = [tabla, tabla2, tabla2, id];
+        
+        conexion.query(query, values , (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
+
+/* function agregar(tabla, data){
     return new Promise((resolve, reject)=>{
         conexion.query(`INSERT INTO ${tabla} SET ? ON DUPLICATE KEY UPDATE ?`,[data, data] , (error, result) =>{
             return error ? reject(error) : resolve(result);
         })
     });
+} */
+
+function agregar(tabla, data) {
+    return new Promise((resolve, reject) => {
+        
+        const insertQuery = `INSERT INTO ?? SET ? ON DUPLICATE KEY UPDATE ?`;
+        const values = [tabla, data, data];
+
+        conexion.query(insertQuery, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
 }
+
 
 function actualizarMarca(tabla, consulta, data){
     return new Promise((resolve, reject)=>{
@@ -78,15 +119,28 @@ function actualizar(tabla, consulta){
     });
 }
 
-function query(tabla, consulta){
+/* function query(tabla, consulta){
     return new Promise((resolve, reject)=>{
        
         conexion.query(`SELECT * FROM ${tabla} WHERE ?`, consulta, (error, result) =>{
             return error ? reject(error) : resolve(result[0]);
         })
     });
+}  */
+
+function query(tabla, consulta){
+    return new Promise((resolve, reject)=>{
+        const query = `SELECT * FROM ?? WHERE ?`;
+        const values = [tabla, consulta];
+        conexion.query(query, values, (error, result) =>{
+            return error ? reject(error) : resolve(result[0]);
+        })
+    });
 } 
-function queryMarca(tabla,tabla2 ,consulta){
+
+
+
+/* function queryMarca(tabla,tabla2 ,consulta){
     return new Promise((resolve, reject)=>{
         
         conexion.query(`SELECT a.IdUsuarios, a.IdDirec,d.Direccion ,DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS Fecha, DAYNAME (a.Fecha) AS Día,a.Hora,
@@ -106,8 +160,38 @@ function queryMarca(tabla,tabla2 ,consulta){
             };
         })
     });
-} 
-function queryMarcaMes(tabla,tabla2 ,consulta){
+} */
+function queryMarca(tabla, tabla2, consulta) {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT a.IdUsuarios, a.IdDirec, d.Direccion, DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS Fecha, DAYNAME(a.Fecha) AS Día, a.Hora,
+                a.idTMarcacion, a.idValidacion, v.descripcion 
+            FROM ?? a
+            INNER JOIN ?? v ON a.idValidacion = v.idValidacion
+            LEFT JOIN direcciones d ON a.IdDirec = d.IdDireccion
+            WHERE YEAR(a.Fecha) = YEAR(CURRENT_DATE())
+                AND WEEK(a.Fecha) = WEEK(CURRENT_DATE())
+                AND a.idTMarcacion = 1
+                AND a.IdUsuarios = ?`;
+
+        const values = [tabla, tabla2, consulta];
+
+        conexion.query(query, values, (error, result) => {
+            if (error) {
+                reject(error);
+            } else {
+                if (result.length === 0) {
+                    resolve('No existen marcaciones para este usuario');
+                } else {
+                    resolve(result);
+                }
+            }
+        });
+    });
+}
+
+
+/*  function queryMarcaMes(tabla,tabla2 ,consulta){
     return new Promise((resolve, reject)=>{
         
         conexion.query(`SELECT a.IdUsuarios,a.idValidacion, v.descripcion, count(*) AS Cantidad
@@ -127,9 +211,39 @@ function queryMarcaMes(tabla,tabla2 ,consulta){
             };
         })
     });
+} */
+function queryMarcaMes(tabla, tabla2, consulta) {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT a.IdUsuarios, a.idValidacion, v.descripcion, COUNT(*) AS Cantidad
+            FROM ?? a
+            INNER JOIN ?? v ON a.idValidacion = v.idValidacion
+            LEFT JOIN direcciones d ON a.IdDirec = d.IdDireccion
+            WHERE YEAR(a.Fecha) = YEAR(CURRENT_DATE()) 
+                AND MONTH(a.Fecha) = MONTH(CURRENT_DATE())
+                AND a.idTMarcacion = 1
+                AND a.IdUsuarios = ?
+            GROUP BY v.idValidacion`;
+
+        const values = [tabla, tabla2, consulta]; 
+        conexion.query(query, values, (error, result) => {
+            if (error) {
+                reject(error);
+            } else {
+                if (result.length === 0) {
+                    resolve('No existen marcaciones para este usuario');
+                } else {
+                    resolve(result);
+                }
+            }
+        });
+    });
 }
 
-function consultarMarcasDia(tabla,tabla2, tabla3, IdUsuario, Fecha){
+
+
+
+/* function consultarMarcasDia(tabla,tabla2, tabla3, IdUsuario, Fecha){
     return new Promise((resolve, reject)=>{
         //console.log(consulta)
         conexion.query(`SELECT a.idTMarcacion, a.idValidacion, t.descripcion, v.descripcion FROM ${tabla} a INNER JOIN ${tabla2} t ON a.idTMarcacion = t.idTMarcaciones INNER JOIN ${tabla3} v ON a.idValidacion = v.idValidacion WHERE a.IdUsuarios = ? AND a.Fecha = ? `, [IdUsuario, Fecha], (error, result) =>{
@@ -146,7 +260,22 @@ function consultarMarcasDia(tabla,tabla2, tabla3, IdUsuario, Fecha){
             // };
         })
     });
-} 
+}  */
+function consultarMarcasDia(tabla, tabla2, tabla3, IdUsuario, Fecha) {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT a.idTMarcacion, a.idValidacion, t.descripcion, v.descripcion 
+            FROM ?? a 
+            INNER JOIN ?? t ON a.idTMarcacion = t.idTMarcaciones 
+            INNER JOIN ?? v ON a.idValidacion = v.idValidacion 
+            WHERE a.IdUsuarios = ? AND a.Fecha = ?`;
+        const values = [tabla, tabla2, tabla3, IdUsuario, Fecha];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
 
 function registrarFaltas(tabla,tabla2, consulta){
     return new Promise((resolve, reject)=>{
