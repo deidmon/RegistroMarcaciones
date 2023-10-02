@@ -172,7 +172,7 @@ function queryMarcaMes(tabla, tabla2, consulta) {
 function consultarMarcasDia(tabla, tabla2, tabla3, IdUsuario, Fecha) {
     return new Promise((resolve, reject) => {
         const query = `
-            SELECT a.idTMarcacion, a.idValidacion, t.descripcion, v.descripcion 
+            SELECT a.idTMarcacion,LOWER(TIME_FORMAT(STR_TO_DATE(a.Hora, '%H:%i:%s'), '%h:%i:%s %p')) AS 'Hora',t.descripcion AS 'Tipo marcación', a.idValidacion, v.descripcion AS 'Tipo Validación'
             FROM ?? a 
             INNER JOIN ?? t ON a.idTMarcacion = t.idTMarcaciones 
             INNER JOIN ?? v ON a.idValidacion = v.idValidacion 
