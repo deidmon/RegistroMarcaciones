@@ -57,16 +57,27 @@ module.exports = function(dbInyectada){
         })
     }
 
-    async function consultarMarcas(idUsuario){
+    async function consultarMarcasMes(idUsuario){
         if (!idUsuario) {
             throw new Error("Ingrese usuario");
         }
-        const data = await db.queryMarca(TABLAMARCA,TABLAVALIDACION, idUsuario);
-        const dataSemana = await db.queryMarcaMes(TABLAMARCA,TABLAVALIDACION, idUsuario);
-        if (!data) {
+        const dataMes = await db.queryMarcaMes(TABLAMARCA,TABLAVALIDACION, idUsuario);
+        if (!dataMes) {
             throw new Error("Usuario incorrecto");
         } else{
-            return [data,dataSemana];
+            return [dataMes];
+        }
+        
+    }
+    async function consultarMarcasSemana(idUsuario){
+        if (!idUsuario) {
+            throw new Error("Ingrese usuario");
+        }
+        const dataSemana = await db.queryMarca(TABLAMARCA,TABLAVALIDACION, idUsuario);
+        if (!dataSemana) {
+            throw new Error("Usuario incorrecto");
+        } else{
+            return [dataSemana];
         }
         
     }
@@ -122,7 +133,8 @@ module.exports = function(dbInyectada){
         agregar,
         infoUno,
         consultarUser,
-        consultarMarcas,
+        consultarMarcasMes,
+        consultarMarcasSemana,
         consultarMarcasDia,
         todosTipoMarcacion,
         TiposValidacion

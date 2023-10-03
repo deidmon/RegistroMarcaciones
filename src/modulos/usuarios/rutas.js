@@ -8,7 +8,8 @@ const router = express.Router();
 router.get('/tiposmarcacion', todosTipoMarcacion);
 router.get('/TiposValidacion',TiposValidacion);
 router.get('/', seguridad(),consultarUser);
-router.get('/marcacion', seguridad(),consultarMarcas); 
+router.get('/marcacionMes', seguridad(),consultarMarcasMes); 
+router.get('/marcacionSemana', seguridad(),consultarMarcasSemana); 
 router.post('/actualizar', agregar);
 router.get('/marcacionDia', seguridad(),consultarMarcasDia);
 
@@ -21,9 +22,17 @@ async function consultarUser(req, res, next) {
     }
 }
 
-async function consultarMarcas(req, res, next) {
+async function consultarMarcasMes(req, res, next) {
     try{
-        const user = await controlador.consultarMarcas(req.body.idUsuario);
+        const user = await controlador.consultarMarcasMes(req.body.idUsuario);
+        respuesta.success(req, res, user, 200);
+    }catch(err){
+        next(err);
+    }
+}
+async function consultarMarcasSemana(req, res, next) {
+    try{
+        const user = await controlador.consultarMarcasSemana(req.body.idUsuario);
         respuesta.success(req, res, user, 200);
     }catch(err){
         next(err);
