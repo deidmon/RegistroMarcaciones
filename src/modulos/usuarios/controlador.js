@@ -65,7 +65,7 @@ module.exports = function(dbInyectada){
         if (!dataMes) {
             throw new Error("Usuario incorrecto");
         } else{
-            return [dataMes];
+            return dataMes;
         }
         
     }
@@ -77,7 +77,7 @@ module.exports = function(dbInyectada){
         if (!dataSemana) {
             throw new Error("Usuario incorrecto");
         } else{
-            return [dataSemana];
+            return dataSemana;
         }
         
     }

@@ -41,7 +41,7 @@ async function consultarMarcasSemana(req, res, next) {
 
 async function consultarMarcasDia(req, res, next) {
     try{
-        const user = await controlador.consultarMarcasDia(req.body.IdUsuarios);
+        const user = await controlador.consultarMarcasDia(req.body.idUsuario);
         respuesta.success(req, res, user, 200);
     }catch(err){
         next(err);
