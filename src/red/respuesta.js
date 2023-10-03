@@ -3,7 +3,7 @@ exports.success = function(req, res, mensaje = '', status = 200){
         success: false,
         status_code: status,
         status_message: 'Succesfully',
-        Data: mensaje
+        data: mensaje
     });
 }
 exports.error = function(req, res, mensaje, status){
@@ -13,6 +13,6 @@ exports.error = function(req, res, mensaje, status){
         success: true,
         status_code: statusCode,
         status_message: mensajeError,
-        Data: {}
+        data: {}
     });
 }

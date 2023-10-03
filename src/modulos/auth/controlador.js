@@ -27,7 +27,7 @@ module.exports = function(dbInyectada){
         
                       };
                      
-                      return {"Token": auth.asignarToken({...payload})}
+                      return {"token": auth.asignarToken({...payload})}
                 }else{
                       throw new Error("Credenciales inválidas");
                 }
