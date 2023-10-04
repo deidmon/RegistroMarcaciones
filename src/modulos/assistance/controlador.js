@@ -21,7 +21,7 @@ module.exports = function(dbInyectada){
     async function agregar(body){
         const radioMetros = 50;
 
-        const ubicaciones =await db.CompararUbicacion(TABLAUSER,direcciones,body.IdUsuarios,body.Latitud,body.Latitud,body.Longitud,radioMetros,body.IdUsuarios,body.Latitud,body.Latitud,body.Longitud,radioMetros)
+        const ubicaciones =await db.CompararUbicacion(TABLAUSER,direcciones,body.idUser,body.latitude,body.latitude,body.longitude,radioMetros,body.idUser,body.latitude,body.latitude,body.longitude,radioMetros)
         console.log("ubicaciones",ubicaciones)
         if (ubicaciones.length > 0) {
 
@@ -30,7 +30,7 @@ module.exports = function(dbInyectada){
             const NDireccion =primerResultado.Direccion
             console.log("IdDireccion:", IdDireccion);
 
-        const data = await db.query(TABLAUSER, {IdUsuarios: body.IdUsuarios});
+        const data = await db.query(TABLAUSER, {IdUsuarios: body.idUser});
         if (!data) {
             throw new Error("Usuario incorrecto");
         }
@@ -47,7 +47,7 @@ module.exports = function(dbInyectada){
         const minutos = fechaInicial.format('mm');
         const segundos = fechaInicial.format('ss'); 
  
-    const tablaParametrizacion = await db.obtenerTablaParametrizacion(parametrizacion, body.idTMarcacion);
+    const tablaParametrizacion = await db.obtenerTablaParametrizacion(parametrizacion, body.idTypesMarking);
     const horaFormateada =   `${hora}:${minutos}`;
  
     function validarHora(horaFormateada) {
@@ -88,7 +88,7 @@ module.exports = function(dbInyectada){
         b = 'Falta';
       } 
 
-  const yaMarcoHoy = await db.usuarioYaMarcoHoy(TABLA, body.IdUsuarios,fecha, body.idTMarcacion);
+  const yaMarcoHoy = await db.usuarioYaMarcoHoy(TABLA, body.idUser,fecha, body.idTypesMarking);
 
     var a = false;
     if (yaMarcoHoy.length>0){
@@ -97,19 +97,19 @@ module.exports = function(dbInyectada){
         a=false
     }
     if (a) {
-        return `El usuario ya marcó hoy en este tipo de marcación ${body.idTMarcacion}`;
+        return `El usuario ya marcó hoy en este tipo de marcación ${body.idTypesMarking}`;
     }
 
         const asistencias = {
             IdAsistencias:body.id,
-            IdUsuarios: body.IdUsuarios,
+            IdUsuarios: body.idUser,
             IdDirec: IdDireccion,
             Fecha: fecha,
             Hora: horaFormateada,
-            idTMarcacion: body.idTMarcacion ,
+            idTMarcacion: body.idTypesMarking ,
             idValidacion: resultadoValidacion,
             Created_at: fecha,
-            Created_by: body.IdUsuarios,
+            Created_by: body.idUser,
             Updated_at: '0000-00-00',
             Updated_by: 0,
         } 
@@ -128,16 +128,16 @@ module.exports = function(dbInyectada){
         let user = body.usuario || '';
         let password = body.contraseña || '';
         const Marcacion = {
-            IdUsuarios:body.IdUsuarios,
+            IdUsuarios:body.idUser,
             Fecha: body.Fecha,
             Hora: body.Hora,
-            idTMarcacion:body.idTMarcacion ,
+            idTMarcacion:body.idTypesMarking ,
             idValidacion:body.idValidacion,
             
         } 
         const Modificacion ={
             Hora: body.Hora,
-            idTMarcacion:body.idTMarcacion ,
+            idTMarcacion:body.idTypesMarking ,
             idValidacion:body.idValidacion,
             Updated_by: body.IdUsuariosM,
             Updated_at: fecha,           

@@ -30,7 +30,7 @@ function conMysql(){
 }
 conMysql();
 
-function todosTipoMarcacion(tabla) {
+function allTypeMarking(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT idTMarcaciones AS "idTypesMarking", descripcion AS "description"  FROM ??';
         const values = [tabla];
@@ -50,7 +50,7 @@ function todos(tabla) {
         });
     });
 }
-function todosTipoValidacion(tabla) {
+function allTypeValidation(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT idValidacion AS "idValidation", descripcion AS "description" FROM ??';
         const values = [tabla];
@@ -62,9 +62,9 @@ function todosTipoValidacion(tabla) {
 }
 
 
-function infoUno(tabla, tabla2, id) {
+function userInformation(tabla, tabla2, id) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT IdUsuarios AS "idUser", Nombres AS "name", Apellidos AS "last names", Activo, Usuario AS "user", IdRol, IdDirec, d1.Direccion AS "primaryAddress", IdDirecSecu, d2.Direccion AS "secondaryAddress"
+        const query = `SELECT IdUsuarios AS "idUser", Nombres AS "names", Apellidos AS "lastNames", Activo AS "status", Usuario AS "user", IdRol AS 'idRole', IdDirec AS "idPrimaryAddress", d1.Direccion AS "primaryAddress", IdDirecSecu AS "idSecondaryAddress", d2.Direccion AS "secondaryAddress"
             FROM ?? u 
             INNER JOIN ?? d1 ON u.IdDirec = d1.IdDireccion 
             INNER JOIN ?? d2 ON u.IdDirecSecu = d2.IdDireccion 
@@ -129,11 +129,11 @@ function query(tabla, consulta){
 } 
 
 
-function queryMarca(tabla, tabla2, consulta) {
+function queryMark(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         const query = `
-            SELECT a.IdUsuarios, a.IdDirec, d.Direccion, DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS Fecha, DAYNAME(a.Fecha) AS Día, a.Hora,
-                a.idTMarcacion, a.idValidacion, v.descripcion 
+            SELECT a.IdUsuarios AS "idUser", a.IdDirec AS "idAddress", d.Direccion AS "address", DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS "date", DAYNAME(a.Fecha) AS "day", a.Hora AS "time",
+                a.idTMarcacion AS "idTypesMarking", a.idValidacion AS "idValidation", v.descripcion AS "validation"
             FROM ?? a
             INNER JOIN ?? v ON a.idValidacion = v.idValidacion
             LEFT JOIN direcciones d ON a.IdDirec = d.IdDireccion
@@ -159,10 +159,10 @@ function queryMarca(tabla, tabla2, consulta) {
 }
 
 
-function queryMarcaMes(tabla, tabla2, consulta) {
+function queryMarkMonth(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         const query = `
-            SELECT a.IdUsuarios, a.idValidacion, v.descripcion, COUNT(*) AS Cantidad
+            SELECT a.IdUsuarios AS "idUser", a.idValidacion AS "idValidation", v.descripcion AS "description", COUNT(*) AS "quantity"
             FROM ?? a
             INNER JOIN ?? v ON a.idValidacion = v.idValidacion
             LEFT JOIN direcciones d ON a.IdDirec = d.IdDireccion
@@ -189,10 +189,10 @@ function queryMarcaMes(tabla, tabla2, consulta) {
 
 
 
-function consultarMarcasDia(tabla, tabla2, tabla3, IdUsuario, Fecha) {
+function consultDayMarking (tabla, tabla2, tabla3, IdUsuario, Fecha) {
     return new Promise((resolve, reject) => {
         const query = `
-            SELECT a.idTMarcacion,LOWER(TIME_FORMAT(STR_TO_DATE(a.Hora, '%H:%i:%s'), '%h:%i:%s %p')) AS 'Hora',t.descripcion AS 'Tipo marcación', a.idValidacion, v.descripcion AS 'Tipo Validación'
+            SELECT LOWER(TIME_FORMAT(STR_TO_DATE(a.Hora, '%H:%i:%s'), '%h:%i:%s %p')) AS 'time',a.idTMarcacion AS "idTypesMarking",t.descripcion AS 'typesMarking', a.idValidacion AS "idValidation", v.descripcion AS 'validation'
             FROM ?? a 
             INNER JOIN ?? t ON a.idTMarcacion = t.idTMarcaciones 
             INNER JOIN ?? v ON a.idValidacion = v.idValidacion 
@@ -285,19 +285,19 @@ module.exports = {
 
     agregar,
     todos,
-    todosTipoMarcacion,
-    todosTipoValidacion,
+    allTypeMarking,
+    allTypeValidation,
     actualizar,
     query,
-    queryMarca,
-    queryMarcaMes,
+    queryMark,
+    queryMarkMonth,
     registrarFaltas,
-    infoUno,
+    userInformation,
     registrarFaltas,
     obtenerTablaParametrizacion,
     usuarioYaMarcoHoy,
     actualizarMarca,
     CompararUbicacion,
-    consultarMarcasDia
+    consultDayMarking
     
 }
