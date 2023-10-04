@@ -8,7 +8,7 @@ const TABLADIRECCIONES ='direcciones';
 const bcrypt =require ('bcrypt');
 const { query } = require('express');
 const { queryMarca } = require('../../DB/mysql');
-
+//wilmer 
 module.exports = function(dbInyectada){
 
     let db = dbInyectada;
@@ -83,11 +83,11 @@ module.exports = function(dbInyectada){
     }
 
     async function todosTipoMarcacion(){
-        return db.todosTipoMarcacion(tipomarcacion);
+        return db.todos(tipomarcacion);
     }
 
     async function TiposValidacion(){
-        return db.todosTipoValidacion(TABLAVALIDACION);
+        return db.todos(TABLAVALIDACION);
     }
     function todos(){
         return db.todos(TABLA);
