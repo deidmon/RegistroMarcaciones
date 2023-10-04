@@ -17,8 +17,7 @@ module.exports = function(dbInyectada){
         db = require('../../DB/mysql');
     }
 
-
-    async function agregar(body){
+    async function addMarking(body){
         const radioMetros = 50;
 
         const ubicaciones =await db.CompararUbicacion(TABLAUSER,direcciones,body.idUser,body.latitude,body.latitude,body.longitude,radioMetros,body.idUser,body.latitude,body.latitude,body.longitude,radioMetros)
@@ -71,8 +70,8 @@ module.exports = function(dbInyectada){
                         default:
                             return 3; // Manejo de otros casos
                         }
-                    }
-                }
+            }
+        }
             return 0;
     }
     const resultadoValidacion = validarHora(horaFormateada);
@@ -99,7 +98,6 @@ module.exports = function(dbInyectada){
     if (a) {
         return `El usuario ya marcó hoy en este tipo de marcación ${body.idTypesMarking}`;
     }
-
         const asistencias = {
             IdAsistencias:body.id,
             IdUsuarios: body.idUser,
@@ -114,14 +112,12 @@ module.exports = function(dbInyectada){
             Updated_by: 0,
         } 
         
-        const respuesta = await db.agregar(TABLA, asistencias);
+        const respuesta = await db.add(TABLA, asistencias);
         return [`Registrado como: ${b}`,`Ubicacion: ${NDireccion}`]
         }else{
-            return  mensajeUbicacion = 'Estas fuera del rango de la ubicacion';
-        }
-        
+            return  mensajeUbicacion = 'Estas fuera del rango de la ubicación';
+        }   
     }
-
 
     async function actualizar(body){
 
@@ -148,16 +144,10 @@ module.exports = function(dbInyectada){
         }else{
             throw new Error("No tienes permiso para modificar");
         }
-       
-        
 
     }
     return {
-
-        agregar,
+        addMarking,
         actualizar,
-
     }
-
-
 }

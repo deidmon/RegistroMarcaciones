@@ -3,7 +3,7 @@ moment.tz.setDefault('America/Lima');
 const tableUser = 'usuarios';
 const typeMarkingUser='tipomarcaciones'; 
 const tableAssist = 'asistencias'; 
-const typeTableValidation = 'validacion'; 
+const typeTableValidation = 'validacion';
 const tableAddress ='direcciones'; 
 const bcrypt = require ('bcrypt');
 // const { query } = require('express');
@@ -90,11 +90,11 @@ module.exports = function(dbInjected){
     async function TiposValidacion(){
         return db.allTypeValidation(typeTableValidation);
     }
-    function todos(){
-        return db.todos(tableUser);
+    function allUsers(){
+        return db.allUsers(tableUser);
     }
 
-    async function agregar(body){
+    async function addUser(body){
         let user = body.user || '';
         let password = body.contraseña || '';
 
@@ -113,7 +113,7 @@ module.exports = function(dbInjected){
             IdDirecSecu: body.idSecondaryAddress	
         }  
         if (body.idUser === 0) {
-            const respuesta = await db.agregar(tableUser, usuario);
+            const respuesta = await db.add(tableUser, usuario);
             return respuesta;
         } else if (body.idUser !== 0) {
             const respuesta = await db.actualizar(tableUser, usuario);
@@ -124,7 +124,8 @@ module.exports = function(dbInjected){
     }
     
     return {
-        agregar,
+        allUsers,
+        addUser,
         infoUno,
         consultarUser,
         consultarMarcasMes,

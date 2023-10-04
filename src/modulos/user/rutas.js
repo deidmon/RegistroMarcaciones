@@ -50,7 +50,7 @@ async function consultarMarcasDia(req, res, next) {
 
 async function agregar(req, res, next){
     try{
-        const items = await controlador.agregar(req.body);
+        const items = await controlador.addUser(req.body);
        if(req.body.idUser == 0){
             mensaje = 'Item guardado con exito';
        }else{

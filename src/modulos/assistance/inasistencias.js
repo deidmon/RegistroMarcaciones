@@ -45,7 +45,7 @@ async function registrarFaltasController() {
 
         console.log('Registrando falta para el usuario Id:', idUsuario );
 
-        const respuesta = await db.agregar(TABLA, registro);
+        const respuesta = await db.add(TABLA, registro);
         console.log('Falta registrada en la tabla asistencias:', respuesta);
       }
 
@@ -75,7 +75,7 @@ async function iniciarProgramacion() {
     });
   }
   
-  const tablacron = await db.todos(TABLACRON);
+  const tablacron = await db.allUsers(TABLACRON);
   const horasCron = tablacron.map((row) => {
           const hora = row.Horario.split(':'); 
           const minutos = hora[1];

@@ -11,7 +11,7 @@ router.post('/actualizar',seguridad(), actualizar);
 
 async function agregar(req, res, next){
     try{
-        const resultadoValidacion  = await controlador.addMarking(req.body);
+        const resultadoValidacion  = await controlador.agregar(req.body);
         respuesta.success(req, res, resultadoValidacion,201);
     }catch(err){
         next(err);

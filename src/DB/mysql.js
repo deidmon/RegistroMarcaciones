@@ -41,17 +41,6 @@ function allTypeMarking(tabla) {
     });
 }
 
-function todos(tabla) {
-    return new Promise((resolve, reject) => {
-        const query = 'SELECT * FROM ??';
-        const values = [tabla];
-
-        conexion.query(query, values, (error, result) => {
-            return error ? reject(error) : resolve(result);
-        });
-    });
-}
-
 function allTypeValidation(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT idValidacion AS "idValidation", descripcion AS "description" FROM ??';
@@ -63,6 +52,16 @@ function allTypeValidation(tabla) {
     });
 }
 
+function allUsers(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM ??';
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
 
 function userInformation(tabla, tabla2, id) {
     return new Promise((resolve, reject) => {
@@ -80,7 +79,7 @@ function userInformation(tabla, tabla2, id) {
     });
 }
 
-function agregar(tabla, data) {
+function add(tabla, data) {
     return new Promise((resolve, reject) => {
         
         const insertQuery = `INSERT INTO ?? SET ? ON DUPLICATE KEY UPDATE ?`;
@@ -271,8 +270,8 @@ function CompararUbicacion(tabla,tabla2,IdUsuarios,latitudUsuario,latitudUsuario
  
 module.exports = {
 
-    agregar,
-    todos,
+    add,
+    allUsers,
     allTypeMarking,
     allTypeValidation,
     actualizar,
