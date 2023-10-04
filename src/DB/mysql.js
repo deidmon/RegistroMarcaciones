@@ -53,7 +53,7 @@ function infoUno(tabla, tabla2, id) {
         const values = [tabla, tabla2, tabla2, id];
         
         conexion.query(query, values , (error, result) => {
-            return error ? reject(error) : resolve(result);
+            return error ? reject(error) : resolve(result[0]);
         });
     });
 }
