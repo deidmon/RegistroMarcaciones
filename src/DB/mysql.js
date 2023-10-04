@@ -30,9 +30,29 @@ function conMysql(){
 }
 conMysql();
 
+function todosTipoMarcacion(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT idTMarcaciones AS "idTypesMarking", descripcion AS "description"  FROM ??';
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
 function todos(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT * FROM ??';
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+function todosTipoValidacion(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT idValidacion AS "idValidation", descripcion AS "description" FROM ??';
         const values = [tabla];
 
         conexion.query(query, values, (error, result) => {
@@ -44,7 +64,7 @@ function todos(tabla) {
 
 function infoUno(tabla, tabla2, id) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT IdUsuarios, Nombres, Apellidos, Activo, Usuario, IdRol, IdDirec, d1.Direccion AS DireccionPrimaria, IdDirecSecu, d2.Direccion AS DireccionSecundaria 
+        const query = `SELECT IdUsuarios AS "idUser", Nombres AS "name", Apellidos AS "last names", Activo, Usuario AS "user", IdRol, IdDirec, d1.Direccion AS "primaryAddress", IdDirecSecu, d2.Direccion AS "secondaryAddress"
             FROM ?? u 
             INNER JOIN ?? d1 ON u.IdDirec = d1.IdDireccion 
             INNER JOIN ?? d2 ON u.IdDirecSecu = d2.IdDireccion 
@@ -265,6 +285,8 @@ module.exports = {
 
     agregar,
     todos,
+    todosTipoMarcacion,
+    todosTipoValidacion,
     actualizar,
     query,
     queryMarca,

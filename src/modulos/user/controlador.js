@@ -83,11 +83,11 @@ module.exports = function(dbInyectada){
     }
 
     async function todosTipoMarcacion(){
-        return db.todos(tipomarcacion);
+        return db.todosTipoMarcacion(tipomarcacion);
     }
 
     async function TiposValidacion(){
-        return db.todos(TABLAVALIDACION);
+        return db.todosTipoValidacion(TABLAVALIDACION);
     }
     function todos(){
         return db.todos(TABLA);

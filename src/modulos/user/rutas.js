@@ -15,7 +15,7 @@ router.get('/markingDay', seguridad(),consultarMarcasDia);
 
 async function consultarUser(req, res, next) {
     try{
-        const user = await controlador.consultarUser(req.body.Usuario, req.body.Contraseña);
+        const user = await controlador.consultarUser(req.body.username, req.body.password);
         respuesta.success(req, res, user, 200);
     }catch(err){
         next(err);
@@ -24,7 +24,7 @@ async function consultarUser(req, res, next) {
 
 async function consultarMarcasMes(req, res, next) {
     try{
-        const user = await controlador.consultarMarcasMes(req.body.idUsuario);
+        const user = await controlador.consultarMarcasMes(req.body.idUser);
         respuesta.success(req, res, user, 200);
     }catch(err){
         next(err);
@@ -32,7 +32,7 @@ async function consultarMarcasMes(req, res, next) {
 }
 async function consultarMarcasSemana(req, res, next) {
     try{
-        const user = await controlador.consultarMarcasSemana(req.body.idUsuario);
+        const user = await controlador.consultarMarcasSemana(req.body.idUser);
         respuesta.success(req, res, user, 200);
     }catch(err){
         next(err);
@@ -41,7 +41,7 @@ async function consultarMarcasSemana(req, res, next) {
 
 async function consultarMarcasDia(req, res, next) {
     try{
-        const user = await controlador.consultarMarcasDia(req.body.idUsuario);
+        const user = await controlador.consultarMarcasDia(req.body.idUser);
         respuesta.success(req, res, user, 200);
     }catch(err){
         next(err);
