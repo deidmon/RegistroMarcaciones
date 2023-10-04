@@ -129,7 +129,7 @@ function query(tabla, consulta){
 } 
 
 
-function queryMark(tabla, tabla2, consulta) {
+function queryMarkWeek(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         const query = `
             SELECT a.IdUsuarios AS "idUser", a.IdDirec AS "idAddress", d.Direccion AS "address", DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS "date", DAYNAME(a.Fecha) AS "day", a.Hora AS "time",
@@ -189,7 +189,7 @@ function queryMarkMonth(tabla, tabla2, consulta) {
 
 
 
-function consultDayMarking (tabla, tabla2, tabla3, IdUsuario, Fecha) {
+function queryMarkDay (tabla, tabla2, tabla3, IdUsuario, Fecha) {
     return new Promise((resolve, reject) => {
         const query = `
             SELECT LOWER(TIME_FORMAT(STR_TO_DATE(a.Hora, '%H:%i:%s'), '%h:%i:%s %p')) AS 'time',a.idTMarcacion AS "idTypesMarking",t.descripcion AS 'typesMarking', a.idValidacion AS "idValidation", v.descripcion AS 'validation'
@@ -289,7 +289,8 @@ module.exports = {
     allTypeValidation,
     actualizar,
     query,
-    queryMark,
+    queryMarkWeek,
+    queryMarkDay,
     queryMarkMonth,
     registrarFaltas,
     userInformation,
@@ -298,6 +299,6 @@ module.exports = {
     usuarioYaMarcoHoy,
     actualizarMarca,
     CompararUbicacion,
-    consultDayMarking
+    
     
 }
