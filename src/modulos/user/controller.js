@@ -1,9 +1,7 @@
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/Lima');
 const tableUser = 'usuarios';
-const typeMarkingUser='tipomarcaciones'; 
 const tableAssist = 'asistencias'; 
-const typeTableValidation = 'validacion';
 const tableAddress ='direcciones'; 
 const bcrypt = require ('bcrypt');
 // const { query } = require('express');
@@ -17,13 +15,13 @@ module.exports = function(dbInjected){
         db = require('../../DB/mysql');
     }
 
-    let initialDate =  moment();initialDate
+    let initialDate =  moment();
     let day = initialDate.format('DD'); // Agrega ceros a la izquierda si es necesario
     let month = initialDate.format('MM'); // Agrega ceros a la izquierda si es necesario
     let age = initialDate.format('YYYY');
     let date = `${age}-${month}-${day}`; 
 
-    async function consultarUser(usuario, password){
+    async function consultUser(usuario, password){
         if (!usuario || !password) {
             throw new Error("Datos faltantes");
         }
@@ -36,22 +34,22 @@ module.exports = function(dbInjected){
         return bcrypt.compare(password, data.Contraseña)
         .then(resultado =>{
             if(resultado == true){
-                return infoUno(id)
+                return userInformation(id)
             }else{
                 throw new Error("Credenciales inválidas");
             }
         })
     }
 
-    function infoUno(id){
+    function userInformation(id){
         return db.userInformation(tableUser,tableAddress, id);
     }
 
-    async function consultarMarcasMes(idUsuario){
+    async function consultMarkMonth(idUsuario){
         if (!idUsuario) {
             throw new Error("Ingrese usuario");
         }
-        const dataMes = await db.queryMarkMonth(tableAssist,typeTableValidation, idUsuario);
+        const dataMes = await db.queryMarkMonth(tableAssist,tabletypeValidation, idUsuario);
         if (!dataMes) {
             throw new Error("Usuario incorrecto");
         } else{
@@ -59,11 +57,11 @@ module.exports = function(dbInjected){
         }  
     }
 
-    async function consultarMarcasSemana(idUsuario){
+    async function consultMarkWeek(idUsuario){
         if (!idUsuario) {
             throw new Error("Ingrese usuario");
         }
-        const dataSemana = await db.queryMarkWeek(tableAssist,typeTableValidation, idUsuario);
+        const dataSemana = await db.queryMarkWeek(tableAssist,tabletypeValidation, idUsuario);
         if (!dataSemana) {
             throw new Error("Usuario incorrecto");
         } else{
@@ -71,11 +69,11 @@ module.exports = function(dbInjected){
         }
     }
 
-    async function consultarMarcasDia(IdUser){
+    async function consultMarkDay(IdUser){
         if (!IdUser) {
             throw new Error("No viene usuario");
         }
-        const data = await db.queryMarkDay(tableAssist,typeMarkingUser,typeTableValidation, IdUser, date);
+        const data = await db.queryMarkDay(tableAssist,tableTypeMarking,tabletypeValidation, IdUser, date);
         if (!data) {
             throw new Error("No existe marcaciones para este usuario");
         } else{
@@ -83,13 +81,7 @@ module.exports = function(dbInjected){
         }
     }
 
-    async function todosTipoMarcacion(){
-        return db.allTypeMarking(typeMarkingUser);
-    }
 
-    async function TiposValidacion(){
-        return db.allTypeValidation(typeTableValidation);
-    }
     function allUsers(){
         return db.allUsers(tableUser);
     }
@@ -126,12 +118,10 @@ module.exports = function(dbInjected){
     return {
         allUsers,
         addUser,
-        infoUno,
-        consultarUser,
-        consultarMarcasMes,
-        consultarMarcasSemana,
-        consultarMarcasDia,
-        todosTipoMarcacion,
-        TiposValidacion
+        userInformation,
+        consultUser,
+        consultMarkMonth,
+        consultMarkWeek,
+        consultMarkDay,
     }
 }

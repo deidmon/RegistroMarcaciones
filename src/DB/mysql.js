@@ -195,13 +195,12 @@ function queryMarkDay (tabla, tabla2, tabla3, IdUsuario, Fecha) {
     });
 }
 
-function registrarFaltas(tabla,tabla2, consulta){
+function recordFouls(tabla,tabla2, consulta){
     return new Promise((resolve, reject)=>{
         conexion.query(`SELECT DISTINCT U.IdUsuarios FROM ${tabla} U LEFT JOIN ${tabla2} R ON U.IdUsuarios = R.IdUsuarios AND DATE(R.Fecha) = CURDATE() WHERE (R.IdUsuarios IS NULL OR R.idTMarcacion <> ?) AND U.IdRol != 2;`, consulta, (error, result) =>{
             if (error) {
                 reject(error);
               } else {
-                
                 const usuariosSinRegistro = result.map((row) => row.IdUsuarios);
                 resolve(usuariosSinRegistro);
               }       
@@ -209,7 +208,7 @@ function registrarFaltas(tabla,tabla2, consulta){
     });
 }
 
-function obtenerTablaParametrizacion(tabla,idTipoMarcaciones) {
+function getTableParametrization(tabla,idTipoMarcaciones) {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ${tabla} WHERE idTipoMarcaciones = ? `;
         conexion.query(query,idTipoMarcaciones, (error, results) => {
@@ -222,7 +221,7 @@ function obtenerTablaParametrizacion(tabla,idTipoMarcaciones) {
     });
 }
 
-function usuarioYaMarcoHoy(tabla, IdUsuarios,fechaHoy,idTMarcacion) {
+function userAlreadyMarkedToday(tabla, IdUsuarios,fechaHoy,idTMarcacion) { 
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ${tabla} WHERE IdUsuarios = ? AND Fecha = ? AND idTMarcacion = ?`;
         conexion.query(query, [IdUsuarios, fechaHoy, idTMarcacion], (error, result) => {
@@ -235,7 +234,7 @@ function usuarioYaMarcoHoy(tabla, IdUsuarios,fechaHoy,idTMarcacion) {
     });
 }
  
-function CompararUbicacion(tabla,tabla2,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros) {
+function compareLocation(tabla,tabla2,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros) {
     return new Promise((resolve, reject) => {
         const query = `SELECT IdUsuarios, IdDireccion,Direccion FROM ${tabla} u INNER JOIN ${tabla2} d ON u.IdDirec = d.IdDireccion 
         WHERE
@@ -279,13 +278,12 @@ module.exports = {
     queryMarkWeek,
     queryMarkDay,
     queryMarkMonth,
-    registrarFaltas,
+    recordFouls,
     userInformation,
-    registrarFaltas,
-    obtenerTablaParametrizacion,
-    usuarioYaMarcoHoy,
+    getTableParametrization,
+    userAlreadyMarkedToday,
     actualizarMarca,
-    CompararUbicacion,
+    compareLocation,
     
     
 }

@@ -31,7 +31,7 @@ async function registrarFaltasController() {
    
   let fecha = new Date() || '';
   try {
-    const usuariosSinRegistro = await db.registrarFaltas(tabla2,TABLA, idTMarcacion);
+    const usuariosSinRegistro = await db.recordFouls(tabla2,TABLA, idTMarcacion);
     console.log('Resultado de la consulta:', usuariosSinRegistro);
 
     if (usuariosSinRegistro && usuariosSinRegistro.length > 0) {
@@ -62,7 +62,6 @@ async function registrarFaltasController() {
   }
 }
 
-
 async function iniciarProgramacion() {
   function programarTarea(cronExpression) {
     cron.schedule(cronExpression, async () => {
@@ -85,11 +84,9 @@ async function iniciarProgramacion() {
         });
   console.log(horasCron);
   
-  
   horasCron.forEach((cronExpression) => {
     programarTarea(cronExpression);
   });
 }
-
 iniciarProgramacion();
 
