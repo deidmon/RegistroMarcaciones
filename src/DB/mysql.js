@@ -40,6 +40,7 @@ function allTypeMarking(tabla) {
         });
     });
 }
+
 function todos(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT * FROM ??';
@@ -50,6 +51,7 @@ function todos(tabla) {
         });
     });
 }
+
 function allTypeValidation(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT idValidacion AS "idValidation", descripcion AS "description" FROM ??';
@@ -78,8 +80,6 @@ function userInformation(tabla, tabla2, id) {
     });
 }
 
-
-
 function agregar(tabla, data) {
     return new Promise((resolve, reject) => {
         
@@ -92,17 +92,13 @@ function agregar(tabla, data) {
     });
 }
 
-
 function actualizarMarca(tabla, consulta, data){
     return new Promise((resolve, reject)=>{
         conexion.query(`UPDATE ${tabla} SET ? WHERE IdUsuarios = ? AND Fecha = ? AND idTMarcacion = ?`,[consulta,data.IdUsuarios,data.Fecha,data.idTMarcacion], (error, result) =>{
-           
             if (error) {
                 reject(error);
             } else {
-                
                 const actualizacionExitosa = result.changedRows > 0;
-
                 resolve(actualizacionExitosa);
             }
         })
@@ -117,7 +113,6 @@ function actualizar(tabla, consulta){
     });
 }
 
-
 function query(tabla, consulta){
     return new Promise((resolve, reject)=>{
         const query = `SELECT * FROM ?? WHERE ?`;
@@ -127,7 +122,6 @@ function query(tabla, consulta){
         })
     });
 } 
-
 
 function queryMarkWeek(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
@@ -158,7 +152,6 @@ function queryMarkWeek(tabla, tabla2, consulta) {
     });
 }
 
-
 function queryMarkMonth(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         const query = `
@@ -186,8 +179,6 @@ function queryMarkMonth(tabla, tabla2, consulta) {
         });
     });
 }
-
-
 
 function queryMarkDay (tabla, tabla2, tabla3, IdUsuario, Fecha) {
     return new Promise((resolve, reject) => {
@@ -232,7 +223,6 @@ function obtenerTablaParametrizacion(tabla,idTipoMarcaciones) {
     });
 }
 
-
 function usuarioYaMarcoHoy(tabla, IdUsuarios,fechaHoy,idTMarcacion) {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ${tabla} WHERE IdUsuarios = ? AND Fecha = ? AND idTMarcacion = ?`;
@@ -246,7 +236,6 @@ function usuarioYaMarcoHoy(tabla, IdUsuarios,fechaHoy,idTMarcacion) {
     });
 }
  
-
 function CompararUbicacion(tabla,tabla2,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros) {
     return new Promise((resolve, reject) => {
         const query = `SELECT IdUsuarios, IdDireccion,Direccion FROM ${tabla} u INNER JOIN ${tabla2} d ON u.IdDirec = d.IdDireccion 
@@ -280,7 +269,6 @@ function CompararUbicacion(tabla,tabla2,IdUsuarios,latitudUsuario,latitudUsuario
     });
 }
  
-
 module.exports = {
 
     agregar,
