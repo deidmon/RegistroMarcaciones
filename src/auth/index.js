@@ -1,45 +1,43 @@
 const jwt = require('jsonwebtoken');
 config = require('../config')
-
 const secret = config.jwt.secret;
 
-function asignarToken(data){
+function assignToken(data){
     return jwt.sign(data,secret);
 }
-function verificarToken(token){
+
+function verifyToken(token){
     return jwt.verify(token, secret);
 }
-const chequearToken={
-    confirmarToken: function(req){
-        const decoficado = decodificarCabecera(req);
 
+const checkToken={
+    confirmToken: function(req){
+        const decoded = decodeHeader(req);
     }
 }
-function obtenerToken(autorizacion){
-    if(!autorizacion){
+
+function getToken(authorization){
+    if(!authorization){
         throw new Error('No viene token');
     }
-    if(autorizacion.indexOf('Bearer') === -1){
+    if(authorization.indexOf('Bearer') === -1){
         throw new Error('Formato invalido');
     }
-    let token = autorizacion.replace('Bearer ','')
+    let token = authorization.replace('Bearer ','')
     return token;
 }
 
-function decodificarCabecera(req){
+function decodeHeader(req){
     console.log(req.headers)
-    const autorizacion = req.headers.authorization || '';
-    const token = obtenerToken(autorizacion);
-    const decodificado = verificarToken(token);
+    const authorization = req.headers.authorization || '';
+    const token = getToken(authorization);
+    const decoded = verifyToken(token);
 
-    req.user = decodificado;
-    return decodificado; 
+    req.user = decoded;
+    return decoded; 
 }
 
-
 module.exports = {
-    asignarToken,
-    chequearToken,
-   
-    
+    assignToken,
+    checkToken,
 }

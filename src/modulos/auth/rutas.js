@@ -1,15 +1,14 @@
 const express = require('express');
-const respuesta = require('../../red/response');
-const controlador = require('./index');
-
+const response = require('../../red/response');
+const controller = require('./index');
 const router = express.Router();
 
 router.post('/login', login);
 
 async function login(req, res, next) {
     try{
-        const token = await controlador.login(req.body.username, req.body.password);
-        respuesta.success(req, res, token, 200);
+        const token = await controller.login(req.body.username, req.body.password);
+        response.success(req, res, token, 200);
     }catch(err){
         next(err);
     }

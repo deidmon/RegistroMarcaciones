@@ -1,9 +1,9 @@
 const auth = require('../../auth');
 
-module.exports =function chequearAuth(){
+module.exports = function chequearAuth(){
 
     function middleware(req,res, next){
-        auth.chequearToken.confirmarToken(req)
+        auth.checkToken.confirmToken(req)
         next();
     }
     return middleware
