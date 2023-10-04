@@ -2,7 +2,9 @@ const moment = require('moment-timezone');
 moment.tz.setDefault('America/Lima');
 const tableUser = 'usuarios';
 const tableAssist = 'asistencias'; 
-const tableAddress ='direcciones'; 
+const tableAddress ='direcciones';
+const tableTypeMarking = 'tipomarcaciones'
+const tabletypeValidation = 'validacion';
 const bcrypt = require ('bcrypt');
 // const { query } = require('express');
 // const { queryMarca } = require('../../DB/mysql');

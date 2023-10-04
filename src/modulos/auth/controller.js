@@ -26,7 +26,7 @@ module.exports = function(dbInjected){
                             exp: Math.floor(Date.now() / 1000) + 3600,
                       };
                      
-                      return {"token": auth.assignToken({...payload}), "token2":"jolss"}
+                      return {"token": auth.assignToken({...payload})}
                 }else{
                       throw new Error("Credenciales inválidas");
                 }

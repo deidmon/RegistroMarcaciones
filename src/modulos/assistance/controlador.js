@@ -105,8 +105,8 @@ module.exports = function(dbInyectada){
                 return {"Registrado como": idValidation, "Ubicación": nameAddress}
             }else{
                
-                let mensajeUbicacion = 'Estas fuera del rango de la ubicación';
-                throw new Error(mensajeUbicacion)
+                let messageAddres = 'Estas fuera del rango de la ubicación';
+                throw new Error(messageAddres)
             }   
         }
     }
