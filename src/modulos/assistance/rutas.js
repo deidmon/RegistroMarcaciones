@@ -6,7 +6,7 @@ const seguridad = require('./seguridad');
 
 const router = express.Router();
 
-router.post('/',/* seguridad(), */ agregar);
+router.post('/marking',/* seguridad(), */ agregar);
 router.post('/actualizar',seguridad(), actualizar);
 
 async function agregar(req, res, next){

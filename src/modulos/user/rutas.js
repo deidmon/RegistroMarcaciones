@@ -5,13 +5,13 @@ const controlador = require('./index');
 const { actualizar } = require('../../DB/mysql');
 
 const router = express.Router();
-router.get('/tiposmarcacion', todosTipoMarcacion);
-router.get('/TiposValidacion',TiposValidacion);
-router.get('/', seguridad(),consultarUser);
-router.get('/marcacionMes', seguridad(),consultarMarcasMes); 
-router.get('/marcacionSemana', seguridad(),consultarMarcasSemana); 
-router.post('/actualizar', agregar);
-router.get('/marcacionDia', seguridad(),consultarMarcasDia);
+router.get('/typesMarking', todosTipoMarcacion);
+router.get('/typesValidation',TiposValidacion);
+router.get('/information', seguridad(),consultarUser);
+router.get('/markingMonth', seguridad(),consultarMarcasMes); 
+router.get('/markingWeek', seguridad(),consultarMarcasSemana); 
+router.post('/update', agregar);
+router.get('/markingDay', seguridad(),consultarMarcasDia);
 
 async function consultarUser(req, res, next) {
     try{
