@@ -25,7 +25,8 @@ module.exports = function(dbInyectada){
     async function addMarking(body){
         const data = await db.query(tableUser, {IdUsuarios: body.idUser});
         if (!data) {
-            throw new Error("Usuario incorrecto");
+            /* throw new Error("Usuario incorrecto"); */
+            return "Usuario incorrecto"
         }else{
 
             const radiusMeters = 50;
