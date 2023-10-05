@@ -77,9 +77,9 @@ async function startProgramming() {
   const hourCronJob = cronJob.map((row) => {
           const hour = row.Horario.split(':'); 
           const minutes = hour[1];
-          const horas = hora[0];
+          const hours = hour[0];
         
-          return `${minutes} ${hour} * * *`;
+          return `${minutes} ${hours} * * *`;
         });
   console.log(hourCronJob);
   
