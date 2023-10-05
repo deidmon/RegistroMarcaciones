@@ -28,7 +28,7 @@ module.exports = function(dbInjected){
                 if(result){
                       const payload = {
                             randomData: Math.random(),
-                            exp: Math.floor(Date.now() / 1000) + 3600,
+                            exp: Math.floor(Date.now() / 1000) + 18000,
                       };
                      
                       return {"token": auth.assignToken({...payload})}

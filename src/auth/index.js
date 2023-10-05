@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-config = require('../config')
+config = require('../config');
+const response = require('../red/response')
 const secret = config.jwt.secret;
 
 function assignToken(data){
@@ -16,9 +17,11 @@ const checkToken={
     }
 }
 
-function getToken(authorization){
+function getToken(authorization,req){
     if(!authorization){
-        throw new Error('No viene token');
+         throw new Error('No viene token11122');
+         
+        /* response.error22(req,false,"No viene token1234", 2000)  */
     }
     if(authorization.indexOf('Bearer') === -1){
         throw new Error('Formato invalido');
@@ -30,7 +33,7 @@ function getToken(authorization){
 function decodeHeader(req){
     console.log(req.headers)
     const authorization = req.headers.authorization || '';
-    const token = getToken(authorization);
+    const token = getToken(authorization, req);
     const decoded = verifyToken(token);
 
     req.user = decoded;

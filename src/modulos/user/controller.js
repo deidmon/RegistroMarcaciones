@@ -12,7 +12,7 @@ const bcrypt = require ('bcrypt');
 module.exports = function(dbInjected){
 
     let db = dbInjected;
-
+    message = ""
     if(!db){
         db = require('../../DB/mysql');
     }
@@ -23,13 +23,17 @@ module.exports = function(dbInjected){
     let age = initialDate.format('YYYY');
     let date = `${age}-${month}-${day}`; 
 
-    async function consultUser(usuario, password){
-        if (!usuario || !password) {
-            throw new Error("Datos faltantes");
+    async function consultUser(user, password){
+        if (!user || !password) {
+            message ='Datos faltantes'
+            return {"messages": message}
+            /* throw new Error("Datos faltantes"); */
         }
-        const data = await db.query(tableUser, {Usuario: usuario});
+        const data = await db.query(tableUser, {Usuario: user});
         if (!data) {
-            throw new Error("Credenciales inválidas");
+            /* throw new Error("Credenciales inválidas"); */
+            message ='Credenciales inválidas'
+            return {"messages": message}
         }
         const id = data.IdUsuarios;
 
@@ -38,7 +42,9 @@ module.exports = function(dbInjected){
             if(resultado == true){
                 return userInformation(id)
             }else{
-                throw new Error("Credenciales inválidas");
+                /* throw new Error("Credenciales inválidas"); */
+                message ='Credenciales inválidas'
+                return {"messages": message}
             }
         })
     }
@@ -47,42 +53,68 @@ module.exports = function(dbInjected){
         return db.userInformation(tableUser,tableAddress, id);
     }
 
-    async function consultMarkMonth(idUsuario){
-        if (!idUsuario) {
-            throw new Error("Ingrese usuario");
+    async function consultMarkMonth(idUser){
+        if (!idUser) {
+            /* throw new Error("Ingrese usuario"); */
+            message ='Ingrese usuario'
+            return {"messages": message}
         }
-        const dataMes = await db.queryMarkMonth(tableAssist,tabletypeValidation, idUsuario);
-        if (!dataMes) {
-            throw new Error("Usuario incorrecto");
+        const dataUser = await db.query(tableUser, {IdUsuarios: idUser});
+        if (!dataUser) {
+            message ='Usuario incorrecto'
+            return {"messages": message}
+        }
+        const dataMonth = await db.queryMarkMonth(tableAssist,tabletypeValidation, idUser);
+        if (!dataMonth) {
+            /* throw new Error("Usuario incorrecto"); */
+            /* message ='Usuario incorrecto' */
+            return {"messages": 'No existe marcaciones para este usuario'}
         } else{
-            return dataMes;
+            return dataMonth;
         }  
     }
 
-    async function consultMarkWeek(idUsuario){
-        if (!idUsuario) {
-            throw new Error("Ingrese usuario");
+    async function consultMarkWeek(idUser){
+        if (!idUser) {
+            /* throw new Error("Ingrese usuario"); */
+            message ='Ingrese usuario'
+            return {"messages": message}
         }
-        const dataSemana = await db.queryMarkWeek(tableAssist,tabletypeValidation, idUsuario);
-        if (!dataSemana) {
-            throw new Error("Usuario incorrecto");
+        const dataUser = await db.query(tableUser, {IdUsuarios: idUser});
+        if (!dataUser) {
+            message ='Usuario incorrecto'
+            return {"messages": message}
+        }
+        const dataWeek = await db.queryMarkWeek(tableAssist,tabletypeValidation, idUser);
+        if (!dataWeek) {
+            /* throw new Error("Usuario incorrecto"); */
+            message ='No existe marcaciones para este usuario'
+            return {"messages": message}
         } else{
-            return dataSemana;
+            return dataWeek;
         }
     }
 
-    async function consultMarkDay(IdUser){
-        if (!IdUser) {
-            throw new Error("No viene usuario");
+    async function consultMarkDay(idUser){
+        if (!idUser) {
+            /* throw new Error("No viene usuario"); */
+            message ='No viene usuario'
+            return {"messages": message}
         }
-        const data = await db.queryMarkDay(tableAssist,tableTypeMarking,tabletypeValidation, IdUser, date);
-        if (!data) {
-            throw new Error("No existe marcaciones para este usuario");
+        const dataUser = await db.query(tableUser, {IdUsuarios: idUser});
+        if (!dataUser) {
+            message ='Usuario incorrecto'
+            return {"messages": message}
+        }
+        const dataDay = await db.queryMarkDay(tableAssist,tableTypeMarking,tabletypeValidation, idUser, date);
+        if (!dataDay) {
+            /* throw new Error("No existe marcaciones para este usuario"); */
+            message ='No existe marcaciones para este usuario' 
+            return {"messages": message}
         } else{
-            return data;
+            return dataDay;
         }
     }
-
 
     function allUsers(){
         return db.allUsers(tableUser);
@@ -113,7 +145,9 @@ module.exports = function(dbInjected){
             const respuesta = await db.update(tableUser, usuario);
             return respuesta;
         } else{
-            throw new Error('El valor de TConsulta no es válido');
+            /* throw new Error('El valor de TConsulta no es válido'); */
+            message ='El valor de TConsulta no es válido'
+            return {"messages": message}
         }
     }
     

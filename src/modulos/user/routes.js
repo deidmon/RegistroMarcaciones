@@ -14,7 +14,11 @@ router.post('/update', addUser);
 async function consultUser(req, res, next) {
     try{
         const user = await controller.consultUser(req.body.username, req.body.password);
-        response.success(req, res, user, 200);
+        if(!user.messages){
+            response.success(req, res, user,"",200)
+        }else{
+            response.error(req, res,false,user.messages, 200)
+        }
     }catch(err){
         next(err);
     }
@@ -22,16 +26,24 @@ async function consultUser(req, res, next) {
 
 async function consultMarkMonth(req, res, next) {
     try{
-        const user = await controller.consultMarkMonth(req.body.idUser);
-        response.success(req, res, user, 200);
+        const userMon = await controller.consultMarkMonth(req.body.idUser);
+        if(!userMon.messages){
+            response.success(req, res, userMon,"",200)
+        }else{
+            response.error(req, res,false,userMon.messages, 201)
+        }
     }catch(err){
         next(err);
     }
 }
 async function consultMarkWeek(req, res, next) {
     try{
-        const user = await controller.consultMarkWeek(req.body.idUser);
-        response.success(req, res, user, 200);
+        const userWeek = await controller.consultMarkWeek(req.body.idUser);
+        if(!userWeek.messages){
+            response.success(req, res, userWeek,"",200)
+        }else{
+            response.error(req, res,false,userWeek.messages, 200)
+        }
     }catch(err){
         next(err);
     }
@@ -39,8 +51,12 @@ async function consultMarkWeek(req, res, next) {
 
 async function consultMarkDay(req, res, next) {
     try{
-        const user = await controller.consultMarkDay(req.body.idUser);
-        response.success(req, res, user, 200);
+        const userDay = await controller.consultMarkDay(req.body.idUser);
+        if(!userDay.messages){
+            response.success(req, res, userDay,"",200)
+        }else{
+            response.error(req, res,false,userDay.messages, 200)
+        }
     }catch(err){
         next(err);
     }
@@ -54,7 +70,7 @@ async function addUser(req, res, next){
        }else{
             mensaje = 'Item actualizado con exito';
        }
-       response.success(req, res, mensaje,201);
+       response.success(req, res,"", mensaje,201);
     }catch(err){
         next(err);
     }

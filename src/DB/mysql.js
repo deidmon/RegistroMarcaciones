@@ -142,7 +142,8 @@ function queryMarkWeek(tabla, tabla2, consulta) {
                 reject(error);
             } else {
                 if (result.length === 0) {
-                    resolve('No existen marcaciones para este usuario');
+                    resolve()
+                    /* resolve('No existen marcaciones para este usuario90'); */
                 } else {
                     resolve(result);
                 }
@@ -170,7 +171,8 @@ function queryMarkMonth(tabla, tabla2, consulta) {
                 reject(error);
             } else {
                 if (result.length === 0) {
-                    resolve('No existen marcaciones para este usuario');
+                    resolve()
+                    /* resolve('No existen marcaciones para este usuario90'); */
                 } else {
                     resolve(result);
                 }
@@ -190,7 +192,17 @@ function queryMarkDay (tabla, tabla2, tabla3, IdUsuario, Fecha) {
         const values = [tabla, tabla2, tabla3, IdUsuario, Fecha];
 
         conexion.query(query, values, (error, result) => {
-            return error ? reject(error) : resolve(result);
+            if (error) {
+                reject(error);
+            } else {
+                if (result.length === 0) {
+                    resolve()
+                    /* resolve('No existen marcaciones para este usuario90'); */
+                } else {
+                    resolve(result);
+                }
+            }
+            /* return error ? reject(error) : resolve(result); */
         });
     });
 }

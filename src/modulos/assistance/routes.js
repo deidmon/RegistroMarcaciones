@@ -9,8 +9,13 @@ router.post('/update',seguridad(), update);
 
 async function addMarking(req, res, next){
     try{
-        const resultadoValidacion  = await controller.addMarking(req.body);
-        response.success(req, res, resultadoValidacion,201);
+        const resultValidation  = await controller.addMarking(req.body);
+        /* response.success(req, res, resultadoValidacion,201); */
+        if(!resultValidation.messages){
+            response.success(req, res, resultValidation,"",200)
+        }else{
+            response.error(req, res,false,resultValidation.messages, 200)
+        }
     }catch(err){
         next(err);
     }
@@ -18,9 +23,9 @@ async function addMarking(req, res, next){
 
 async function update(req, res, next){
     try{
-        const actualizacion  = await controller.update(req.body);
-        if (actualizacion) {
-            console.log(actualizacion)
+        const updateMark  = await controller.update(req.body);
+        if (updateMark) {
+            console.log(updateMark)
             mensaje = 'Marcación actualizada con éxito';
             response.success(req, res, mensaje, 201);
         } else {

@@ -6,6 +6,7 @@ const tableAddress = 'direcciones';
 moment.tz.setDefault('America/Lima');
 
 module.exports = function(dbInyectada){
+    message = ""
     let initialDate =  moment();
     let day = initialDate.format('DD'); 
     let month = initialDate.format('MM'); 
@@ -26,7 +27,9 @@ module.exports = function(dbInyectada){
         const data = await db.query(tableUser, {IdUsuarios: body.idUser});
         if (!data) {
             /* throw new Error("Usuario incorrecto"); */
-            return "Usuario incorrecto"
+            /* return "Usuario incorrecto" */
+            message ='Usuario incorrecto'
+            return {"messages": message}
         }else{
 
             const radiusMeters = 50;
@@ -66,8 +69,10 @@ module.exports = function(dbInyectada){
                 const resultValidation = validateTime(formattedTime);
                 let idValidation = '';
                 if (resultValidation === 0) {
-                    idValidation = 'Estás marcando en un horario no permitido';
-                    throw new Error(idValidation)
+                    /* idValidation = 'Estás marcando en un horario no permitido';
+                    throw new Error(idValidation) */
+                    message ='Estás marcando en un horario no permitido'
+                    return {"messages": message}
                 } else if (resultValidation === 1) {
                     idValidation = 'Conforme';
                 } else if (resultValidation === 2) {
@@ -85,7 +90,9 @@ module.exports = function(dbInyectada){
                     alreadyMarked = false
                 }
                 if (alreadyMarked) {
-                    throw new Error(`El usuario ya marcó hoy en este tipo de marcación ${body.idTypesMarking}`);
+                    /* throw new Error(`El usuario ya marcó hoy en este tipo de marcación ${body.idTypesMarking}`); */
+                    message =`El usuario ya marcó hoy en este tipo de marcación ${body.idTypesMarking}`
+                    return {"messages": message}
                 }
                 const assists = {
                     IdAsistencias:body.id,
@@ -105,8 +112,10 @@ module.exports = function(dbInyectada){
                
                 return {"Registrado como": idValidation, "Ubicación": nameAddress}
             }else{
-                let messageAddres = 'Estas fuera del rango de la ubicación';
-                throw new Error(messageAddres)
+                /* let messageAddres = 'Estas fuera del rango de la ubicación';
+                throw new Error(messageAddres) */
+                message ='Estas fuera del rango de la ubicación'
+                return {"messages": message}
             }   
         }
     }
@@ -134,7 +143,9 @@ module.exports = function(dbInyectada){
             const response = await db.queryUpdateAssists(tableAssist,modificationMarking,marking); 
             return response;
         }else{
-            throw new Error("No tienes permiso para modificar");
+            /* throw new Error("No tienes permiso para modificar"); */
+            message ='No tienes permiso para modificar'
+            return {"messages": message}
         }
     }
     return {
