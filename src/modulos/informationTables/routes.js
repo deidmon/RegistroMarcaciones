@@ -11,7 +11,7 @@ router.get('/typesValidation',allTypeValidation);
 async function allTypeMarking(req, res, next) {
     try{
         const user = await controller.allTypeMarking();
-        response.success(req, res, user, 200);
+        response.success(req, res, user, "Con éxito", 200);
     }catch(err){
         next(err);
     }
@@ -20,7 +20,7 @@ async function allTypeMarking(req, res, next) {
 async function allTypeValidation(req, res, next) {
     try{
         const user = await controller.allTypeValidation();
-        response.success(req, res, user, 200);
+        response.success(req, res, user,'Con éxito', 200);
     }catch(err){
         next(err);
     }
