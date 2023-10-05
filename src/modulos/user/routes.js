@@ -9,7 +9,7 @@ router.get('/information', security(),consultUser);
 router.get('/markingMonth', security(),consultMarkMonth); 
 router.get('/markingWeek', security(),consultMarkWeek); 
 router.get('/markingDay', security(),consultMarkDay);
-router.post('/update', agregar);
+router.post('/update', addUser);
 
 async function consultUser(req, res, next) {
     try{
@@ -46,7 +46,7 @@ async function consultMarkDay(req, res, next) {
     }
 }
 
-async function agregar(req, res, next){
+async function addUser(req, res, next){
     try{
         const items = await controller.addUser(req.body);
        if(req.body.idUser == 0){

@@ -110,7 +110,7 @@ module.exports = function(dbInjected){
             const respuesta = await db.add(tableUser, usuario);
             return respuesta;
         } else if (body.idUser !== 0) {
-            const respuesta = await db.actualizar(tableUser, usuario);
+            const respuesta = await db.update(tableUser, usuario);
             return respuesta;
         } else{
             throw new Error('El valor de TConsulta no es válido');

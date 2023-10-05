@@ -4,10 +4,10 @@ const controller = require('./index');
 const seguridad = require('./security');
 const router = express.Router();
 
-router.post('/marking',/* seguridad(), */ agregar);
-router.post('/actualizar',seguridad(), actualizar);
+router.post('/marking',/* seguridad(), */ addMarking);
+router.post('/update',seguridad(), update);
 
-async function agregar(req, res, next){
+async function addMarking(req, res, next){
     try{
         const resultadoValidacion  = await controller.addMarking(req.body);
         response.success(req, res, resultadoValidacion,201);
@@ -16,9 +16,9 @@ async function agregar(req, res, next){
     }
 }; 
 
-async function actualizar(req, res, next){
+async function update(req, res, next){
     try{
-        const actualizacion  = await controller.actualizar(req.body);
+        const actualizacion  = await controller.update(req.body);
         if (actualizacion) {
             console.log(actualizacion)
             mensaje = 'Marcación actualizada con éxito';

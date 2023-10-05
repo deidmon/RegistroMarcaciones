@@ -13,7 +13,7 @@ module.exports = function(dbInyectada){
 
     let hour = initialDate.format('HH');
     let minutes = initialDate.format('mm');
-    let segundos = initialDate.format('ss'); 
+    let seconds = initialDate.format('ss'); 
     let date = `${age}-${month}-${day}`; 
 
     let db = dbInyectada;
@@ -104,41 +104,40 @@ module.exports = function(dbInyectada){
                
                 return {"Registrado como": idValidation, "Ubicación": nameAddress}
             }else{
-               
                 let messageAddres = 'Estas fuera del rango de la ubicación';
                 throw new Error(messageAddres)
             }   
         }
     }
 
-    async function actualizar(body){
+    async function update(body){
 
-        let user = body.usuario || '';
-        let password = body.contraseña || '';
-        const Marcacion = {
+        let user = body.username || '';
+        let password = body.password || '';
+        const marking = {
             IdUsuarios:body.idUser,
-            Fecha: body.Fecha,
-            Hora: body.Hora,
+            Fecha: body.date,
+            Hora: body.hour,
             idTMarcacion:body.idTypesMarking ,
             idValidacion:body.idValidacion,
             
         } 
-        const Modificacion ={
-            Hora: body.Hora,
+        const modificationMarking ={
+            Hora: body.hour,
             idTMarcacion:body.idTypesMarking ,
             idValidacion:body.idValidacion,
-            Updated_by: body.IdUsuariosM,
+            Updated_by: body.idUserModified,
             Updated_at: date,           
         }
         if(body.IdRol == 1){
-            const respuesta = await db.actualizarMarca(tableAssist,Modificacion,Marcacion); 
-            return respuesta;
+            const response = await db.queryUpdateAssists(tableAssist,modificationMarking,marking); 
+            return response;
         }else{
             throw new Error("No tienes permiso para modificar");
         }
     }
     return {
         addMarking,
-        actualizar,
+        update,
     }
 }

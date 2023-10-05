@@ -91,7 +91,7 @@ function add(tabla, data) {
     });
 }
 
-function actualizarMarca(tabla, consulta, data){
+function queryUpdateAssists(tabla, consulta, data){
     return new Promise((resolve, reject)=>{
         conexion.query(`UPDATE ${tabla} SET ? WHERE IdUsuarios = ? AND Fecha = ? AND idTMarcacion = ?`,[consulta,data.IdUsuarios,data.Fecha,data.idTMarcacion], (error, result) =>{
             if (error) {
@@ -104,7 +104,7 @@ function actualizarMarca(tabla, consulta, data){
     });
 }
 
-function actualizar(tabla, consulta){
+function update(tabla, consulta){
     return new Promise((resolve, reject)=>{
         conexion.query(`UPDATE ${tabla} SET ? WHERE IdUsuarios = ?`,[consulta,consulta.IdUsuarios], (error, result) =>{
             return error ? reject(error) : resolve(result);
@@ -233,7 +233,7 @@ function userAlreadyMarkedToday(tabla, IdUsuarios,fechaHoy,idTMarcacion) {
         });
     });
 }
- 
+
 function compareLocation(tabla,tabla2,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros) {
     return new Promise((resolve, reject) => {
         const query = `SELECT IdUsuarios, IdDireccion,Direccion FROM ${tabla} u INNER JOIN ${tabla2} d ON u.IdDirec = d.IdDireccion 
@@ -273,7 +273,7 @@ module.exports = {
     allUsers,
     allTypeMarking,
     allTypeValidation,
-    actualizar,
+    update,
     query,
     queryMarkWeek,
     queryMarkDay,
@@ -282,7 +282,7 @@ module.exports = {
     userInformation,
     getTableParametrization,
     userAlreadyMarkedToday,
-    actualizarMarca,
+    queryUpdateAssists,
     compareLocation,
     
     
