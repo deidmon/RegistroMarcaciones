@@ -8,7 +8,14 @@ router.post('/login', login);
 async function login(req, res, next) {
     try{
         const token = await controller.login(req.body.username, req.body.password);
-        response.success(req, res, token, 200);
+        /* response.success(req, res, token.mensajes,"sss", 200); */
+        if(!token.messages){
+            /* response.success(req, res,true,token,"Con exito", 200); */
+            response.success(req, res, token,"",200)
+        }else{
+            /* response.success(req, res,true,token,"Con exito", 200); */
+            response.error(req, res,false,token.messages, 401)
+        }
     }catch(err){
         next(err);
     }

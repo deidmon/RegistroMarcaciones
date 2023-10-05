@@ -5,18 +5,23 @@ const tableUser = 'usuarios';
 module.exports = function(dbInjected){
 
     let db = dbInjected;
+    message = ""
 
     if(!db){
         db = require('../../DB/mysql');
     }
     async function login(user, password){
         if (!user || !password) {
-            throw new Error("Datos faltantes");
+            message ='Datos faltantes'
+            return {"messages": message}
+            /* throw new Error("Datos faltantes"); */
           }
         try {
             const data = await db.query(tableUser, {Usuario: user});
             if (!data || !data.Contraseña) {
-                throw new Error("Credenciales inválidas");
+                message ='Credenciales inválidas'
+                return {"messages": message}
+                /* throw new Error("Credenciales inválidas"); */
               }
               return bcrypt.compare(password, data.Contraseña)
               .then(result =>{
@@ -28,7 +33,9 @@ module.exports = function(dbInjected){
                      
                       return {"token": auth.assignToken({...payload})}
                 }else{
-                      throw new Error("Credenciales inválidas");
+                      /* throw new Error("Credenciales inválidas"); */
+                      message ='Credenciales inválidas'
+                      return {"messages": message}
                 }
               })
         } catch (error) {
