@@ -20,7 +20,8 @@ async function consultUser(req, res, next) {
             response.error(req, res,false,user.messages, 200)
         }
     }catch(err){
-        next(err);
+        /* next(err); */
+        response.error(req, res,false,"Error del sistema", 500)
     }
 }
 
