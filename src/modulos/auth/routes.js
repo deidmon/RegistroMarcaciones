@@ -5,6 +5,7 @@ const router = express.Router();
 
 router.post('/login', login);
 
+errorMessage = "Algo salio mal, intente más tarde."
 async function login(req, res, next) {
     try{
         const token = await controller.login(req.body.username, req.body.password);
@@ -18,7 +19,9 @@ async function login(req, res, next) {
         }
     }catch(err){
         /* next(err); */
-        response.error(req, res,false,"Error del sistema21", 500)
+        /* response.error(req, res,false,"Error del sistema21", 500) */
+        response.error(req, res,false,errorMessage, 500) 
+        
     }
 }
 module.exports = router;

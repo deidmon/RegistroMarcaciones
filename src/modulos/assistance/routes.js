@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post('/marking',/* seguridad(), */ addMarking);
 router.post('/update',seguridad(), update);
-
+errorMessage = "Algo salio mal, intente más tarde."
 async function addMarking(req, res, next){
     try{
         const resultValidation  = await controller.addMarking(req.body);
@@ -17,7 +17,8 @@ async function addMarking(req, res, next){
             response.error(req, res,false,resultValidation.messages, 200)
         }
     }catch(err){
-        next(err);
+        /* next(err); */
+        response.error(req, res,false,errorMessage, 500) 
     }
 }; 
 
@@ -33,7 +34,8 @@ async function update(req, res, next){
             response.error(req, res, mensaje, 400);
         } 
     }catch(err){
-        next(err);
+        /* next(err); */
+        response.error(req, res,false,errorMessage, 500) 
     }
 }; 
 

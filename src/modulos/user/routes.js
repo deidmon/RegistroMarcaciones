@@ -11,6 +11,7 @@ router.get('/markingWeek', security(),consultMarkWeek);
 router.get('/markingDay', security(),consultMarkDay);
 router.post('/update', addUser);
 
+errorMessage = "Algo salio mal, intente más tarde."
 async function consultUser(req, res, next) {
     try{
         const user = await controller.consultUser(req.body.username, req.body.password);
@@ -21,7 +22,7 @@ async function consultUser(req, res, next) {
         }
     }catch(err){
         /* next(err); */
-        response.error(req, res,false,"Error del sistema", 500)
+         response.error(req, res,false,errorMessage, 500) 
     }
 }
 
@@ -34,7 +35,8 @@ async function consultMarkMonth(req, res, next) {
             response.error(req, res,false,userMon.messages, 201)
         }
     }catch(err){
-        next(err);
+        /* next(err); */
+        response.error(req, res,false,errorMessage, 500) 
     }
 }
 async function consultMarkWeek(req, res, next) {
@@ -46,7 +48,8 @@ async function consultMarkWeek(req, res, next) {
             response.error(req, res,false,userWeek.messages, 200)
         }
     }catch(err){
-        next(err);
+        /* next(err); */
+        response.error(req, res,false,errorMessage, 500) 
     }
 }
 
@@ -59,7 +62,8 @@ async function consultMarkDay(req, res, next) {
             response.error(req, res,false,userDay.messages, 200)
         }
     }catch(err){
-        next(err);
+        /* next(err); */
+        response.error(req, res,false,errorMessage, 500) 
     }
 }
 
@@ -73,7 +77,8 @@ async function addUser(req, res, next){
        }
        response.success(req, res,"", mensaje,201);
     }catch(err){
-        next(err);
+        /* next(err); */
+        response.error(req, res,false,errorMessage, 500) 
     }
 }; 
 
