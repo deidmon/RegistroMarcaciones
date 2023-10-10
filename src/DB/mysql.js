@@ -125,8 +125,18 @@ function query(tabla, consulta){
 function queryMarkWeek(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         const query = `
-            SELECT a.IdUsuarios AS "idUser", a.IdDirec AS "idAddress", d.Direccion AS "address", DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS "date", DAYNAME(a.Fecha) AS "day", a.Hora AS "time",
-                a.idTMarcacion AS "idTypesMarking", a.idValidacion AS "idValidation", v.descripcion AS "validation"
+            SELECT a.IdUsuarios AS "idUser", a.IdDirec AS "idAddress", d.Direccion AS "address", DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS "date", 
+            CASE DAYNAME(a.Fecha)
+                WHEN 'Monday' THEN 'Lunes'
+                WHEN 'Tuesday' THEN 'Martes'
+                WHEN 'Wednesday' THEN 'Miércoles'
+                WHEN 'Thursday' THEN 'Jueves'
+                WHEN 'Friday' THEN 'Viernes'
+                WHEN 'Saturday' THEN 'Sábado'
+                WHEN 'Sunday' THEN 'Domingo'
+                ELSE DAYNAME(a.Fecha)
+            END AS "day", a.Hora AS "time",
+            a.idTMarcacion AS "idTypesMarking", a.idValidacion AS "idValidation", v.descripcion AS "validation"
             FROM ?? a
             INNER JOIN ?? v ON a.idValidacion = v.idValidacion
             LEFT JOIN direcciones d ON a.IdDirec = d.IdDireccion
