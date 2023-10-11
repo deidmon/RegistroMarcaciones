@@ -143,7 +143,8 @@ function queryMarkWeek(tabla, tabla2, consulta) {
             WHERE YEAR(a.Fecha) = YEAR(CURRENT_DATE())
                 AND WEEK(a.Fecha) = WEEK(CURRENT_DATE())
                 AND a.idTMarcacion = 1
-                AND a.IdUsuarios = ?`;
+                AND a.IdUsuarios = ?
+            ORDER BY date`;
 
         const values = [tabla, tabla2, consulta];
 
