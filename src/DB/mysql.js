@@ -174,7 +174,8 @@ function queryMarkMonth(tabla, tabla2, consulta) {
                 AND MONTH(a.Fecha) = MONTH(CURRENT_DATE())
                 AND a.idTMarcacion = 1
                 AND a.IdUsuarios = ?
-            GROUP BY v.idValidacion`;
+            GROUP BY v.idValidacion
+            ORDER BY idValidation`;
 
         const values = [tabla, tabla2, consulta]; 
         conexion.query(query, values, (error, result) => {
