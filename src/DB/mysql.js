@@ -32,7 +32,7 @@ conMysql();
 
 function allTypeMarking(tabla) {
     return new Promise((resolve, reject) => {
-        const query = 'SELECT idTMarcaciones AS "idTypesMarking", descripcion AS "description"  FROM ??';
+        const query = 'SELECT idTMarcaciones AS "idTypesMarking", descripcion AS "description"  FROM ?? ORDER BY idTypesMarking';
         const values = [tabla];
 
         conexion.query(query, values, (error, result) => {
@@ -43,7 +43,7 @@ function allTypeMarking(tabla) {
 
 function allTypeValidation(tabla) {
     return new Promise((resolve, reject) => {
-        const query = 'SELECT idValidacion AS "idValidation", descripcion AS "description" FROM ??';
+        const query = 'SELECT idValidacion AS "idValidation", descripcion AS "description" FROM ?? ORDER BY idValidation';
         const values = [tabla];
 
         conexion.query(query, values, (error, result) => {
@@ -200,7 +200,8 @@ function queryMarkDay (tabla, tabla2, tabla3, IdUsuario, Fecha) {
             FROM ?? a 
             INNER JOIN ?? t ON a.idTMarcacion = t.idTMarcaciones 
             INNER JOIN ?? v ON a.idValidacion = v.idValidacion 
-            WHERE a.IdUsuarios = ? AND a.Fecha = ?`;
+            WHERE a.IdUsuarios = ? AND a.Fecha = ?
+            ORDER BY idTypesMarking`;
         const values = [tabla, tabla2, tabla3, IdUsuario, Fecha];
 
         conexion.query(query, values, (error, result) => {
