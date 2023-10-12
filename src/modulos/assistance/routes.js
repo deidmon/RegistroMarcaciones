@@ -26,7 +26,7 @@ async function update(req, res, next){
     try{
         const updateMark  = await controller.update(req.body);
         if (updateMark) {
-            console.log(updateMark)
+            
             mensaje = 'Marcación actualizada con éxito';
             response.success(req, res, mensaje, 201);
         } else {

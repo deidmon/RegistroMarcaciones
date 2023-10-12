@@ -3,6 +3,7 @@ const db = require('../../DB/mysql');
 const tableAssist = 'asistencias';
 const tableUser = 'usuarios';
 const tableCronJob = 'horariocron';
+const tableParameterization = 'parametrizacion'; 
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/Lima');
 
@@ -13,25 +14,35 @@ async function registerAbsencesController() {
   const minutes = initialDate.format('mm');
   const seconds = initialDate.format('ss');
 
-  const formattedTime = /* '15:17' */`${hours}:${minutes}`;
+  const formattedTime = /* '17:59' */`${hours}:${minutes}`;
   const [hour, minute] = formattedTime.split(':');
   const hourInMinutes = parseInt(hour) * 60 + parseInt(minute);
 
   //comprobar la hora
-  if(hourInMinutes >= 556 && hourInMinutes <= 719){
-    idTypesMarking = 1
-  }else if (hourInMinutes  >= 796 && hourInMinutes <= 834){
-    idTypesMarking = 2
-  }else if (hourInMinutes  >= 905 && hourInMinutes <= 1079){
-    idTypesMarking = 3
-  }else if (hourInMinutes >= 1205 && hourInMinutes <= 1439){
-    idTypesMarking = 4
-  }
-   
+  const parametrization = await db.getTableParametrizationTypeMarking(tableParameterization);                 
+    function validateTime(formattedTime) {
+      
+        const [hour, minutes] = formattedTime.split(':'); 
+        for (const fila of parametrization) {
+            const [startTime, minutesHome] = fila.HoraInicio.split(':'); 
+            const [endTime, minutesEnd] = fila.HoraFin.split(':'); 
+            const hourInMinutes = parseInt(hour) * 60 + parseInt(minutes);
+            const startTimeInMinutes = parseInt(startTime) * 60 + parseInt(minutesHome);
+            const hourEndInMinutes = parseInt(endTime) * 60 + parseInt(minutesEnd);
+
+            if (hourInMinutes >= startTimeInMinutes && hourInMinutes <= hourEndInMinutes) {
+        
+                const TypeMarking = fila.idTipoMarcaciones;
+                    return TypeMarking
+            }
+        }
+           
+    }
+    const idTypesMarking = validateTime(formattedTime);
   let date = new Date() || '';
   try {
     const usersUnregistered = await db.recordFouls(tableUser, tableAssist, idTypesMarking);
-    console.log('Resultado de la consulta:', usersUnregistered);
+    
 
     if (usersUnregistered && usersUnregistered.length > 0) {
       for (const idUser  of usersUnregistered) {
@@ -45,10 +56,10 @@ async function registerAbsencesController() {
         console.log('Registrando falta para el usuario Id:', idUser );
 
         const response = await db.add(tableAssist, record);
-        console.log('Falta registrada en la tabla asistencias:', response);
+        
       }
 
-      return 'Faltas registradas correctamente01';
+      return 'Faltas registradas correctamente';
 
     } else {
       console.log('Todos los usuarios han registrado asistencia para hoy.');

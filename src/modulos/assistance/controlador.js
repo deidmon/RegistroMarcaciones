@@ -6,16 +6,8 @@ const tableAddress = 'direcciones';
 moment.tz.setDefault('America/Lima');
 
 module.exports = function(dbInyectada){
-    message = ""
-    let initialDate =  moment();
-    let day = initialDate.format('DD'); 
-    let month = initialDate.format('MM'); 
-    let age = initialDate.format('YYYY');
+    let message = ""
 
-    let hour = initialDate.format('HH');
-    let minutes = initialDate.format('mm');
-    let seconds = initialDate.format('ss'); 
-    let date = `${age}-${month}-${day}`; 
 
     let db = dbInyectada;
 
@@ -24,10 +16,17 @@ module.exports = function(dbInyectada){
     }
     
     async function addMarking(body){
+        let initialDate =  moment();
+        let day = initialDate.format('DD'); 
+        let month = initialDate.format('MM'); 
+        let age = initialDate.format('YYYY');
+    
+        let hour = initialDate.format('HH');
+        let minutes = initialDate.format('mm');
+
+        let date = `${age}-${month}-${day}`; 
         const data = await db.query(tableUser, {IdUsuarios: body.idUser});
         if (!data) {
-            /* throw new Error("Usuario incorrecto"); */
-            /* return "Usuario incorrecto" */
             message ='Usuario incorrecto'
             return {"messages": message}
         }else{
@@ -54,17 +53,10 @@ module.exports = function(dbInyectada){
                         if (hourInMinutes >= startTimeInMinutes && hourInMinutes <= hourEndInMinutes) {
                     
                             const idValidacion = fila.idValidacion;
-                                switch (idValidacion) {
-                                case 1:
-                                    return 1;
-                                case 2:
-                                    return 2;
-                                default:
-                                    return 3; // Manejo de otros casos
-                                }
+                               return idValidacion
                         }
                     }
-                        return 0;
+                        
                 }
                 const resultValidation = validateTime(formattedTime);
                 let idValidation = '';

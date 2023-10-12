@@ -245,6 +245,23 @@ function getTableParametrization(tabla,idTipoMarcaciones) {
         });
     });
 }
+function getTableParametrizationTypeMarking(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT idTipoMarcaciones, MIN(HoraInicio) AS "HoraInicio", MAX(HoraFin) AS "HoraFin"
+            FROM ??
+            GROUP BY idTipoMarcaciones;`;
+        const values = [tabla];
+
+        conexion.query(query, values, (error, results) => {
+        if (error) {
+                console.error("Error al obtener la tabla de parametrización:", error);
+                return reject(error);
+            }
+            resolve(results);
+        });
+    });
+}
 
 function userAlreadyMarkedToday(tabla, IdUsuarios,fechaHoy,idTMarcacion) { 
     return new Promise((resolve, reject) => {
@@ -282,7 +299,7 @@ function compareLocation(tabla,tabla2,IdUsuarios,latitudUsuario,latitudUsuario,l
             )) * 1000 <= ?;`;
 
         conexion.query(query, [IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros], (error, result) => {
-            console.log(query)
+            
             if (error) {
                 reject(error);
             } else {
@@ -306,6 +323,7 @@ module.exports = {
     recordFouls,
     userInformation,
     getTableParametrization,
+    getTableParametrizationTypeMarking,
     userAlreadyMarkedToday,
     queryUpdateAssists,
     compareLocation,
