@@ -56,21 +56,19 @@ module.exports = function(dbInyectada){
                                return idValidacion
                         }
                     }
-                        
+                    return 0; 
                 }
                 const resultValidation = validateTime(formattedTime);
-                let idValidation = '';
+                let descriptionValidation = '';
                 if (resultValidation === 0) {
-                    /* idValidation = 'Estás marcando en un horario no permitido';
-                    throw new Error(idValidation) */
                     message ='Estás marcando en un horario no permitido'
                     return {"messages": message}
                 } else if (resultValidation === 1) {
-                    idValidation = 'Conforme';
+                    descriptionValidation = 'Conforme';
                 } else if (resultValidation === 2) {
-                    idValidation = 'Tardanza';
+                    descriptionValidation = 'Tardanza';
                 } else if (resultValidation === 3) {
-                    idValidation = 'Falta';
+                    descriptionValidation = 'Falta';
                 } 
 
                 const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist, body.idUser,date, body.idTypesMarking);
@@ -82,7 +80,6 @@ module.exports = function(dbInyectada){
                     alreadyMarked = false
                 }
                 if (alreadyMarked) {
-                    /* throw new Error(`El usuario ya marcó hoy en este tipo de marcación ${body.idTypesMarking}`); */
                     message =`El usuario ya marcó hoy en este tipo de marcación ${body.idTypesMarking}`
                     return {"messages": message}
                 }
@@ -102,10 +99,8 @@ module.exports = function(dbInyectada){
                 
                 const respuesta = await db.add(tableAssist, assists);
                
-                return {"Registrado como": idValidation, "Ubicación": nameAddress}
+                return {"Registrado como": descriptionValidation, "Ubicación": nameAddress}
             }else{
-                /* let messageAddres = 'Estas fuera del rango de la ubicación';
-                throw new Error(messageAddres) */
                 message ='Estas fuera del rango de la ubicación'
                 return {"messages": message}
             }   
@@ -135,7 +130,6 @@ module.exports = function(dbInyectada){
             const response = await db.queryUpdateAssists(tableAssist,modificationMarking,marking); 
             return response;
         }else{
-            /* throw new Error("No tienes permiso para modificar"); */
             message ='No tienes permiso para modificar'
             return {"messages": message}
         }
