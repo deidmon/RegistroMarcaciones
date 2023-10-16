@@ -14,14 +14,12 @@ async function registerAbsencesController() {
   const minutes = initialDate.format('mm');
   const seconds = initialDate.format('ss');
 
-  const formattedTime = /* '17:59' */`${hours}:${minutes}`;
-  const [hour, minute] = formattedTime.split(':');
-  const hourInMinutes = parseInt(hour) * 60 + parseInt(minute);
+  const formattedTime = `${hours}:${minutes}`;
 
   //comprobar la hora
-  const parametrization = await db.getTableParametrizationTypeMarking(tableParameterization);                 
+  const parametrization = await db.getTableParametrizationTypeMarking(tableParameterization);     
+              
     function validateTime(formattedTime) {
-      
         const [hour, minutes] = formattedTime.split(':'); 
         for (const fila of parametrization) {
             const [startTime, minutesHome] = fila.HoraInicio.split(':'); 
