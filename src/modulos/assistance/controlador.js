@@ -61,7 +61,7 @@ module.exports = function(dbInyectada){
                 const resultValidation = validateTime(formattedTime);
                 let descriptionValidation = '';
                 if (resultValidation === 0) {
-                    message ='Estás marcando en un horario no permitido'
+                    message ='Horario no permitido.'
                     return {"messages": message}
                 } else if (resultValidation === 1) {
                     descriptionValidation = 'Conforme';
@@ -80,7 +80,7 @@ module.exports = function(dbInyectada){
                     alreadyMarked = false
                 }
                 if (alreadyMarked) {
-                    message =`El usuario ya marcó hoy en este tipo de marcación ${body.idTypesMarking}`
+                    message =`Ya se ha registrado una marcación de este tipo hoy.`
                     return {"messages": message}
                 }
                 const assists = {
@@ -101,7 +101,7 @@ module.exports = function(dbInyectada){
                
                 return {"Registrado como": descriptionValidation, "Ubicación": nameAddress}
             }else{
-                message ='Estas fuera del rango de la ubicación'
+                message ='Fuera del rango de la ubicación.'
                 return {"messages": message}
             }   
         }
@@ -130,7 +130,7 @@ module.exports = function(dbInyectada){
             const response = await db.queryUpdateAssists(tableAssist,modificationMarking,marking); 
             return response;
         }else{
-            message ='No tienes permiso para modificar'
+            message ='No tienes permiso para modificar.'
             return {"messages": message}
         }
     }
