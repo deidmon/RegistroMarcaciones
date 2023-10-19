@@ -87,15 +87,8 @@ module.exports = function(dbInjected){
         }
     }
 
-    async function consultMarkDay(idUser){
-        let initialDate =  moment();
-        let day = initialDate.format('DD');
-        let month = initialDate.format('MM'); 
-        let age = initialDate.format('YYYY');
-        let date = `${age}-${month}-${day}`; 
-
+    async function consultMarkDay(idUser, date){
         if (!idUser) {
-            /* throw new Error("No viene usuario"); */
             message ='No viene usuario'
             return {"messages": message}
         }
@@ -107,7 +100,7 @@ module.exports = function(dbInjected){
         const dataDay = await db.queryMarkDay(tableAssist,tableTypeMarking,tabletypeValidation, idUser, date);
         if (!dataDay) {
             /* throw new Error("No existe marcaciones para este usuario"); */
-            message ='No existe marcaciones para este usuario' 
+            message ='No se encuentran asistencias para esta fecha.' 
             return {"messages": message}
         } else{
             return dataDay;

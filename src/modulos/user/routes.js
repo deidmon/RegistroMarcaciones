@@ -55,7 +55,7 @@ async function consultMarkWeek(req, res, next) {
 
 async function consultMarkDay(req, res, next) {
     try{
-        const userDay = await controller.consultMarkDay(req.body.idUser);
+        const userDay = await controller.consultMarkDay(req.body.idUser, req.body.date);
         if(!userDay.messages){
             response.success(req, res, userDay,"",200)
         }else{
