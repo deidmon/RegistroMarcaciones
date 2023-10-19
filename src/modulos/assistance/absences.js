@@ -85,9 +85,10 @@ async function startProgramming() {
   
   const cronJob = await db.allUsers(tableCronJob);
   const hourCronJob = cronJob.map((row) => {
-          const hour = row.Horario.split(':'); 
-          const minutes = hour[1];
-          const hours = hour[0];
+          const hour = row.Horario; 
+          const objetMoment = moment.tz(hour, 'HH:mm:ss','America/Lima');
+          const minutes = objetMoment.format('mm');
+          const hours = objetMoment.format('HH');
         
           return `${minutes} ${hours} * * *`;
         });
