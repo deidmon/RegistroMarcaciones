@@ -6,8 +6,7 @@ const tableAddress ='direcciones';
 const tableTypeMarking = 'tipomarcaciones'
 const tabletypeValidation = 'validacion';
 const bcrypt = require ('bcrypt');
-// const { query } = require('express');
-// const { queryMarca } = require('../../DB/mysql');
+
 
 module.exports = function(dbInjected){
 
@@ -16,13 +15,6 @@ module.exports = function(dbInjected){
     if(!db){
         db = require('../../DB/mysql');
     }
-
-    let initialDate =  moment();
-    let day = initialDate.format('DD'); // Agrega ceros a la izquierda si es necesario
-    let month = initialDate.format('MM'); // Agrega ceros a la izquierda si es necesario
-    let age = initialDate.format('YYYY');
-    let date = `${age}-${month}-${day}`; 
-
     async function consultUser(user, password){
         if (!user || !password) {
             message ='Datos faltantes'
@@ -96,6 +88,12 @@ module.exports = function(dbInjected){
     }
 
     async function consultMarkDay(idUser){
+        let initialDate =  moment();
+        let day = initialDate.format('DD');
+        let month = initialDate.format('MM'); 
+        let age = initialDate.format('YYYY');
+        let date = `${age}-${month}-${day}`; 
+
         if (!idUser) {
             /* throw new Error("No viene usuario"); */
             message ='No viene usuario'

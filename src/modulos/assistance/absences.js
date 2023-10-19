@@ -49,6 +49,7 @@ async function registerAbsencesController() {
           Fecha: date,
           idTMarcacion: idTypesMarking,
           idValidacion: 3,
+          Hora: formattedTime,
         };
 
         console.log('Registrando falta para el usuario Id:', idUser );
