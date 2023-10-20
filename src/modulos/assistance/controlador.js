@@ -49,7 +49,6 @@ module.exports = function(dbInyectada){
             return {"messages": message}
         }
         const workModality = await db.queryModalityValidation(tableUser, {IdUsuarios: body.idUser});
-        //0
         if (!workModality){        
             const locations = await db.compareLocation(tableUser,tableAddress,body.idUser,body.latitude,body.latitude,body.longitude,radiusMeters,body.idUser,body.latitude,body.latitude,body.longitude,radiusMeters)
         
@@ -105,7 +104,6 @@ module.exports = function(dbInyectada){
             message ='Fuera del rango de la ubicación.'
             return {"messages": message}
         }
-        //=1
         const resultValidation = validateTime(formattedTime);
             
         let descriptionValidation = '';

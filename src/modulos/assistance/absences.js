@@ -1,4 +1,4 @@
-const cron = require('node-cron');
+/* const cron = require('node-cron');
 const db = require('../../DB/mysql'); 
 const tableAssist = 'asistencias';
 const tableUser = 'usuarios';
@@ -100,3 +100,4 @@ async function startProgramming() {
 }
 startProgramming();
 
+ */

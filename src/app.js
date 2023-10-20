@@ -7,7 +7,7 @@ const auth = require('./modulos/auth/routes')
 const assistance = require('./modulos/assistance/routes')
 const informationTables = require('./modulos/informationTables/routes')
 const error = require('./red/errors');
-const cronjob = require('./modulos/assistance/absences');
+/* const cronjob = require('./modulos/assistance/absences'); */
 const app = express();
 
 //Middleware
