@@ -2,6 +2,7 @@ const moment = require('moment-timezone');
 const tableAssist = 'asistencias';
 const tableUser = 'usuarios';
 const tableParameterization = 'parametrizacion'; 
+const tableTypeMarking='tipomarcaciones'; 
 const tableAddress = 'direcciones';
 moment.tz.setDefault('America/Lima');
 
@@ -71,7 +72,7 @@ module.exports = function(dbInyectada){
                     descriptionValidation = 'Falta';
                 } 
 
-                const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist, body.idUser,date, body.idTypesMarking);
+                const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist,tableTypeMarking, body.idUser,date, body.idTypesMarking);
 
                 var alreadyMarked = false;
                 if (userAlreadyMarked.length>0){
@@ -80,7 +81,7 @@ module.exports = function(dbInyectada){
                     alreadyMarked = false
                 }
                 if (alreadyMarked) {
-                    message =`Ya se ha registrado una marcación de este tipo hoy.`
+                    message =`Usted ya ha registrado su ${userAlreadyMarked[0].descripcion.toLowerCase()} hoy.`
                     return {"messages": message}
                 }
                 const assists = {
@@ -118,8 +119,8 @@ module.exports = function(dbInyectada){
             descriptionValidation = 'Falta';
         } 
 
-        const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist, body.idUser,date, body.idTypesMarking);
-
+        const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist,tableTypeMarking ,body.idUser,date, body.idTypesMarking);
+        console.log(userAlreadyMarked)
         var alreadyMarked = false;
         if (userAlreadyMarked.length>0){
             alreadyMarked = true    
@@ -127,7 +128,7 @@ module.exports = function(dbInyectada){
             alreadyMarked = false
         }
         if (alreadyMarked) {
-            message =`Ya se ha registrado una marcación de este tipo hoy.`
+            message =`Usted ya ha registrado su ${userAlreadyMarked[0].descripcion.toLowerCase()} hoy.`
             return {"messages": message}
         }
         const assists = {

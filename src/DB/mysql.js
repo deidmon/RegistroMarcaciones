@@ -278,11 +278,11 @@ function getTableParametrizationTypeMarking(tabla) {
     });
 }
 
-function userAlreadyMarkedToday(tabla, IdUsuarios,fechaHoy,idTMarcacion) { 
+function userAlreadyMarkedToday(tabla, tabla2, IdUsuarios,fechaHoy,idTMarcacion) { 
     return new Promise((resolve, reject) => {
-        const query = `SELECT * FROM ${tabla} WHERE IdUsuarios = ? AND Fecha = ? AND idTMarcacion = ?`;
+        const query = `SELECT * FROM ${tabla} AS a INNER JOIN ${tabla2} AS t ON a.idTMarcacion = t.idTMarcaciones  WHERE a.IdUsuarios = ? AND a.Fecha = ? AND a.idTMarcacion = ?`;
         conexion.query(query, [IdUsuarios, fechaHoy, idTMarcacion], (error, result) => {
-            if (error) {
+            if (error) { 
                 reject(error);
             } else {
                 resolve(result);
