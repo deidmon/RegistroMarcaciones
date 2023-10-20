@@ -121,7 +121,16 @@ function query(tabla, consulta){
         })
     });
 } 
+function queryModalityValidation(tabla, consulta){
+    return new Promise((resolve, reject)=>{
+        const query = `SELECT * FROM ?? WHERE ? AND IdModalidad <> 1`;
+        const values = [tabla, consulta];
+        conexion.query(query, values, (error, result) =>{
+            return error ? reject(error)  : resolve(result[0]);
 
+        })
+    });
+} 
 function queryMarkWeek(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         const query = `
@@ -327,6 +336,6 @@ module.exports = {
     userAlreadyMarkedToday,
     queryUpdateAssists,
     compareLocation,
-    
+    queryModalityValidation
     
 }
