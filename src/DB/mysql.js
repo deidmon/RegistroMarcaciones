@@ -174,21 +174,27 @@ function queryMarkWeek(tabla, tabla2, consulta) {
 
 function queryMarkMonth(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
-        const query = `
-            SELECT a.IdUsuarios AS "idUser", a.idValidacion AS "idValidation", v.descripcion AS "description", COUNT(*) AS "quantity"
-            FROM ?? a
-            INNER JOIN ?? v ON a.idValidacion = v.idValidacion
-            LEFT JOIN direcciones d ON a.IdDirec = d.IdDireccion
-            WHERE YEAR(a.Fecha) = YEAR(CURRENT_DATE()) 
-                AND MONTH(a.Fecha) = MONTH(CURRENT_DATE())
-                AND a.idTMarcacion = 1
-                AND a.IdUsuarios = ?
-            GROUP BY v.idValidacion
-            ORDER BY idValidation`;
+        const query = `            
+            SELECT 
+                v.idValidacion AS "idValidation",
+                v.descripcion AS "description",
+                COALESCE(COUNT(a.idValidacion), 0) AS "quantity"
+            FROM ?? AS v
+            LEFT JOIN (SELECT idValidacion
+                    FROM ??
+                    WHERE YEAR(Fecha) = YEAR(CURRENT_DATE())
+                    AND MONTH(Fecha) = MONTH(CURRENT_DATE())
+                    AND idTMarcacion = 1
+                    AND IdUsuarios = ?
+                ) AS a ON v.idValidacion = a.idValidacion
+            GROUP BY v.idValidacion, v.descripcion
+            ORDER BY v.idValidacion
+            `;
 
-        const values = [tabla, tabla2, consulta]; 
+        const values = [ tabla,tabla2, consulta]; 
         conexion.query(query, values, (error, result) => {
             if (error) {
+                console.log(error)
                 reject(error);
             } else {
                 if (result.length === 0) {

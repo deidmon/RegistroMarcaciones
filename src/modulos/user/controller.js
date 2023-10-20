@@ -56,7 +56,7 @@ module.exports = function(dbInjected){
             message ='Usuario incorrecto'
             return {"messages": message}
         }
-        const dataMonth = await db.queryMarkMonth(tableAssist,tabletypeValidation, idUser);
+        const dataMonth = await db.queryMarkMonth(tabletypeValidation, tableAssist,idUser);
         if (!dataMonth) {
             /* throw new Error("Usuario incorrecto"); */
             /* message ='Usuario incorrecto' */
