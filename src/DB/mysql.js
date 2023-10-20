@@ -172,7 +172,7 @@ function queryMarkWeek(tabla, tabla2, consulta) {
     });
 }
 
-function queryMarkMonth(tabla, tabla2, consulta) {
+function queryMarkMonth(tabla, tabla2, IdUsuario, Fecha, Fecha) {
     return new Promise((resolve, reject) => {
         const query = `            
             SELECT 
@@ -182,16 +182,16 @@ function queryMarkMonth(tabla, tabla2, consulta) {
             FROM ?? AS v
             LEFT JOIN (SELECT idValidacion
                     FROM ??
-                    WHERE YEAR(Fecha) = YEAR(CURRENT_DATE())
-                    AND MONTH(Fecha) = MONTH(CURRENT_DATE())
+                    WHERE IdUsuarios = ?
                     AND idTMarcacion = 1
-                    AND IdUsuarios = ?
+                    AND  YEAR(Fecha) = YEAR(?)
+                    AND MONTH(Fecha) = MONTH(?)
                 ) AS a ON v.idValidacion = a.idValidacion
             GROUP BY v.idValidacion, v.descripcion
             ORDER BY v.idValidacion
             `;
 
-        const values = [ tabla,tabla2, consulta]; 
+        const values = [ tabla,tabla2, IdUsuario, Fecha, Fecha]; 
         conexion.query(query, values, (error, result) => {
             if (error) {
                 console.log(error)

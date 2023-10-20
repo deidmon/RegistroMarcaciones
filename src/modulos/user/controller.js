@@ -45,9 +45,8 @@ module.exports = function(dbInjected){
         return db.userInformation(tableUser,tableAddress, id);
     }
 
-    async function consultMarkMonth(idUser){
+    async function consultMarkMonth(idUser,date){
         if (!idUser) {
-            /* throw new Error("Ingrese usuario"); */
             message ='Ingrese usuario'
             return {"messages": message}
         }
@@ -56,11 +55,10 @@ module.exports = function(dbInjected){
             message ='Usuario incorrecto'
             return {"messages": message}
         }
-        const dataMonth = await db.queryMarkMonth(tabletypeValidation, tableAssist,idUser);
+        const dataMonth = await db.queryMarkMonth(tabletypeValidation, tableAssist, idUser, date, date);
         if (!dataMonth) {
-            /* throw new Error("Usuario incorrecto"); */
-            /* message ='Usuario incorrecto' */
-            return {"messages": 'No existe marcaciones para este usuario'}
+            message = 'No se encuentran asistencias para este mes.'
+            return {"messages": message}
         } else{
             return dataMonth;
         }  
@@ -68,7 +66,6 @@ module.exports = function(dbInjected){
 
     async function consultMarkWeek(idUser){
         if (!idUser) {
-            /* throw new Error("Ingrese usuario"); */
             message ='Ingrese usuario'
             return {"messages": message}
         }
@@ -79,8 +76,7 @@ module.exports = function(dbInjected){
         }
         const dataWeek = await db.queryMarkWeek(tableAssist,tabletypeValidation, idUser);
         if (!dataWeek) {
-            /* throw new Error("Usuario incorrecto"); */
-            message ='No existe marcaciones para este usuario'
+            message ='Actualmente, no se han registrado asistencias para esta semana.'
             return {"messages": message}
         } else{
             return dataWeek;
@@ -99,7 +95,6 @@ module.exports = function(dbInjected){
         }
         const dataDay = await db.queryMarkDay(tableAssist,tableTypeMarking,tabletypeValidation, idUser, date);
         if (!dataDay) {
-            /* throw new Error("No existe marcaciones para este usuario"); */
             message ='No se encuentran asistencias para esta fecha.' 
             return {"messages": message}
         } else{

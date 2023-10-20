@@ -11,7 +11,8 @@ router.get('/markingWeek', security(),consultMarkWeek);
 router.get('/markingDay', security(),consultMarkDay);
 router.post('/update', addUser);
 
-errorMessageUser = "Algo salio mal, intente más tarde.12ññññññññññ3"
+errorMessageUser = "Algo salio mal, intente más tarde"
+
 async function consultUser(req, res, next) {
     try{
         const user = await controller.consultUser(req.body.username, req.body.password);
@@ -28,7 +29,7 @@ async function consultUser(req, res, next) {
 
 async function consultMarkMonth(req, res, next) {
     try{
-        const userMon = await controller.consultMarkMonth(req.body.idUser);
+        const userMon = await controller.consultMarkMonth(req.body.idUser,req.body.date);
         if(!userMon.messages){
             response.success(req, res, userMon,"",200)
         }else{
