@@ -122,7 +122,8 @@ module.exports = function(dbInjected){
             Contraseña: password,
             IdRol: body.idRole,
             IdDirec: body.idAdrres,	
-            IdDirecSecu: body.idSecondaryAddress	
+            IdDirecSecu: body.idSecondaryAddress,
+            IdModalidad :body.idModality
         }  
         if (body.idUser === 0) {
             const respuesta = await db.add(tableUser, usuario);
