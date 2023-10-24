@@ -23,10 +23,13 @@ module.exports = function(dbInyectada){
         let hour = initialDate.format('HH');
         let minutes = initialDate.format('mm');
         let date = `${age}-${month}-${day}`; 
-        const formattedTime = `${hour}:${minutes}`;
+        const formattedTime = `${hour}:${minutes}` ;
         const radiusMeters = 50;
 
-        const parametrization = await db.getTableParametrization(tableParameterization, body.idTypesMarking);
+        const parametrization = await db.getTableParametrization(tableParameterization,tableTypeMarking ,body.idTypesMarking);
+        const startTimeAllowed = parametrization[0].HoraInicio;
+        const endTimeAllowed = /* parametrization[parametrization.length - 1].HoraFin;  */ parametrization[0].HoraFin;
+        const descrptionTypeMarking = parametrization[0].descripcion;
         function validateTime(formattedTime) {
             const [hour, minutes] = formattedTime.split(':'); 
             for (const fila of parametrization) {
@@ -62,7 +65,7 @@ module.exports = function(dbInyectada){
                 
                 let descriptionValidation = '';
                 if (resultValidation === 0) {
-                    message ='Horario no permitido.'
+                    message =`Lo sentimos, no se pudo registrar su asistencia, ya que el horario permitido para ${descrptionTypeMarking.toLowerCase()} es de: ${startTimeAllowed} a ${endTimeAllowed}`
                     return {"messages": message}
                 } else if (resultValidation === 1) {
                     descriptionValidation = 'Conforme';
@@ -72,7 +75,7 @@ module.exports = function(dbInyectada){
                     descriptionValidation = 'Falta';
                 } 
 
-                const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist,tableTypeMarking, body.idUser,date, body.idTypesMarking);
+                const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist, body.idUser,date, body.idTypesMarking);
 
                 var alreadyMarked = false;
                 if (userAlreadyMarked.length>0){
@@ -81,7 +84,7 @@ module.exports = function(dbInyectada){
                     alreadyMarked = false
                 }
                 if (alreadyMarked) {
-                    message =`Usted ya ha registrado su ${userAlreadyMarked[0].descripcion.toLowerCase()} hoy.`
+                    message =`Usted ya ha registrado su ${descrptionTypeMarking.toLowerCase()} hoy.`
                     return {"messages": message}
                 }
                 const assists = {
@@ -100,16 +103,20 @@ module.exports = function(dbInyectada){
                 
                 const respuesta = await db.add(tableAssist, assists);
                 
-                return {"Registrado como": descriptionValidation, "Ubicación": nameAddress}
+                if(resultValidation == 2 || resultValidation == 3){
+                    return {"Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toLowerCase()}.`, "Detalle": `Ya que el horario permitido para ${descrptionTypeMarking.toLowerCase()} es de ${startTimeAllowed} a ${endTimeAllowed}. De tener algún inconveniente comuníquese con su Líder Técnico.`}
+                }
+                    return {"Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation}`, "Detalle": `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!`}
+                
             }
-            message ='Fuera del rango de la ubicación.'
+            message =`El rango para registrar su asistencia es de ${radiusMeters} metros. Por favor, verifique que se encuentra dentro de ese rango.`
             return {"messages": message}
         }
         const resultValidation = validateTime(formattedTime);
             
         let descriptionValidation = '';
         if (resultValidation === 0) {
-            message ='Horario no permitido.'
+            message =`Lo sentimos, no se pudo registrar su asistencia, ya que el horario permitido para ${descrptionTypeMarking.toLowerCase()} es de: ${startTimeAllowed} a ${endTimeAllowed}`
             return {"messages": message}
         } else if (resultValidation === 1) {
             descriptionValidation = 'Conforme';
@@ -119,7 +126,7 @@ module.exports = function(dbInyectada){
             descriptionValidation = 'Falta';
         } 
 
-        const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist,tableTypeMarking ,body.idUser,date, body.idTypesMarking);
+        const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist, body.idUser,date, body.idTypesMarking);
         console.log(userAlreadyMarked)
         var alreadyMarked = false;
         if (userAlreadyMarked.length>0){
@@ -128,7 +135,7 @@ module.exports = function(dbInyectada){
             alreadyMarked = false
         }
         if (alreadyMarked) {
-            message =`Usted ya ha registrado su ${userAlreadyMarked[0].descripcion.toLowerCase()} hoy.`
+            message =`Usted ya ha registrado su ${descrptionTypeMarking.toLowerCase()} hoy.`
             return {"messages": message}
         }
         const assists = {
@@ -144,7 +151,11 @@ module.exports = function(dbInyectada){
             Updated_by: 0,
         } 
         const respuesta = await db.add(tableAssist, assists);
-        return {"Registrado como": descriptionValidation, "Ubicación": 'Ubicación remota'}     
+        if(resultValidation == 2 || resultValidation == 3){
+            return {"Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toLowerCase()}.`, "Detalle": `Ya que el horario permitido para ${descrptionTypeMarking.toLowerCase()} es de ${startTimeAllowed} a ${endTimeAllowed}. De tener algún inconveniente comuníquese con su Líder Técnico.`}
+        }
+            return {"Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation}`, "Detalle": `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!`}
+        
     }
 
     async function update(body){
@@ -169,10 +180,10 @@ module.exports = function(dbInyectada){
         if(body.IdRol == 1){
             const response = await db.queryUpdateAssists(tableAssist,modificationMarking,marking); 
             return response;
-        }else{
+        }
             message ='No tienes permiso para modificar.'
             return {"messages": message}
-        }
+        
     }
     return {
         addMarking,

@@ -248,10 +248,13 @@ function recordFouls(tabla,tabla2, consulta){
     });
 }
 
-function getTableParametrization(tabla,idTipoMarcaciones) {
+function getTableParametrization(tabla,tabla2,idTipoMarcaciones) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT * FROM ${tabla} WHERE idTipoMarcaciones = ? `;
-        conexion.query(query,idTipoMarcaciones, (error, results) => {
+        const query = `SELECT * FROM ?? AS p INNER JOIN  ?? AS t ON p.
+        idTipoMarcaciones = t.idTMarcaciones WHERE idTipoMarcaciones = ? `;
+
+        const values = [tabla, tabla2, idTipoMarcaciones];
+        conexion.query(query,values, (error, results) => {
             if (error) {
                 console.error("Error al obtener la tabla de parametrización:", error);
                 return reject(error);
@@ -278,10 +281,11 @@ function getTableParametrizationTypeMarking(tabla) {
     });
 }
 
-function userAlreadyMarkedToday(tabla, tabla2, IdUsuarios,fechaHoy,idTMarcacion) { 
+function userAlreadyMarkedToday(tabla, IdUsuarios,fechaHoy,idTMarcacion) { 
     return new Promise((resolve, reject) => {
-        const query = `SELECT * FROM ${tabla} AS a INNER JOIN ${tabla2} AS t ON a.idTMarcacion = t.idTMarcaciones  WHERE a.IdUsuarios = ? AND a.Fecha = ? AND a.idTMarcacion = ?`;
-        conexion.query(query, [IdUsuarios, fechaHoy, idTMarcacion], (error, result) => {
+        const query = `SELECT * FROM ??  WHERE IdUsuarios = ? AND Fecha = ? AND idTMarcacion = ?`; 
+        const values = [tabla, IdUsuarios, fechaHoy, idTMarcacion];
+        conexion.query(query, values, (error, result) => {
             if (error) { 
                 reject(error);
             } else {
