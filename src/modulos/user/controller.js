@@ -5,6 +5,7 @@ const tableAssist = 'asistencias';
 const tableAddress ='direcciones';
 const tableTypeMarking = 'tipomarcaciones'
 const tabletypeValidation = 'validacion';
+const tableTokenUser = 'tokennotificaciones';
 const bcrypt = require ('bcrypt');
 
 
@@ -123,7 +124,9 @@ module.exports = function(dbInjected){
             IdRol: body.idRole,
             IdDirec: body.idAdrres,	
             IdDirecSecu: body.idSecondaryAddress,
-            IdModalidad :body.idModality
+            IdModalidad :body.idModality,
+            CIP: body.cip,
+            DNI: body.dni
         }  
         if (body.idUser === 0) {
             const respuesta = await db.add(tableUser, usuario);
@@ -138,13 +141,34 @@ module.exports = function(dbInjected){
         }
     }
     
+    async function addTokensUser(body){
+        if (!body.idUser) {
+            message = 'Por favor, ingrese un usuario';
+            return {"messages": message}
+        }
+        const dataUser = await db.query(tableUser, {IdUsuarios: body.idUser});
+        if (!dataUser) {
+            message = 'Usuario incorrecto';
+            return {"messages": message}
+        };
+        const tokenUser = {
+            IdUsuarios: body.idUser,
+            Token: body.token,
+        };
+        const respuesta = await db.add(tableTokenUser, tokenUser);
+        //message = 'Token registrado con éxito';
+        return 'Token registrado con éxito';
+       // return respuesta;
+    }
+
     return {
         allUsers,
-        addUser,
         userInformation,
         consultUser,
         consultMarkMonth,
         consultMarkWeek,
         consultMarkDay,
+        addUser,
+        addTokensUser
     }
 }

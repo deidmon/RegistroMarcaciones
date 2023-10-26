@@ -106,11 +106,11 @@ module.exports = function(dbInyectada){
                 if(resultValidation == 2 || resultValidation == 3){
                     return {"Registrado como": `La asistencia ha sido registrada como: '${descriptionValidation.toLowerCase()}'.`, "Detalle": `Ya que el horario para '${descrptionTypeMarking.toLowerCase()}' es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con su Líder Técnico.`}
                 }
-                    return {"Registrado como": `La asistencia ha sido registrada como: '${descriptionValidation}'`, "Detalle": `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!`}
+                    return {"Registrado como": `La asistencia ha sido registrada como: '${descriptionValidation}'`, "Detalle": `Hora de registro: ${formattedTime}. ¡gracias por su puntualidad!`}
                 
             }
             message =`El rango para registrar su asistencia es de ${radiusMeters} metros. Por favor, verifique que se encuentra dentro de ese rango.`
-            return {"messages": message}
+            return {"messages": message}  
         }
         const resultValidation = validateTime(formattedTime);
             

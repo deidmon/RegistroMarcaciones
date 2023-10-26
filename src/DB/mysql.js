@@ -121,6 +121,7 @@ function query(tabla, consulta){
         })
     });
 } 
+
 function queryModalityValidation(tabla, consulta){
     return new Promise((resolve, reject)=>{
         const query = `SELECT * FROM ?? WHERE ? AND IdModalidad <> 1`;
@@ -131,6 +132,7 @@ function queryModalityValidation(tabla, consulta){
         })
     });
 } 
+
 function queryMarkWeek(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         const query = `
@@ -263,6 +265,7 @@ function getTableParametrization(tabla,tabla2,idTipoMarcaciones) {
         });
     });
 }
+
 function getTableParametrizationTypeMarking(tabla) {
     return new Promise((resolve, reject) => {
         const query = `
