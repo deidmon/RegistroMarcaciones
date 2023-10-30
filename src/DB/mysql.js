@@ -63,6 +63,17 @@ function allUsers(tabla) {
     });
 }
 
+function cronjob(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM ?? WHERE IdEstado = 1';
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
 function userInformation(tabla, tabla2, id) {
     return new Promise((resolve, reject) => {
         const query = `SELECT IdUsuarios AS "idUser", Nombres AS "names", Apellidos AS "lastNames", Activo AS "status", Usuario AS "user", IdRol AS 'idRole', IdDirec AS "idPrimaryAddress", d1.Direccion AS "primaryAddress", IdDirecSecu AS "idSecondaryAddress", d2.Direccion AS "secondaryAddress"
@@ -343,6 +354,7 @@ module.exports = {
     queryMarkDay,
     queryMarkMonth,
     recordFouls,
+    cronjob,
     userInformation,
     getTableParametrization,
     getTableParametrizationTypeMarking,

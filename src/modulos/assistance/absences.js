@@ -1,4 +1,4 @@
-/* const cron = require('node-cron');
+const cron = require('node-cron');
 const db = require('../../DB/mysql'); 
 const tableAssist = 'asistencias';
 const tableUser = 'usuarios';
@@ -83,12 +83,13 @@ async function startProgramming() {
     });
   }
   
-  const cronJob = await db.allUsers(tableCronJob);
+  const cronJob = await db.cronjob(tableCronJob);
   const hourCronJob = cronJob.map((row) => {
           const hour = row.Horario; 
           const objetMoment = moment.tz(hour, 'HH:mm:ss','America/Lima');
-          const minutes = objetMoment.format('mm');
-          const hours = objetMoment.format('HH');
+          const serverTime = objetMoment.tz('UTC'); //  'ZonaHorariaDelServidor' 
+          const minutes = serverTime.format('mm');
+          const hours = serverTime.format('HH');
         
           return `${minutes} ${hours} * * *`;
         });
@@ -99,5 +100,3 @@ async function startProgramming() {
   });
 }
 startProgramming();
-
- */
