@@ -74,6 +74,17 @@ function cronjob(tabla) {
     });
 }
 
+function cronjobNotification(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM ?? WHERE IdEstado = 1';
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
 function userInformation(tabla, tabla2, id) {
     return new Promise((resolve, reject) => {
         const query = `SELECT IdUsuarios AS "idUser", Nombres AS "names", Apellidos AS "lastNames", Activo AS "status", Usuario AS "user", IdRol AS 'idRole', IdDirec AS "idPrimaryAddress", d1.Direccion AS "primaryAddress", IdDirecSecu AS "idSecondaryAddress", d2.Direccion AS "secondaryAddress"
@@ -250,7 +261,14 @@ function queryMarkDay (tabla, tabla2, tabla3, IdUsuario, Fecha) {
 
 function recordFouls(tabla,tabla2, consulta){
     return new Promise((resolve, reject)=>{
-        conexion.query(`SELECT DISTINCT U.IdUsuarios FROM ${tabla} U LEFT JOIN ${tabla2} R ON U.IdUsuarios = R.IdUsuarios AND DATE(R.Fecha) = CURDATE() WHERE (R.IdUsuarios IS NULL OR R.idTMarcacion <> ?) AND U.IdRol != 2;`, consulta, (error, result) =>{
+        conexion.query(`SELECT DISTINCT U.IdUsuarios
+                    FROM ${tabla} U
+                    WHERE U.IdUsuarios NOT IN (
+                        SELECT IdUsuarios
+                        FROM ${tabla2}
+                        WHERE DATE(Fecha) = CURDATE()
+                        AND idTMarcacion = ?
+                    ) AND U.IdRol = 2;`,  consulta, (error, result) =>{
             if (error) {
                 reject(error);
               } else {
@@ -258,6 +276,23 @@ function recordFouls(tabla,tabla2, consulta){
                 resolve(usuariosSinRegistro);
               }       
         })
+    });
+}
+
+function tokenUsersUnmarked(tabla, IdUsuarios) { 
+    return new Promise((resolve, reject) => {
+        const query = `SELECT Token FROM ??  WHERE IdUsuarios IN (?)`; 
+        const values = [tabla, IdUsuarios];
+        conexion.query(query, values, (error, result) => {
+            if (error) { 
+                reject(error);
+            } else {
+                
+                const tokenUsersUnmarked = result.map((row) => row.Token);
+                /* console.log(tokenUsersUnmarked) */
+                resolve(tokenUsersUnmarked);
+            }
+        });
     });
 }
 
@@ -348,12 +383,14 @@ module.exports = {
     allUsers,
     allTypeMarking,
     allTypeValidation,
+    cronjobNotification,
     update,
     query,
     queryMarkWeek,
     queryMarkDay,
     queryMarkMonth,
     recordFouls,
+    tokenUsersUnmarked,
     cronjob,
     userInformation,
     getTableParametrization,

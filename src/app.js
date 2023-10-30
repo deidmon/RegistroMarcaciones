@@ -8,6 +8,7 @@ const assistance = require('./modulos/assistance/routes')
 const informationTables = require('./modulos/informationTables/routes')
 const error = require('./red/errors');
 /* const cronjob = require('./modulos/assistance/absences'); */
+/* const cronjobNotification = require('./modulos/notification/routes'); */
 const app = express();
 
 //Middleware
