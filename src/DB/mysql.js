@@ -32,7 +32,7 @@ conMysql();
 
 function allTypeMarking(tabla) {
     return new Promise((resolve, reject) => {
-        const query = 'SELECT idTMarcaciones AS "idTypesMarking", descripcion AS "description"  FROM ?? ORDER BY idTypesMarking';
+        const query = 'SELECT idTMarcaciones AS "idTypesMarking", descripcion AS "description"  FROM ?? WHERE IdEstado = 1 ORDER BY idTypesMarking';
         const values = [tabla];
 
         conexion.query(query, values, (error, result) => {
