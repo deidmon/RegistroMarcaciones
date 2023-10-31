@@ -58,7 +58,7 @@ module.exports = function(dbInyectada){
         
             if (locations.length > 0) {
                 const firstLocationResult = locations[0];
-                const idAddress = firstLocationResult.IdDireccion;
+                /* const idAddress = firstLocationResult.IdDireccion; */
                 const nameAddress = firstLocationResult.Direccion
 
                 const resultValidation = validateTime(formattedTime);
@@ -90,7 +90,7 @@ module.exports = function(dbInyectada){
                 const assists = {
                     IdAsistencias:body.id,
                     IdUsuarios: body.idUser,
-                    IdDirec: idAddress,
+                    Direccion: nameAddress,
                     Fecha: date,
                     Hora: formattedTime,
                     idTMarcacion: body.idTypesMarking ,
@@ -141,6 +141,7 @@ module.exports = function(dbInyectada){
         const assists = {
             IdAsistencias:body.id,
             IdUsuarios: body.idUser,
+            Direccion: body.address,
             Fecha: date,
             Hora: formattedTime,
             idTMarcacion: body.idTypesMarking ,
@@ -165,18 +166,27 @@ module.exports = function(dbInyectada){
         const marking = {
             IdUsuarios:body.idUser,
             Fecha: body.date,
-            Hora: body.hour,
+            Hora: body.hour, //no va
             idTMarcacion:body.idTypesMarking ,
-            idValidacion:body.idValidacion,
+            idValidacion:body.idValidacion, //no va
             
         } 
         const modificationMarking ={
             Hora: body.hour,
-            idTMarcacion:body.idTypesMarking ,
+            idTMarcacion:body.idTypesMarking ,  //revisar
             idValidacion:body.idValidacion,
             Updated_by: body.idUserModified,
             Updated_at: date,           
         }
+
+        /* const modificationMarking2 ={
+            IdUsuarios:body.idUser,
+            Fecha: body.date,
+            Hora: body.hour,
+            idTMarcacion:body.idTypesMarking ,  
+            idValidacion:body.idValidacion,
+            Updated_by: body.idUserModified, // habra un idusuermodified        
+        } */
         if(body.IdRol == 1){
             const response = await db.queryUpdateAssists(tableAssist,modificationMarking,marking); 
             return response;

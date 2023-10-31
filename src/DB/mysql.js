@@ -158,7 +158,7 @@ function queryModalityValidation(tabla, consulta){
 function queryMarkWeek(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         const query = `
-            SELECT a.IdUsuarios AS "idUser", a.IdDirec AS "idAddress", d.Direccion AS "address", DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS "date", 
+            SELECT a.IdUsuarios AS "idUser",  a.Direccion AS "address", DATE_FORMAT(a.Fecha, '%Y-%m-%d') AS "date", 
             CASE DAYNAME(a.Fecha)
                 WHEN 'Monday' THEN 'Lunes'
                 WHEN 'Tuesday' THEN 'Martes'
@@ -172,7 +172,7 @@ function queryMarkWeek(tabla, tabla2, consulta) {
             a.idTMarcacion AS "idTypesMarking", a.idValidacion AS "idValidation", v.descripcion AS "validation"
             FROM ?? a
             INNER JOIN ?? v ON a.idValidacion = v.idValidacion
-            LEFT JOIN direcciones d ON a.IdDirec = d.IdDireccion
+            
             WHERE YEAR(a.Fecha) = YEAR(CURRENT_DATE())
                 AND WEEK(a.Fecha) = WEEK(CURRENT_DATE())
                 AND a.idTMarcacion = 1

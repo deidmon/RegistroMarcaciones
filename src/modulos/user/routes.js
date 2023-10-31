@@ -12,7 +12,7 @@ router.get('/markingDay', security(),consultMarkDay);
 router.post('/update', addUser);
 router.post('/addTokenUser', addTokensUser);
 
-errorMessageUser = "Algo salio mal, intente más tardesadas"
+errorMessageUser = "Algo salio mal, intente más tarde"
 
 async function consultUser(req, res, next) {
     try{
