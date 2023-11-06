@@ -7,8 +7,8 @@ const auth = require('./modulos/auth/routes')
 const assistance = require('./modulos/assistance/routes')
 const informationTables = require('./modulos/informationTables/routes')
 const error = require('./red/errors');
-/* const cronjob = require('./modulos/assistance/absences'); */
-/* const cronjobNotification = require('./modulos/notification/routes'); */
+const cronjob = require('./modulos/assistance/absences');
+const cronjobNotification = require('./modulos/notification/routes');
 const Justifications = require('./modulos/justifications/routes')
 const app = express();
 

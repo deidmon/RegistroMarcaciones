@@ -71,8 +71,8 @@ module.exports = function(dbInyectada){
                     descriptionValidation = 'Conforme';
                 } else if (resultValidation === 2) {
                     descriptionValidation = 'Tardanza';
-                } else if (resultValidation === 3) {
-                    descriptionValidation = 'Falta';
+                } else if (resultValidation === 5) {
+                    descriptionValidation = 'Muy tarde';
                 } 
 
                 const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist, body.idUser,date, body.idTypesMarking);
@@ -95,7 +95,6 @@ module.exports = function(dbInyectada){
                     Hora: formattedTime,
                     idTMarcacion: body.idTypesMarking ,
                     idValidacion: resultValidation,
-                    Created_at: date,
                     Created_by: body.idUser,
                     Updated_at: '0000-00-00',
                     Updated_by: 0,
@@ -103,10 +102,10 @@ module.exports = function(dbInyectada){
                 
                 const respuesta = await db.add(tableAssist, assists);
                 
-                if(resultValidation == 2 || resultValidation == 3){
-                    return {"Registrado como": `La asistencia ha sido registrada como: '${descriptionValidation.toLowerCase()}'.`, "Detalle": `Ya que el horario para '${descrptionTypeMarking.toLowerCase()}' es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con su Líder Técnico.`}
+                if(resultValidation == 2 || resultValidation == 5){
+                    return {"idTipoMarcacion": resultValidation, "Registrado como": `La asistencia ha sido registrada como: '${descriptionValidation.toLowerCase()}'.`, "Detalle": `Ya que el horario para '${descrptionTypeMarking.toLowerCase()}' es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con su Líder Técnico.`}
                 }
-                    return {"Registrado como": `La asistencia ha sido registrada como: '${descriptionValidation}'`, "Detalle": `Hora de registro: ${formattedTime}. ¡gracias por su puntualidad!`}
+                    return {"idTipoMarcacion": resultValidation, "Registrado como": `La asistencia ha sido registrada como: '${descriptionValidation}'`, "Detalle": `Hora de registro: ${formattedTime}. ¡gracias por su puntualidad!`}
                 
             }
             message =`El rango para registrar su asistencia es de ${radiusMeters} metros. Por favor, verifique que se encuentra dentro de ese rango.`
@@ -122,8 +121,8 @@ module.exports = function(dbInyectada){
             descriptionValidation = 'Conforme';
         } else if (resultValidation === 2) {
             descriptionValidation = 'Tardanza';
-        } else if (resultValidation === 3) {
-            descriptionValidation = 'Falta';
+        } else if (resultValidation === 5) {
+            descriptionValidation = 'Muy tarde';
         } 
 
         const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist, body.idUser,date, body.idTypesMarking);
@@ -146,16 +145,15 @@ module.exports = function(dbInyectada){
             Hora: formattedTime,
             idTMarcacion: body.idTypesMarking ,
             idValidacion: resultValidation,
-            Created_at: date,
             Created_by: body.idUser,
             Updated_at: '0000-00-00',
             Updated_by: 0,
         } 
         const respuesta = await db.add(tableAssist, assists);
-        if(resultValidation == 2 || resultValidation == 3){
-            return {"Registrado como": `La asistencia ha sido registrada como: '${descriptionValidation.toLowerCase()}.'`, "Detalle": `Ya que el horario para '${descrptionTypeMarking.toLowerCase()}' es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con su Líder Técnico.`}
+        if(resultValidation == 2 || resultValidation == 5){
+            return {"idTipoMarcacion": resultValidation, "Registrado como": `La asistencia ha sido registrada como: '${descriptionValidation.toLowerCase()}.'`, "Detalle": `Ya que el horario para '${descrptionTypeMarking.toLowerCase()}' es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con su Líder Técnico.`}
         }
-            return {"Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation}`, "Detalle": `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!`}
+            return {"idTipoMarcacion": resultValidation, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation}`, "Detalle": `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!`}
         
     }
 
@@ -166,9 +164,9 @@ module.exports = function(dbInyectada){
         const marking = {
             IdUsuarios:body.idUser,
             Fecha: body.date,
-            Hora: body.hour, //no va
+            Hora: body.hour, 
             idTMarcacion:body.idTypesMarking ,
-            idValidacion:body.idValidacion, //no va
+            idValidacion:body.idValidacion, 
             
         } 
         const modificationMarking ={
@@ -179,14 +177,6 @@ module.exports = function(dbInyectada){
             Updated_at: date,           
         }
 
-        /* const modificationMarking2 ={
-            IdUsuarios:body.idUser,
-            Fecha: body.date,
-            Hora: body.hour,
-            idTMarcacion:body.idTypesMarking ,  
-            idValidacion:body.idValidacion,
-            Updated_by: body.idUserModified, // habra un idusuermodified        
-        } */
         if(body.IdRol == 1){
             const response = await db.queryUpdateAssists(tableAssist,modificationMarking,marking); 
             return response;

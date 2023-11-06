@@ -12,7 +12,7 @@ moment.tz.setDefault('America/Lima');
 
 
 
-const bearerToken = 'tokendefirebase';
+const bearerToken = 'AAAABAqfEQ8:APA91bEgr4R2yhqoez4YD1mSHtGnQcNChmI7uYRvK7CXFaVWKi98S3v0clv5sxP_UYK9vomiFAEAxPxhbUR-gR2En4b_hRuwxATvLqhq0dtxHgqWT3qQrDzxrGFWJepvmKGsAPwh49Yi';
 const endpoint = 'https://fcm.googleapis.com/fcm/send'; 
 
 errorMessage = "Algo salio mal, intente más tarde."
@@ -20,7 +20,6 @@ async function UsersUnmarked() {
     try{
         const usersUnmarked = await controller.usersUnmarked();
         const tokensUsersUnmarked = await controller.tokenUsersUnmarked(usersUnmarked);
-        /* console.log(tokensUsersUnmarked) */
         return tokensUsersUnmarked 
     }catch(err){
         console.log(err)
@@ -28,9 +27,12 @@ async function UsersUnmarked() {
     }
 }
 
-async function notificationUsersUnmarked() {
-    try {      
-        const valuesTokenUser = UsersUnmarked()
+async function notificationUsersUnmarked() {    
+        const valuesTokenUser = await UsersUnmarked();
+        /* console.log(valuesTokenUser) */
+        if(!valuesTokenUser || valuesTokenUser.length === 0){
+          return "Todos los usuarios ya marcaron asistencia"
+        }
         const jsonData = 
         { 
      
@@ -40,31 +42,26 @@ async function notificationUsersUnmarked() {
                    "body": "Tienes una marcación pendiente por hacer",
                    "title": "MARCACIONES"
                  },
-            to : valuesTokenUser
+            registration_ids : valuesTokenUser
          };
         try {
           const response = await axios.post(endpoint, jsonData,{
             headers: {
-                'Authorization': `Bearer ${bearerToken}`,
+                'Authorization': `bearer ${bearerToken}`,
             },
           },
           );
-          console.log(response)
-  
           console.log(`Usuario notificado con éxito: ${JSON.stringify(jsonData)}`);
+          return "Usuarios notificados con éxito"
         } catch (error) {
           console.error(`Error al notificar usuario: ${error.message}`);
+          return "Error al notificar usuarios"
         }
       
-    } catch (error) {
-      console.error(`Error: ${error.message}`);
-    }
+    
   }
   
 
-
-/* notificationUsersUnmarked(); */
-/* notificationUsersUnmarked() */
 
 async function startProgramming() {
   function scheduleTask(cronExpression) {

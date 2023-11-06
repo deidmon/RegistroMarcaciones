@@ -10,36 +10,19 @@ moment.tz.setDefault('America/Lima');
 async function registerAbsencesController() {
 
   let initialDate =  moment();
+  let day = initialDate.format('DD'); 
+  let month = initialDate.format('MM'); 
+  let age = initialDate.format('YYYY');
+  let date = `${age}-${month}-${day}`; 
   const hours = initialDate.format('HH');
   const minutes = initialDate.format('mm');
   const seconds = initialDate.format('ss');
 
   const formattedTime = `${hours}:${minutes}`;
 
-  //comprobar la hora
-  const parametrization = await db.getTableParametrizationTypeMarking(tableParameterization);     
-              
-    function validateTime(formattedTime) {
-        const [hour, minutes] = formattedTime.split(':'); 
-        for (const fila of parametrization) {
-            const [startTime, minutesHome] = fila.HoraInicio.split(':'); 
-            const [endTime, minutesEnd] = fila.HoraFin.split(':'); 
-            const hourInMinutes = parseInt(hour) * 60 + parseInt(minutes);
-            const startTimeInMinutes = parseInt(startTime) * 60 + parseInt(minutesHome);
-            const hourEndInMinutes = parseInt(endTime) * 60 + parseInt(minutesEnd);
-
-            if (hourInMinutes >= startTimeInMinutes && hourInMinutes <= hourEndInMinutes) {
-        
-                const TypeMarking = fila.idTipoMarcaciones;
-                    return TypeMarking
-            }
-        }
-           
-    }
-    const idTypesMarking = validateTime(formattedTime);
-  let date = new Date() || '';
+  const idTypesMarking = 1;
   try {
-    const usersUnregistered = await db.recordFouls(tableUser, tableAssist, idTypesMarking);
+    const usersUnregistered = await db.recordFoulsCronjob(tableUser, tableAssist);
     
 
     if (usersUnregistered && usersUnregistered.length > 0) {
@@ -49,7 +32,8 @@ async function registerAbsencesController() {
           Fecha: date,
           idTMarcacion: idTypesMarking,
           idValidacion: 3,
-          Hora: formattedTime,
+          Hora: '',
+          Created_by: 0,
         };
 
         console.log('Registrando falta para el usuario Id:', idUser );
@@ -60,10 +44,8 @@ async function registerAbsencesController() {
 
       return 'Faltas registradas correctamente';
 
-    } else {
-      console.log('Todos los usuarios han registrado asistencia para hoy.');
-    }
-    return 'Faltas registradas correctamente.';
+    } 
+    return 'Todos los usuarios han registrado asistencia para hoy.';
 
   } catch (error) {
     console.error('Error al registrar faltas:', error);

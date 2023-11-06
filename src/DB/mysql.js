@@ -113,13 +113,32 @@ function add(tabla, data) {
     });
 }
 
-function queryUpdateAssists(tabla, consulta, data){
+function addJustification(tabla, data) {
+    return new Promise((resolve, reject) => {
+        
+        const insertQuery = `INSERT INTO ?? SET ?`;
+        const values = [tabla, data];
+
+        conexion.query(insertQuery, values, (error, result) => {
+            if (error) {
+                console.log(error)
+                reject(error);
+            } else {
+                console.log(result)
+                resolve(result);
+            }
+        });
+    });
+}
+
+function queryUpdateAssists(tabla, consulta, IdAsistencias){
     return new Promise((resolve, reject)=>{
-        conexion.query(`UPDATE ${tabla} SET ? WHERE IdUsuarios = ? AND Fecha = ? AND idTMarcacion = ?`,[consulta,data.IdUsuarios,data.Fecha,data.idTMarcacion], (error, result) =>{
+        conexion.query(`UPDATE ${tabla} SET ? WHERE IdAsistencias = ?`,[consulta,IdAsistencias], (error, result) =>{
             if (error) {
                 reject(error);
             } else {
                 const actualizacionExitosa = result.changedRows > 0;
+                console.log(actualizacionExitosa)
                 resolve(actualizacionExitosa);
             }
         })
@@ -134,12 +153,55 @@ function update(tabla, consulta){
     });
 }
 
+function queryUpdateJustifactions(tabla, consulta, idJustificacion){
+    return new Promise((resolve, reject)=>{
+        conexion.query(`UPDATE ${tabla} SET ? WHERE idJustificacion = ?`,[consulta,idJustificacion], (error, result) =>{
+            return error ? reject(error) : resolve(result);
+        })
+    });
+}
+
 function query(tabla, consulta){
     return new Promise((resolve, reject)=>{
         const query = `SELECT * FROM ?? WHERE ?`;
         const values = [tabla, consulta];
         conexion.query(query, values, (error, result) =>{
             return error ? reject(error) : resolve(result[0]);
+        })
+    });
+} 
+
+function queryGetJustifications(table1, table2, table3, table4, table5, table6, consult){
+    return new Promise((resolve, reject) => {
+        const query = `SELECT u.Nombres, u.Apellidos, j.IdUsuario, j.Fecha, j.IdTMarcaciones, t.descripcion, a.Hora,j.Motivo, j.IdEstadoJust, e.Descripcion, v.descripcion
+        FROM ?? j
+        INNER JOIN ?? u ON j.IdUsuario = u.IdUsuarios
+        INNER JOIN ?? t ON j.IdTMarcaciones = t.IdTMarcaciones
+        INNER JOIN ?? e ON j.IdEstadoJust = e.IdEstadoJust
+        INNER JOIN ?? a ON j.IdUsuario = a.IdUsuarios AND j.Fecha = a.Fecha
+        INNER JOIN ?? v ON a.idValidacion = v.idValidacion
+        WHERE j.IdEstadoJust = ? `;
+        const values = [table1, table2, table3, table4, table5, table6, consult];
+        conexion.query(query, values, (error, result) => {
+            if (error) {
+                return reject(error);
+            }
+                return resolve(result);
+        });
+    });
+}
+
+function queryConsultTable(tabla, consult1, consult2, consult3){
+    return new Promise((resolve, reject)=>{
+        const query = `SELECT * FROM ?? WHERE  ? AND  ? AND  ?`;
+        const values = [tabla, consult1, consult2, consult3];
+        conexion.query(query, values, (error, result) =>{
+            if (error) { 
+                reject(error);
+                
+            } else {
+                resolve(result);
+            }
         })
     });
 } 
@@ -187,7 +249,6 @@ function queryMarkWeek(tabla, tabla2, consulta) {
             } else {
                 if (result.length === 0) {
                     resolve()
-                    /* resolve('No existen marcaciones para este usuario90'); */
                 } else {
                     resolve(result);
                 }
@@ -249,12 +310,10 @@ function queryMarkDay (tabla, tabla2, tabla3, IdUsuario, Fecha) {
             } else {
                 if (result.length === 0) {
                     resolve()
-                    /* resolve('No existen marcaciones para este usuario90'); */
                 } else {
                     resolve(result);
                 }
             }
-            /* return error ? reject(error) : resolve(result); */
         });
     });
 }
@@ -269,6 +328,28 @@ function recordFouls(tabla,tabla2, consulta){
                         WHERE DATE(Fecha) = CURDATE()
                         AND idTMarcacion = ?
                     ) AND U.IdRol = 2;`,  consulta, (error, result) =>{
+            if (error) {
+                reject(error);
+              } else {
+                const usuariosSinRegistro = result.map((row) => row.IdUsuarios);
+                resolve(usuariosSinRegistro);
+              }       
+        })
+    });
+}
+
+function recordFoulsCronjob(tabla,tabla2){
+    return new Promise((resolve, reject)=>{              
+            const query = `SELECT DISTINCT U.IdUsuarios
+            FROM ?? U
+            WHERE U.IdUsuarios NOT IN (
+                SELECT DISTINCT IdUsuarios
+                FROM ??
+                WHERE Fecha = CURDATE() AND (idTMarcacion = 1 OR idTMarcacion = 4)
+                GROUP BY IdUsuarios
+            ) AND U.IdRol = 2;`
+            const values = [tabla, tabla2];
+            conexion.query(query, values, (error, result) =>{
             if (error) {
                 reject(error);
               } else {
@@ -380,23 +461,28 @@ function compareLocation(tabla,tabla2,IdUsuarios,latitudUsuario,latitudUsuario,l
 module.exports = {
 
     add,
+    addJustification,
     allUsers,
     allTypeMarking,
     allTypeValidation,
     cronjobNotification,
     update,
     query,
+    queryConsultTable,
     queryMarkWeek,
     queryMarkDay,
     queryMarkMonth,
+    queryUpdateJustifactions,
+    queryUpdateAssists,
+    queryGetJustifications,
     recordFouls,
+    recordFoulsCronjob,
     tokenUsersUnmarked,
     cronjob,
     userInformation,
     getTableParametrization,
     getTableParametrizationTypeMarking,
     userAlreadyMarkedToday,
-    queryUpdateAssists,
     compareLocation,
     queryModalityValidation
     
