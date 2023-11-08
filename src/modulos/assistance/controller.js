@@ -65,14 +65,14 @@ module.exports = function(dbInyectada){
                 
                 let descriptionValidation = '';
                 if (resultValidation === 0) {
-                    message =`Lo sentimos, no se pudo registrar su asistencia, ya que el horario permitido para ${descrptionTypeMarking.toLowerCase()} es de: ${startTimeAllowed} a ${endTimeAllowed}`
+                    message =`Lo sentimos, no se pudo registrar su asistencia, ya que el horario permitido para ${descrptionTypeMarking.toUpperCase()} es de: ${startTimeAllowed} a ${endTimeAllowed}`
                     return {"messages": message}
                 } else if (resultValidation === 1) {
                     descriptionValidation = 'Conforme';
                 } else if (resultValidation === 2) {
                     descriptionValidation = 'Tardanza';
-                } else if (resultValidation === 5) {
-                    descriptionValidation = 'Muy tarde';
+                } else if (resultValidation === 3) {
+                    descriptionValidation = 'Falta';
                 } 
 
                 const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist, body.idUser,date, body.idTypesMarking);
@@ -84,7 +84,7 @@ module.exports = function(dbInyectada){
                     alreadyMarked = false
                 }
                 if (alreadyMarked) {
-                    message =`Usted ya ha registrado su ${descrptionTypeMarking.toLowerCase()} hoy.`
+                    message =`Usted ya ha registrado su ${descrptionTypeMarking.toUpperCase()} hoy.`
                     return {"messages": message}
                 }
                 const assists = {
@@ -102,10 +102,10 @@ module.exports = function(dbInyectada){
                 
                 const respuesta = await db.add(tableAssist, assists);
                 
-                if(resultValidation == 2 || resultValidation == 5){
-                    return {"idTipoMarcacion": resultValidation, "Registrado como": `La asistencia ha sido registrada como: '${descriptionValidation.toLowerCase()}'.`, "Detalle": `Ya que el horario para '${descrptionTypeMarking.toLowerCase()}' es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con su Líder Técnico.`}
+                if(resultValidation == 2 || resultValidation == 3){
+                    return {"idTipoMarcacion": resultValidation, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}.`, "Detalle": `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con su Líder Técnico.`}
                 }
-                    return {"idTipoMarcacion": resultValidation, "Registrado como": `La asistencia ha sido registrada como: '${descriptionValidation}'`, "Detalle": `Hora de registro: ${formattedTime}. ¡gracias por su puntualidad!`}
+                    return {"idTipoMarcacion": resultValidation, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}`, "Detalle": `Hora de registro: ${formattedTime}. ¡gracias por su puntualidad!`}
                 
             }
             message =`El rango para registrar su asistencia es de ${radiusMeters} metros. Por favor, verifique que se encuentra dentro de ese rango.`
@@ -115,14 +115,14 @@ module.exports = function(dbInyectada){
             
         let descriptionValidation = '';
         if (resultValidation === 0) {
-            message =`Lo sentimos, no se pudo registrar su asistencia, ya que el horario para '${descrptionTypeMarking.toLowerCase()}' es de: '${startTimeAllowed} a ${endTimeAllowed}'`
+            message =`Lo sentimos, no se pudo registrar su asistencia, ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de: '${startTimeAllowed} a ${endTimeAllowed}'`
             return {"messages": message}
         } else if (resultValidation === 1) {
             descriptionValidation = 'Conforme';
         } else if (resultValidation === 2) {
             descriptionValidation = 'Tardanza';
-        } else if (resultValidation === 5) {
-            descriptionValidation = 'Muy tarde';
+        } else if (resultValidation === 3) {
+            descriptionValidation = 'Salida';
         } 
 
         const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist, body.idUser,date, body.idTypesMarking);
@@ -134,7 +134,7 @@ module.exports = function(dbInyectada){
             alreadyMarked = false
         }
         if (alreadyMarked) {
-            message =`Usted ya ha registrado su '${descrptionTypeMarking.toLowerCase()}' hoy.`
+            message =`Usted ya ha registrado su ${descrptionTypeMarking.toUpperCase()} hoy.`
             return {"messages": message}
         }
         const assists = {
@@ -150,10 +150,10 @@ module.exports = function(dbInyectada){
             Updated_by: 0,
         } 
         const respuesta = await db.add(tableAssist, assists);
-        if(resultValidation == 2 || resultValidation == 5){
-            return {"idTipoMarcacion": resultValidation, "Registrado como": `La asistencia ha sido registrada como: '${descriptionValidation.toLowerCase()}.'`, "Detalle": `Ya que el horario para '${descrptionTypeMarking.toLowerCase()}' es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con su Líder Técnico.`}
+        if(resultValidation == 2 || resultValidation == 3){
+            return {"idTipoMarcacion": resultValidation, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}.`, "Detalle": `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con su Líder Técnico.`}
         }
-            return {"idTipoMarcacion": resultValidation, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation}`, "Detalle": `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!`}
+            return {"idTipoMarcacion": resultValidation, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}`, "Detalle": `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!`}
         
     }
 

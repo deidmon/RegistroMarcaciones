@@ -293,16 +293,17 @@ function queryMarkMonth(tabla, tabla2, IdUsuario, Fecha, Fecha) {
     });
 }
 
-function queryMarkDay (tabla, tabla2, tabla3, IdUsuario, Fecha) {
+function queryMarkDay (tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha) {
     return new Promise((resolve, reject) => {
         const query = `
-            SELECT LOWER(TIME_FORMAT(STR_TO_DATE(a.Hora, '%H:%i:%s'), '%h:%i:%s %p')) AS 'time',a.idTMarcacion AS "idTypesMarking",t.descripcion AS 'typesMarking', a.idValidacion AS "idValidation", v.descripcion AS 'validation'
+            SELECT DISTINCT LOWER(TIME_FORMAT(STR_TO_DATE(a.Hora, '%H:%i:%s'), '%h:%i:%s %p')) AS 'time',a.idTMarcacion AS "idTypesMarking",t.descripcion AS 'typesMarking', a.idValidacion AS "idValidation", v.descripcion AS 'validation', j.Motivo AS 'reason'
             FROM ?? a 
             INNER JOIN ?? t ON a.idTMarcacion = t.idTMarcaciones 
             INNER JOIN ?? v ON a.idValidacion = v.idValidacion 
+            LEFT JOIN ?? j ON a.idTMarcacion = j.IdTMarcaciones AND a.IdUsuarios =j.IdUsuario AND a.Fecha = j.Fecha
             WHERE a.IdUsuarios = ? AND a.Fecha = ?
             ORDER BY idTypesMarking`;
-        const values = [tabla, tabla2, tabla3, IdUsuario, Fecha];
+        const values = [tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha];
 
         conexion.query(query, values, (error, result) => {
             if (error) {

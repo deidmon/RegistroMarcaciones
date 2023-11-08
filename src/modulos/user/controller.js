@@ -5,6 +5,7 @@ const tableAssist = 'asistencias';
 const tableAddress ='direcciones';
 const tableTypeMarking = 'tipomarcaciones'
 const tabletypeValidation = 'validacion';
+const tabletypeJustifications = 'justificaciones';
 const tableTokenUser = 'tokennotificaciones';
 const bcrypt = require ('bcrypt');
 
@@ -94,7 +95,7 @@ module.exports = function(dbInjected){
             message ='Usuario incorrecto'
             return {"messages": message}
         }
-        const dataDay = await db.queryMarkDay(tableAssist,tableTypeMarking,tabletypeValidation, idUser, date);
+        const dataDay = await db.queryMarkDay(tableAssist,tableTypeMarking,tabletypeValidation, tabletypeJustifications,idUser, date);
         if (!dataDay) {
             message ='No se encuentran asistencias para esta fecha.' 
             return {"messages": message}
