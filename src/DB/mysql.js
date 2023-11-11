@@ -3,27 +3,27 @@ const config = require('../config');
 
 const bdconfig = {
     host: config.mysql.host,
-    user:config.mysql.user,
-    password:config.mysql.password,
-    database:config.mysql.database,
+    user: config.mysql.user,
+    password: config.mysql.password,
+    database: config.mysql.database,
 }
-let conexion ;
+let conexion;
 
-function conMysql(){
+function conMysql() {
     conexion = mysql.createConnection(bdconfig);
-    conexion.connect((err)=>{
-        if(err){
+    conexion.connect((err) => {
+        if (err) {
             console.log('[db err]', err);
             setTimeout(conMysql, 200);
-        }else{
+        } else {
             console.log('Db conectada')
         }
     });
-    conexion.on('error', err =>{
+    conexion.on('error', err => {
         console.log('[db err]', err);
-        if(err.code == 'PROTOCOLO_CONNECTION_LOST'){
+        if (err.code == 'PROTOCOLO_CONNECTION_LOST') {
             conMysql();
-        }else{
+        } else {
             throw err;
         }
     })
@@ -94,8 +94,8 @@ function userInformation(tabla, tabla2, id) {
             WHERE idUsuarios = ?`;
 
         const values = [tabla, tabla2, tabla2, id];
-        
-        conexion.query(query, values , (error, result) => {
+
+        conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result[0]);
         });
     });
@@ -103,7 +103,7 @@ function userInformation(tabla, tabla2, id) {
 
 function add(tabla, data) {
     return new Promise((resolve, reject) => {
-        
+
         const insertQuery = `INSERT INTO ?? SET ? ON DUPLICATE KEY UPDATE ?`;
         const values = [tabla, data, data];
 
@@ -115,7 +115,7 @@ function add(tabla, data) {
 
 function addJustification(tabla, data) {
     return new Promise((resolve, reject) => {
-        
+
         const insertQuery = `INSERT INTO ?? SET ?`;
         const values = [tabla, data];
 
@@ -131,9 +131,9 @@ function addJustification(tabla, data) {
     });
 }
 
-function queryUpdateAssists(tabla, consulta, IdAsistencias){
-    return new Promise((resolve, reject)=>{
-        conexion.query(`UPDATE ${tabla} SET ? WHERE IdAsistencias = ?`,[consulta,IdAsistencias], (error, result) =>{
+function queryUpdateAssists(tabla, consulta, IdAsistencias) {
+    return new Promise((resolve, reject) => {
+        conexion.query(`UPDATE ${tabla} SET ? WHERE IdAsistencias = ?`, [consulta, IdAsistencias], (error, result) => {
             if (error) {
                 reject(error);
             } else {
@@ -145,33 +145,33 @@ function queryUpdateAssists(tabla, consulta, IdAsistencias){
     });
 }
 
-function update(tabla, consulta){
-    return new Promise((resolve, reject)=>{
-        conexion.query(`UPDATE ${tabla} SET ? WHERE IdUsuarios = ?`,[consulta,consulta.IdUsuarios], (error, result) =>{
+function update(tabla, consulta) {
+    return new Promise((resolve, reject) => {
+        conexion.query(`UPDATE ${tabla} SET ? WHERE IdUsuarios = ?`, [consulta, consulta.IdUsuarios], (error, result) => {
             return error ? reject(error) : resolve(result);
         })
     });
 }
 
-function queryUpdateJustifactions(tabla, consulta, idJustificacion){
-    return new Promise((resolve, reject)=>{
-        conexion.query(`UPDATE ${tabla} SET ? WHERE idJustificacion = ?`,[consulta,idJustificacion], (error, result) =>{
+function queryUpdateJustifactions(tabla, consulta, idJustificacion) {
+    return new Promise((resolve, reject) => {
+        conexion.query(`UPDATE ${tabla} SET ? WHERE idJustificacion = ?`, [consulta, idJustificacion], (error, result) => {
             return error ? reject(error) : resolve(result);
         })
     });
 }
 
-function query(tabla, consulta){
-    return new Promise((resolve, reject)=>{
+function query(tabla, consulta) {
+    return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ?? WHERE ?`;
         const values = [tabla, consulta];
-        conexion.query(query, values, (error, result) =>{
+        conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result[0]);
         })
     });
-} 
+}
 
-function queryGetJustifications(table1, table2, table3, table4, table5, table6, consult){
+function queryGetJustifications(table1, table2, table3, table4, table5, table6, consult) {
     return new Promise((resolve, reject) => {
         const query = `SELECT u.Nombres, u.Apellidos, j.IdUsuario, j.Fecha, j.IdTMarcaciones, t.descripcion, a.Hora,j.Motivo, j.IdEstadoJust, e.Descripcion, v.descripcion
         FROM ?? j
@@ -186,36 +186,36 @@ function queryGetJustifications(table1, table2, table3, table4, table5, table6, 
             if (error) {
                 return reject(error);
             }
-                return resolve(result);
+            return resolve(result);
         });
     });
 }
 
-function queryConsultTable(tabla, consult1, consult2, consult3){
-    return new Promise((resolve, reject)=>{
+function queryConsultTable(tabla, consult1, consult2, consult3) {
+    return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ?? WHERE  ? AND  ? AND  ?`;
         const values = [tabla, consult1, consult2, consult3];
-        conexion.query(query, values, (error, result) =>{
-            if (error) { 
+        conexion.query(query, values, (error, result) => {
+            if (error) {
                 reject(error);
-                
+
             } else {
                 resolve(result);
             }
         })
     });
-} 
+}
 
-function queryModalityValidation(tabla, consulta){
-    return new Promise((resolve, reject)=>{
+function queryModalityValidation(tabla, consulta) {
+    return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ?? WHERE ? AND IdModalidad <> 1`;
         const values = [tabla, consulta];
-        conexion.query(query, values, (error, result) =>{
-            return error ? reject(error)  : resolve(result[0]);
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0]);
 
         })
     });
-} 
+}
 
 function queryMarkWeek(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
@@ -276,10 +276,9 @@ function queryMarkMonth(tabla, tabla2, IdUsuario, Fecha, Fecha) {
             ORDER BY v.idValidacion
             `;
 
-        const values = [ tabla,tabla2, IdUsuario, Fecha, Fecha]; 
+        const values = [tabla, tabla2, IdUsuario, Fecha, Fecha];
         conexion.query(query, values, (error, result) => {
             if (error) {
-                console.log(error)
                 reject(error);
             } else {
                 if (result.length === 0) {
@@ -293,7 +292,7 @@ function queryMarkMonth(tabla, tabla2, IdUsuario, Fecha, Fecha) {
     });
 }
 
-function queryMarkDay (tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha) {
+function queryMarkDay(tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha) {
     return new Promise((resolve, reject) => {
         const query = `
             SELECT DISTINCT LOWER(TIME_FORMAT(STR_TO_DATE(a.Hora, '%H:%i:%s'), '%h:%i:%s %p')) AS 'time',a.idTMarcacion AS "idTypesMarking",t.descripcion AS 'typesMarking', a.idValidacion AS "idValidation", v.descripcion AS 'validation', j.Motivo AS 'reason'
@@ -319,8 +318,8 @@ function queryMarkDay (tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha) {
     });
 }
 
-function recordFouls(tabla,tabla2, consulta){
-    return new Promise((resolve, reject)=>{
+function recordFouls(tabla, tabla2, consulta) {
+    return new Promise((resolve, reject) => {
         conexion.query(`SELECT DISTINCT U.IdUsuarios
                     FROM ${tabla} U
                     WHERE U.IdUsuarios NOT IN (
@@ -328,48 +327,48 @@ function recordFouls(tabla,tabla2, consulta){
                         FROM ${tabla2}
                         WHERE DATE(Fecha) = CURDATE()
                         AND idTMarcacion = ?
-                    ) AND U.IdRol = 2;`,  consulta, (error, result) =>{
+                    ) AND U.IdRol = 2;`, consulta, (error, result) => {
             if (error) {
                 reject(error);
-              } else {
+            } else {
                 const usuariosSinRegistro = result.map((row) => row.IdUsuarios);
                 resolve(usuariosSinRegistro);
-              }       
+            }
         })
     });
 }
 
-function recordFoulsCronjob(tabla,tabla2){
-    return new Promise((resolve, reject)=>{              
-            const query = `SELECT DISTINCT U.IdUsuarios
+function recordFoulsCronjob(tabla, tabla2) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT DISTINCT U.IdUsuarios
             FROM ?? U
             WHERE U.IdUsuarios NOT IN (
                 SELECT DISTINCT IdUsuarios
                 FROM ??
-                WHERE Fecha = CURDATE() AND (idTMarcacion = 1 OR idTMarcacion = 4)
+                WHERE Fecha = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
                 GROUP BY IdUsuarios
             ) AND U.IdRol = 2;`
-            const values = [tabla, tabla2];
-            conexion.query(query, values, (error, result) =>{
+        const values = [tabla, tabla2];
+        conexion.query(query, values, (error, result) => {
             if (error) {
                 reject(error);
-              } else {
+            } else {
                 const usuariosSinRegistro = result.map((row) => row.IdUsuarios);
                 resolve(usuariosSinRegistro);
-              }       
+            }
         })
     });
 }
 
-function tokenUsersUnmarked(tabla, IdUsuarios) { 
+function tokenUsersUnmarked(tabla, IdUsuarios) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT Token FROM ??  WHERE IdUsuarios IN (?)`; 
+        const query = `SELECT Token FROM ??  WHERE IdUsuarios IN (?)`;
         const values = [tabla, IdUsuarios];
         conexion.query(query, values, (error, result) => {
-            if (error) { 
+            if (error) {
                 reject(error);
             } else {
-                
+
                 const tokenUsersUnmarked = result.map((row) => row.Token);
                 /* console.log(tokenUsersUnmarked) */
                 resolve(tokenUsersUnmarked);
@@ -378,33 +377,15 @@ function tokenUsersUnmarked(tabla, IdUsuarios) {
     });
 }
 
-function getTableParametrization(tabla,tabla2,idTipoMarcaciones) {
+function getTableParametrization(tabla, tabla2, idTipoMarcaciones) {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ?? AS p INNER JOIN  ?? AS t ON p.
         idTipoMarcaciones = t.idTMarcaciones WHERE idTipoMarcaciones = ? `;
 
         const values = [tabla, tabla2, idTipoMarcaciones];
-        conexion.query(query,values, (error, results) => {
-            if (error) {
-                console.error("Error al obtener la tabla de parametrización:", error);
-                return reject(error);
-            }
-            resolve(results);
-        });
-    });
-}
-
-function getTableParametrizationTypeMarking(tabla) {
-    return new Promise((resolve, reject) => {
-        const query = `
-            SELECT idTipoMarcaciones, MIN(HoraInicio) AS "HoraInicio", MAX(HoraFin) AS "HoraFin"
-            FROM ??
-            GROUP BY idTipoMarcaciones;`;
-        const values = [tabla];
-
         conexion.query(query, values, (error, results) => {
-        if (error) {
-                console.error("Error al obtener la tabla de parametrización:", error);
+            if (error) {
+                /* console.error("Error al obtener la tabla de parametrización:", error); */
                 return reject(error);
             }
             resolve(results);
@@ -412,12 +393,12 @@ function getTableParametrizationTypeMarking(tabla) {
     });
 }
 
-function userAlreadyMarkedToday(tabla, IdUsuarios,fechaHoy,idTMarcacion) { 
+function userAlreadyMarkedToday(tabla, IdUsuarios, fechaHoy, idTMarcacion) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT * FROM ??  WHERE IdUsuarios = ? AND Fecha = ? AND idTMarcacion = ?`; 
+        const query = `SELECT * FROM ??  WHERE IdUsuarios = ? AND Fecha = ? AND idTMarcacion = ?`;
         const values = [tabla, IdUsuarios, fechaHoy, idTMarcacion];
         conexion.query(query, values, (error, result) => {
-            if (error) { 
+            if (error) {
                 reject(error);
             } else {
                 resolve(result);
@@ -426,7 +407,7 @@ function userAlreadyMarkedToday(tabla, IdUsuarios,fechaHoy,idTMarcacion) {
     });
 }
 
-function compareLocation(tabla,tabla2,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros) {
+function compareLocation(tabla, tabla2, IdUsuarios, latitudUsuario, latitudUsuario, longitudUsuario, radioMetros, IdUsuarios, latitudUsuario, latitudUsuario, longitudUsuario, radioMetros) {
     return new Promise((resolve, reject) => {
         const query = `SELECT IdUsuarios, IdDireccion,Direccion FROM ${tabla} u INNER JOIN ${tabla2} d ON u.IdDirec = d.IdDireccion 
         WHERE
@@ -448,8 +429,8 @@ function compareLocation(tabla,tabla2,IdUsuarios,latitudUsuario,latitudUsuario,l
                 POWER(SIN(RADIANS(? - d.Longitud) / 2), 2)
             )) * 1000 <= ?;`;
 
-        conexion.query(query, [IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros,IdUsuarios,latitudUsuario,latitudUsuario,longitudUsuario,radioMetros], (error, result) => {
-            
+        conexion.query(query, [IdUsuarios, latitudUsuario, latitudUsuario, longitudUsuario, radioMetros, IdUsuarios, latitudUsuario, latitudUsuario, longitudUsuario, radioMetros], (error, result) => {
+
             if (error) {
                 reject(error);
             } else {
@@ -458,7 +439,7 @@ function compareLocation(tabla,tabla2,IdUsuarios,latitudUsuario,latitudUsuario,l
         });
     });
 }
- 
+
 module.exports = {
 
     add,
@@ -482,9 +463,8 @@ module.exports = {
     cronjob,
     userInformation,
     getTableParametrization,
-    getTableParametrizationTypeMarking,
     userAlreadyMarkedToday,
     compareLocation,
     queryModalityValidation
-    
+
 }
