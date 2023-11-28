@@ -85,6 +85,19 @@ function cronjobNotification(tabla) {
     });
 }
 
+function queryScheduleNotification(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT DISTINCT HoraInicio AS Hora FROM ?? WHERE IdValidacion = 1
+         UNION SELECT DISTINCT ADDTIME(HoraInicio, "00:05:00") AS Hora FROM ?? 
+         WHERE IdTipoMarcacion = 1 AND IdValidacion = 1 ORDER BY Hora`;
+        const values = [tabla, tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
 function userInformation(tabla, tabla2, id) {
     return new Promise((resolve, reject) => {
         const query = `SELECT IdUsuarios AS "idUser", Nombres AS "names", Apellidos AS "lastNames", Activo AS "status", Usuario AS "user", IdRol AS 'idRole', IdDirec AS "idPrimaryAddress", d1.Direccion AS "primaryAddress", IdDirecSecu AS "idSecondaryAddress", d2.Direccion AS "secondaryAddress"
@@ -318,6 +331,29 @@ function queryMarkDay(tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha) {
     });
 }
 
+function queryGetIdSchedule(tabla, consulta) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT u.IdHorarios FROM ?? AS u WHERE ?`;
+        const values = [tabla, consulta];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0]);
+        })
+    });
+}
+
+function queryGetDaysOff(tabla,tabla2, tabla3, consulta) {
+    return new Promise((resolve, reject) => {
+        const query = `     
+        SELECT d.IdDescansos, LOWER(d.Día) AS Día FROM ?? AS d WHERE d.IdDescansos =
+        (SELECT h.IdDescanso FROM ?? AS h INNER JOIN ?? AS u ON 
+            h.IdHorarios = u.IdHorarios WHERE ? LIMIT 1)`;
+        const values = [tabla,tabla2, tabla3, consulta];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result.map((row) => row.Día)) ;
+        })
+    });
+}
+
 function recordFouls(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         conexion.query(`SELECT DISTINCT U.IdUsuarios
@@ -377,15 +413,14 @@ function tokenUsersUnmarked(tabla, IdUsuarios) {
     });
 }
 
-function getTableParametrization(tabla, tabla2, idTipoMarcaciones) {
+function getTableParametrization(tabla, tabla2, IdHorario ,idTipoMarcaciones) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT * FROM ?? AS p INNER JOIN  ?? AS t ON p.
-        idTipoMarcaciones = t.idTMarcaciones WHERE idTipoMarcaciones = ? `;
+        const query = `SELECT * FROM ?? AS h INNER JOIN  ?? AS t ON h.
+        IdTipoMarcacion = t.idTMarcaciones WHERE h.IdHorarios = ? AND h.IdTipoMarcacion = ? `;
 
-        const values = [tabla, tabla2, idTipoMarcaciones];
+        const values = [tabla, tabla2, IdHorario, idTipoMarcaciones];
         conexion.query(query, values, (error, results) => {
             if (error) {
-                /* console.error("Error al obtener la tabla de parametrización:", error); */
                 return reject(error);
             }
             resolve(results);
@@ -457,6 +492,9 @@ module.exports = {
     queryUpdateJustifactions,
     queryUpdateAssists,
     queryGetJustifications,
+    queryGetIdSchedule,
+    queryGetDaysOff,
+    queryScheduleNotification,
     recordFouls,
     recordFoulsCronjob,
     tokenUsersUnmarked,

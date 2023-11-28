@@ -5,6 +5,7 @@ const response = require('../../red/response');
 const controller = require('./index');
 const router = express.Router();
 const tableCronJob = 'horarionotificaciones';
+const tableSchedule = 'horarios';
 const axios = require('axios');
 
 const moment = require('moment-timezone');
@@ -69,6 +70,7 @@ async function startProgramming() {
   }
 
   const cronJob = await db.cronjobNotification(tableCronJob);
+  /* const cronJob = await db.queryScheduleNotification(tableSchedule); */
   const hourCronJob = cronJob.map((row) => {
     const hour = row.Hora;
     const objetMoment = moment.tz(hour, 'HH:mm:ss', 'America/Lima');

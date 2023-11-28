@@ -1,11 +1,12 @@
 const moment = require('moment-timezone');
 const tableAssist = 'asistencias';
 const tableUser = 'usuarios';
-const tableParameterization = 'parametrizacion';
+const tableSchedule = 'horarios';
 const tableTypeMarking = 'tipomarcaciones';
 const tableAddress = 'direcciones';
+const tableDaysOff = 'descansos';
 moment.tz.setDefault('America/Lima');
-
+moment.locale('es'); 
 module.exports = function (dbInyectada) {
     let message = ""
 
@@ -26,7 +27,14 @@ module.exports = function (dbInyectada) {
         const formattedTime = `${hour}:${minutes}`;
         const radiusMeters = 50;
 
-        const parametrization = await db.getTableParametrization(tableParameterization, tableTypeMarking, body.idTypesMarking);
+        const dayOfWeekName = initialDate.format('dddd');  
+        const daysOff = await db.queryGetDaysOff(tableDaysOff,tableSchedule, tableUser, { IdUsuarios: body.idUser });
+        if (daysOff.includes(dayOfWeekName)) {
+            message = `Hoy ${dayOfWeekName.toUpperCase()} es su día no laborable.`
+            return { "messages": message }
+        }
+        const idSchedule = await db.queryGetIdSchedule(tableUser, { IdUsuarios: body.idUser });
+        const parametrization = await db.getTableParametrization(tableSchedule, tableTypeMarking, idSchedule.IdHorarios, body.idTypesMarking);
         const startTimeAllowed = parametrization[0].HoraInicio;
         const endTimeAllowed = /* parametrization[parametrization.length - 1].HoraFin;  */ parametrization[0].HoraFin;
         const descrptionTypeMarking = parametrization[0].descripcion;
@@ -40,7 +48,7 @@ module.exports = function (dbInyectada) {
                 const hourEndInMinutes = parseInt(endTime) * 60 + parseInt(minutesEnd);
 
                 if (hourInMinutes >= startTimeInMinutes && hourInMinutes <= hourEndInMinutes) {
-                    const idValidacion = fila.idValidacion;
+                    const idValidacion = fila.IdValidacion;
                     return idValidacion
                 }
             }
@@ -126,7 +134,7 @@ module.exports = function (dbInyectada) {
         }
 
         const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist, body.idUser, date, body.idTypesMarking);
-        console.log(userAlreadyMarked)
+        /* console.log(userAlreadyMarked) */
         var alreadyMarked = false;
         if (userAlreadyMarked.length > 0) {
             alreadyMarked = true
