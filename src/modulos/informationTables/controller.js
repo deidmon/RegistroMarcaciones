@@ -1,5 +1,10 @@
 const tabletypeValidation = 'validacion';
-const tableTypeMarking='tipomarcaciones'; 
+const tableTypeMarking= 'tipomarcaciones'; 
+const tableWorkers= 'usuarios'; 
+const tableState= 'estados'; 
+const tableModalityWork= 'modalidadtrabajo';
+const tableRole= 'rol';
+
 
 module.exports = function(dbInyectada){
     let db = dbInyectada;
@@ -14,8 +19,9 @@ module.exports = function(dbInyectada){
     async function allTypeValidation(){
         return db.allTypeValidation(tabletypeValidation);
     }
+
     return {
         allTypeMarking,
-        allTypeValidation
+        allTypeValidation,
     }
 }

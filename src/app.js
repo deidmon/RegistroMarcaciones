@@ -11,6 +11,7 @@ const error = require('./red/errors');
 const cronjob = require('./modulos/assistance/absences');
 const cronjobNotification = require('./modulos/notification/routes');
 const Justifications = require('./modulos/justifications/routes')
+const schedules = require('./modulos/schedules/routes')
 const app = express();
 
 //Middleware
@@ -28,6 +29,7 @@ app.use('/api/auth', auth)
 app.use('/api/informationTables', informationTables)
 app.use('/api/assistance', assistance)
 app.use('/api/justifications', Justifications)
+app.use('/api/schedules', schedules)
 app.use(error);
 
 module.exports = app; 

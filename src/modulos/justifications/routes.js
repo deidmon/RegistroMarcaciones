@@ -7,6 +7,7 @@ const router = express.Router();
 router.post('/add', addJustifications);
 router.post('/update', updateJustifications);
 router.get('/getJustifications', getAllJustifications);
+router.get('/getTotalPending', getJustificationsCounterPending);
 errorMessageJustifications = "Algo salio mal, intente más tarde";
 
 
@@ -28,7 +29,6 @@ async function updateJustifications(req, res, next){
         console.log(items)
        if(items){
         response.success(req, res,"", items.messages, 200);
-
        }        
        
     }catch(err){
@@ -38,11 +38,26 @@ async function updateJustifications(req, res, next){
 
 async function getAllJustifications(req, res, next){
     try{
+        pageSize = 10;
         const Usersjustifications= await controller.getAllJustifications(req.body);
-        response.success(req, res, Usersjustifications, "", 200);
+        const pageIndex = (req.body.page)
+        const UsersjustificationsCounter= await controller.getJustificationsCounter(req.body);
+        const pageCount = Math.ceil(UsersjustificationsCounter / pageSize);
+        response.successPager(req, res, Usersjustifications, 200, UsersjustificationsCounter, pageCount, pageIndex, pageSize);
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
     }
 };
+
+/* 📌 Contador de justificaciones pendientes */
+async function getJustificationsCounterPending(req, res, next) {
+    try{
+        const counter = await controller.getJustificationsCounterPending(req.body);
+        response.successCounter(req, res, counter, "Con éxito", 200);
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
 
 module.exports = router;   

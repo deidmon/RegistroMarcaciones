@@ -5,12 +5,13 @@ const controller = require('./index');
 
 const router = express.Router();
 
-router.get('/information', security(),consultUser);
-router.get('/markingMonth', security(),consultMarkMonth); 
-router.get('/markingWeek', security(),consultMarkWeek); 
-router.get('/markingDay', security(),consultMarkDay);
+router.post('/information', security(),consultUser);
+router.post('/markingMonth', security(),consultMarkMonth); 
+router.post('/markingWeek', security(),consultMarkWeek); 
+router.post('/markingDay', security(),consultMarkDay);
 router.post('/update', addUser);
 router.post('/addTokenUser', addTokensUser);
+router.post('/getAllWorkers', getAllWorkers);
 
 errorMessageUser = "Algo salio mal, intente más tarde"
 
@@ -93,6 +94,21 @@ async function addTokensUser(req, res, next){
         }
     }catch(err){
         response.error(req, res, false, errorMessageUser, 500);
+    }
+};
+
+async function getAllWorkers(req, res, next){
+    try{
+        pageSize = 10;
+        console.log("Aqui llega");
+        const allWorkers= await controller.allWorkers(req.body);
+
+        const pageIndex = (req.body.page)
+        const workersCounter = await controller.getWorkersCounter(req.body);
+        const pageCount = Math.ceil( 13 / pageSize);
+        response.successPager(req, res, allWorkers, 200, workersCounter, pageCount, pageIndex, pageSize);
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
     }
 };
 

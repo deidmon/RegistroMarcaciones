@@ -13,25 +13,31 @@ module.exports = function (dbInjected) {
         db = require('../../DB/mysql');
     }
     async function usersUnmarked() {
+        
+        /* 📌 Variables */
         let initialDate = moment();
         const hours = initialDate.format('HH');
         const minutes = initialDate.format('mm');
 
-        //Pasamos la hora a minutos
+        /* 📌 Pasamos la hora a minutos */
         const timeInMinutes = parseInt(hours) * 60 + parseInt(minutes);
-        let idTypesMarking = 0;
 
-        if (timeInMinutes <= 540) {
-            idTypesMarking = 1;
-        } else {
-            idTypesMarking = 4;
+        /* 📌 Comparamos la hora con la de la bd para optener el tipo de marcación */
+        function calculateIdTypesMarking(timeInMinute) {
+            if (timeInMinute <= 840) {
+                return 1;
+            } 
+                return 4;
         }
 
-        const usersUnregistered = await db.recordFouls(tableUser, tableAssist, idTypesMarking);
+        let idTypesMarking = calculateIdTypesMarking(timeInMinutes);
 
+
+        /* 📌 Función para optener a todos los trabajadores que aun no registran su asistencia */
+        const usersUnregistered = await db.recordFouls(tableUser, tableAssist, idTypesMarking);
         return usersUnregistered;
     }
-
+    /* 📌 Optenemos el token de usuarios sin registro para enviar notificación*/
     function tokenUsersUnmarked(usersUnmarked) {
         return db.tokenUsersUnmarked(tableNotification, usersUnmarked);
     };

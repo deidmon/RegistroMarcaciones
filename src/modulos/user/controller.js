@@ -7,6 +7,9 @@ const tableTypeMarking = 'tipomarcaciones'
 const tabletypeValidation = 'validacion';
 const tabletypeJustifications = 'justificaciones';
 const tableTokenUser = 'tokennotificaciones';
+const tableStateUser = 'estados'
+const tableModalityWork = 'modalidadtrabajo' 
+const tableRol = 'rol'
 const bcrypt = require('bcrypt');
 
 module.exports = function (dbInjected) {
@@ -103,9 +106,26 @@ module.exports = function (dbInjected) {
         }
     }
 
-    function allUsers() {
-        return db.allUsers(tableUser);
+    function allWorkers(body) {
+        function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
+            return  offset = (numeroPagina - 1) * tamanoPagina
+          }
+        PageSiize = 10;
+
+        const getOffset = obtenerDatosPaginados(body.page, PageSiize);
+        return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name, body.IdEstateWorkerA ?? 0, body.IdEstateWorkerI ?? 1, PageSiize, getOffset);
     }
+
+    async function getWorkersCounter(body) {
+        const result = await  db.queryGetWorkersCounter(tableUser, body.name, body.IdEstateWorkerA ?? 0, body.IdEstateWorkerI ?? 1);  
+        if (result && result.length >= 0) {
+            const count = result[0];
+            const contador= count.totalRegistros // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
+            return contador; 
+         } else {
+            return 'No se pudo obtener el recuento.';
+        }
+    };
 
     async function addUser(body) {
         let user = body.user || '';
@@ -162,7 +182,8 @@ module.exports = function (dbInjected) {
     }
 
     return {
-        allUsers,
+        allWorkers,
+        getWorkersCounter,
         userInformation,
         consultUser,
         consultMarkMonth,

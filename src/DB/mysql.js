@@ -41,6 +41,60 @@ function allTypeMarking(tabla) {
     });
 }
 
+/* 📌 Todos los trabajadores */
+function queryAllWorkers(users, states, workModality, role, name, state1, state2, limit, ofset) {
+    return new Promise((resolve, reject) => {
+        const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, e.Descripcion as Estado, u.Usuario, r.Nombre as Rol, m.Descripcion as Modalidad, u.IdHorarios 
+        from ?? as u 
+        inner join ?? as e ON u.IdEstado = e.IdEstado 
+        inner join ?? as m ON u.IdModalidad = m.IdModalidad 
+        inner join ?? as r ON u.IdRol = r.IdRol
+        WHERE u.Nombres LIKE "%${name}%" AND u.IdEstado IN (?, ?)
+        ORDER BY IdUsuarios ASC 
+        LIMIT ? OFFSET ?
+        `;
+        const values = [users, states, workModality, role, state1, state2, limit, ofset];
+        conexion.query(query, values, (error, result) => {
+            return  error ? reject(error) : resolve(result);
+        });
+    });
+}/* return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name, body.IdEstateWorkerA ?? 0, body.IdEstateWorkerI ?? 1, PageSiize, getOffset); */
+
+/* 📌 Todos los trabajadores Cantidad total*/
+function queryGetWorkersCounter(table1, name,  state1, state2) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT COUNT(*) AS totalRegistros
+        FROM ?? j
+        WHERE Nombres LIKE "%${name}%" AND IdEstado IN (?, ?)`;
+        const values = [table1, state1, state2];
+        conexion.query(query, values, (error, result) => {
+            if (error) {
+                console.log(error);
+                return reject(error);
+            }
+            console.log(result);
+            return resolve(result);
+        });
+    });
+}
+
+/* 📌 Todos los horarios */
+function queryAllSchedules(schedules, typeMarking, workModality, role) {
+    return new Promise((resolve, reject) => {
+        const query = `Select IdHorarios, IdTipoMarcacion, IdValidacion, HoraInicio, HoraFin, idDescanso
+        from ?? as h 
+        inner join ?? as t on h.IdTipoMarcacion = t.IdTMarcaciones 
+        where IdValidacion = 1 and IdTipoMarcacion in (1,4)
+        order by idHorarios,  h.IdTipoMarcacion`;
+        const values = [schedules, typeMarking, workModality, role];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
 function allTypeValidation(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT idValidacion AS "idValidation", descripcion AS "description" FROM ?? ORDER BY idValidation';
@@ -148,10 +202,12 @@ function queryUpdateAssists(tabla, consulta, IdAsistencias) {
     return new Promise((resolve, reject) => {
         conexion.query(`UPDATE ${tabla} SET ? WHERE IdAsistencias = ?`, [consulta, IdAsistencias], (error, result) => {
             if (error) {
+                console.log(error)
                 reject(error);
             } else {
+                console.log(result);
                 const actualizacionExitosa = result.changedRows > 0;
-                console.log(actualizacionExitosa)
+                console.log("asistencias: ",actualizacionExitosa)
                 resolve(actualizacionExitosa);
             }
         })
@@ -166,9 +222,12 @@ function update(tabla, consulta) {
     });
 }
 
+/* 📌 Actualizar justificación */
 function queryUpdateJustifactions(tabla, consulta, idJustificacion) {
     return new Promise((resolve, reject) => {
         conexion.query(`UPDATE ${tabla} SET ? WHERE idJustificacion = ?`, [consulta, idJustificacion], (error, result) => {
+            console.log("error: ",error);
+            console.log("resultado: ",result);
             return error ? reject(error) : resolve(result);
         })
     });
@@ -184,21 +243,59 @@ function query(tabla, consulta) {
     });
 }
 
-function queryGetJustifications(table1, table2, table3, table4, table5, table6, consult) {
+/* 📌 Optener justificación */
+function queryGetJustifications(table1, table2, table3, table4, table5, name,  state1, state2, state3, limit, ofset) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT u.Nombres, u.Apellidos, j.IdUsuario, j.Fecha, j.IdTMarcaciones, t.descripcion, a.Hora,j.Motivo, j.IdEstadoJust, e.Descripcion, v.descripcion
+        const query = `SELECT u.Nombres, u.Apellidos, j.IdEstadoJust, j.IdUsuario, j.Fecha, j.IdTMarcaciones,t.descripcion,e.Descripcion, a.Hora
         FROM ?? j
-        INNER JOIN ?? u ON j.IdUsuario = u.IdUsuarios
-        INNER JOIN ?? t ON j.IdTMarcaciones = t.IdTMarcaciones
-        INNER JOIN ?? e ON j.IdEstadoJust = e.IdEstadoJust
-        INNER JOIN ?? a ON j.IdUsuario = a.IdUsuarios AND j.Fecha = a.Fecha
-        INNER JOIN ?? v ON a.idValidacion = v.idValidacion
-        WHERE j.IdEstadoJust = ? `;
-        const values = [table1, table2, table3, table4, table5, table6, consult];
+        LEFT JOIN ?? u ON j.IdUsuario = u.IdUsuarios
+        LEFT JOIN ?? t ON j.IdTMarcaciones = t.IdTMarcaciones
+        LEFT JOIN ?? e ON j.IdEstadoJust = e.IdEstadoJust
+        LEFT JOIN ?? a ON j.IdUsuario = a.IdUsuarios AND j.Fecha = a.Fecha AND j.IdTMarcaciones = a.idTMarcacion 
+        WHERE u.Nombres LIKE "%${name}%" AND j.IdEstadoJust IN (?, ?, ?)   
+        ORDER BY j.Fecha DESC
+        LIMIT ? OFFSET ?`;
+        const values = [table1, table2, table3, table4, table5, state1, state2, state3, limit, ofset];
         conexion.query(query, values, (error, result) => {
             if (error) {
                 return reject(error);
             }
+            return resolve(result);
+        });
+    });
+}
+/* 📌 contador de justificaciónes */
+function queryGetJustificationsCounter(table1, table2, name,  state1, state2, state3) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT COUNT(*) AS totalRegistros
+        FROM ?? j
+        LEFT JOIN ?? u ON j.IdUsuario = u.IdUsuarios
+        WHERE u.Nombres LIKE "%${name}%" AND IdEstadoJust IN (?, ?, ?)`;
+        const values = [table1, table2, state1, state2, state3];
+        conexion.query(query, values, (error, result) => {
+            if (error) {
+                console.log(error);
+                return reject(error);
+            }
+            console.log(result);
+            return resolve(result);
+        });
+    });
+}
+
+/* 📌 Contador justificación pendientes*/
+function queryGetJustificationsCounterPending(table1, state1) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT COUNT(*) AS totalRegistrosPendientes
+        FROM ?? j
+        WHERE IdEstadoJust = ?`;
+        const values = [table1, state1];
+        conexion.query(query, values, (error, result) => {
+            if (error) {
+                console.log(error);
+                return reject(error);
+            }
+            console.log(result);
             return resolve(result);
         });
     });
@@ -341,15 +438,15 @@ function queryGetIdSchedule(tabla, consulta) {
     });
 }
 
-function queryGetDaysOff(tabla,tabla2, tabla3, consulta) {
+function queryGetDaysOff(tabla, tabla2, tabla3, consulta) {
     return new Promise((resolve, reject) => {
         const query = `     
         SELECT d.IdDescansos, LOWER(d.Día) AS Día FROM ?? AS d WHERE d.IdDescansos =
         (SELECT h.IdDescanso FROM ?? AS h INNER JOIN ?? AS u ON 
             h.IdHorarios = u.IdHorarios WHERE ? LIMIT 1)`;
-        const values = [tabla,tabla2, tabla3, consulta];
+        const values = [tabla, tabla2, tabla3, consulta];
         conexion.query(query, values, (error, result) => {
-            return error ? reject(error) : resolve(result.map((row) => row.Día)) ;
+            return error ? reject(error) : resolve(result.map((row) => row.Día));
         })
     });
 }
@@ -413,7 +510,7 @@ function tokenUsersUnmarked(tabla, IdUsuarios) {
     });
 }
 
-function getTableParametrization(tabla, tabla2, IdHorario ,idTipoMarcaciones) {
+function getTableParametrization(tabla, tabla2, IdHorario, idTipoMarcaciones) {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ?? AS h INNER JOIN  ?? AS t ON h.
         IdTipoMarcacion = t.idTMarcaciones WHERE h.IdHorarios = ? AND h.IdTipoMarcacion = ? `;
@@ -492,6 +589,7 @@ module.exports = {
     queryUpdateJustifactions,
     queryUpdateAssists,
     queryGetJustifications,
+    queryGetJustificationsCounter,
     queryGetIdSchedule,
     queryGetDaysOff,
     queryScheduleNotification,
@@ -503,6 +601,9 @@ module.exports = {
     getTableParametrization,
     userAlreadyMarkedToday,
     compareLocation,
-    queryModalityValidation
-
+    queryModalityValidation,
+    queryAllWorkers,
+    queryAllSchedules,
+    queryGetWorkersCounter,
+    queryGetJustificationsCounterPending
 }
