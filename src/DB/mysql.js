@@ -79,22 +79,6 @@ function queryGetWorkersCounter(table1, name,  state1, state2) {
     });
 }
 
-/* 📌 Todos los horarios */
-function queryAllSchedules(schedules, typeMarking, workModality, role) {
-    return new Promise((resolve, reject) => {
-        const query = `Select IdHorarios, IdTipoMarcacion, IdValidacion, HoraInicio, HoraFin, idDescanso
-        from ?? as h 
-        inner join ?? as t on h.IdTipoMarcacion = t.IdTMarcaciones 
-        where IdValidacion = 1 and IdTipoMarcacion in (1,4)
-        order by idHorarios,  h.IdTipoMarcacion`;
-        const values = [schedules, typeMarking, workModality, role];
-
-        conexion.query(query, values, (error, result) => {
-            return error ? reject(error) : resolve(result);
-        });
-    });
-}
-
 function allTypeValidation(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT idValidacion AS "idValidation", descripcion AS "description" FROM ?? ORDER BY idValidation';
@@ -117,7 +101,7 @@ function allUsers(tabla) {
     });
 }
 
-function cronjob(tabla) {
+/* function cronjob(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT * FROM ?? WHERE IdEstado = 1';
         const values = [tabla];
@@ -126,7 +110,49 @@ function cronjob(tabla) {
             return error ? reject(error) : resolve(result);
         });
     });
+} */
+function queryAllSchedules(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT 
+                h.IdHorarios,
+                MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 5 MINUTE) END) AS HoraInicio,
+                MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END) AS HoraFin,
+                h.IdDescanso,
+                GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día, 1) DESC SEPARATOR ', ') AS Descanso
+        FROM ?? AS h 
+        INNER JOIN descansos AS d ON h.IdDescanso = d.IdDescansos
+        GROUP BY h.IdHorarios, h.IdDescanso`;
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
 }
+
+function querylistSchedule(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT DISTINCT IdHorarios FROM ??';
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result.map((row) => row.IdHorarios));
+        });
+    });
+}
+
+function cronjob(tabla, consulta) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM ?? WHERE IdEstado = 1 AND idTMarcacion = ?';
+        const values = [tabla, consulta];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
 
 function cronjobNotification(tabla) {
     return new Promise((resolve, reject) => {
@@ -188,10 +214,8 @@ function addJustification(tabla, data) {
 
         conexion.query(insertQuery, values, (error, result) => {
             if (error) {
-                console.log(error)
                 reject(error);
             } else {
-                console.log(result)
                 resolve(result);
             }
         });
@@ -451,6 +475,32 @@ function queryGetDaysOff(tabla, tabla2, tabla3, consulta) {
     });
 }
 
+function queryAddScheduleUser(tabla, consulta, consulta2) {
+    return new Promise((resolve, reject) => {
+        const query ='UPDATE ?? SET IdHorarios = ? WHERE IdUsuarios = ?'
+        const values = [tabla, consulta, consulta2]
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);          
+        })
+    });
+}
+function queryGetDaysOffBySchedule(tabla, tabla2, consulta) {
+    return new Promise((resolve, reject) => {
+        const query = `     
+        SELECT d.IdDescansos, LOWER(d.Día) AS Día 
+        FROM ?? AS d 
+        WHERE d.IdDescansos = (SELECT  IdDescanso
+						FROM ??
+						Where ?
+						group by IdHorarios);`;
+        const values = [tabla, tabla2, consulta];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result.map((row) => row.Día)) ;
+        })
+    });
+}
+
+
 function recordFouls(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         conexion.query(`SELECT DISTINCT U.IdUsuarios
@@ -471,17 +521,22 @@ function recordFouls(tabla, tabla2, consulta) {
     });
 }
 
-function recordFoulsCronjob(tabla, tabla2) {
+/* U.IdRol = 2 */
+// DATE_SUB(CURDATE(), INTERVAL 1 DAY)------------------------------------------------------------------------
+function recordFoulsCronjob(tabla, tabla2, consulta, consulta2, consulta3) {
     return new Promise((resolve, reject) => {
         const query = `SELECT DISTINCT U.IdUsuarios
             FROM ?? U
             WHERE U.IdUsuarios NOT IN (
                 SELECT DISTINCT IdUsuarios
                 FROM ??
-                WHERE Fecha = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+                WHERE Fecha = CURDATE()
+                AND ?
+                AND ?
                 GROUP BY IdUsuarios
-            ) AND U.IdRol = 2;`
-        const values = [tabla, tabla2];
+            ) 
+            AND ?;`
+        const values = [tabla, tabla2, consulta, consulta2, consulta3];
         conexion.query(query, values, (error, result) => {
             if (error) {
                 reject(error);
@@ -592,6 +647,10 @@ module.exports = {
     queryGetJustificationsCounter,
     queryGetIdSchedule,
     queryGetDaysOff,
+    queryAddScheduleUser,
+    queryAllSchedules,
+    querylistSchedule,
+    queryGetDaysOffBySchedule,
     queryScheduleNotification,
     recordFouls,
     recordFoulsCronjob,
@@ -603,7 +662,6 @@ module.exports = {
     compareLocation,
     queryModalityValidation,
     queryAllWorkers,
-    queryAllSchedules,
     queryGetWorkersCounter,
     queryGetJustificationsCounterPending
 }

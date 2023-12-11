@@ -3,11 +3,14 @@ const db = require('../../DB/mysql');
 const tableAssist = 'asistencias';
 const tableUser = 'usuarios';
 const tableCronJob = 'horariocron';
+const tableSchedule = 'horarios';
+const tableDaysOff = 'descansos';
+const tableJustifications = 'justificaciones';
 const tableParameterization = 'parametrizacion'; 
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/Lima');
 
-async function registerAbsencesController() {
+async function registerAbsencesController(idTypesMarking, IdHorarios) {
 
   let initialDate =  moment();
   let day = initialDate.format('DD'); 
@@ -20,13 +23,19 @@ async function registerAbsencesController() {
 
   const formattedTime = `${hours}:${minutes}`;
 
-  const idTypesMarking = 1;
+  /* const idTypesMarking = idTypesMarking; */
+  const dayOfWeekName = initialDate.format('dddd'); 
+  const daysOff = await db.queryGetDaysOffBySchedule(tableDaysOff,tableSchedule, { IdHorarios: IdHorarios });
+  if (daysOff.includes(dayOfWeekName)) {
+    return 'Día de descanso'
+  }
   try {
-    const usersUnregistered = await db.recordFoulsCronjob(tableUser, tableAssist);
-    
+    const usersUnregistered = await db.recordFoulsCronjob(tableUser, tableAssist,{ IdHorarios: IdHorarios } ,{ idTMarcacion : idTypesMarking }, { IdHorarios: IdHorarios });
+    console.log(usersUnregistered)
 
     if (usersUnregistered && usersUnregistered.length > 0) {
-      for (const idUser  of usersUnregistered) {
+      const promises = usersUnregistered.map(async (idUser) => {
+      /* for (const idUser  of usersUnregistered) { */
         const record = {
           IdUsuarios: idUser,
           Fecha: date,
@@ -39,9 +48,11 @@ async function registerAbsencesController() {
         console.log('Registrando falta para el usuario Id:', idUser );
 
         const response = await db.add(tableAssist, record);
+        const addJustification =await addJustifications(date, idUser, idTypesMarking)
         
-      }
+      });
 
+      const results = await Promise.all(promises);
       return 'Faltas registradas correctamente';
 
     } 
@@ -52,24 +63,58 @@ async function registerAbsencesController() {
     throw error; 
   }
 }
+async function addJustifications(date, idUser, idTypeMark){
+  const data = await db.queryConsultTable(tableAssist,  {IdUsuarios:idUser},{Fecha:date},{IdTMarcacion:idTypeMark});
+  /* console.log(data) */
+  if (!data || data.length === 0) {
+      message ='No existe marcación a justificar';
+      return {"messages": message};
+  }
+  const Justifications = {
 
-async function startProgramming() {
+      IdUsuario: idUser,
+      Fecha: date,
+      IdTMarcaciones: idTypeMark,
+      Motivo: 'No registra marcación' ,
+      IdEstadoJust: 1,
+  }  
+
+  const respuesta = await db.addJustification(tableJustifications, Justifications);
+      
+  if (respuesta) {
+      message = 'Justificación añadida con éxito';
+      return {"messages": message};
+  } 
+  message ='No se pudo añadir la justificación';
+  return {"messages": message};
+  
+}
+
+
+async function startProgramming(idTypesMarking) {
   function scheduleTask(cronExpression) {
     cron.schedule(cronExpression, async () => {
-      try {
-        const message = await registerAbsencesController();
-        console.log(`Ejecución programada a las ${cronExpression}: ${message}`);
-      } catch (error) {
-        console.error('Error en la ejecución programada:', error);
-      }
-    });
+      const IdHorariosList = await db.querylistSchedule(tableSchedule);
+      console.log(IdHorariosList)
+     /*  for (const IdHorarios of IdHorariosList) { */
+     await Promise.all(IdHorariosList.map(async (IdHorarios) => {
+        try {
+          const message = await registerAbsencesController(idTypesMarking,IdHorarios);
+          console.log(`Ejecución programada a las ${cronExpression}: ${message}`);
+        } catch (error) {
+          console.error('Error en la ejecución programada:', error);
+        }
+      /* } */
+     }))
+    },
+    );
   }
   
-  const cronJob = await db.cronjob(tableCronJob);
+  const cronJob = await db.cronjob(tableCronJob,idTypesMarking);
   const hourCronJob = cronJob.map((row) => {
           const hour = row.Horario; 
           const objetMoment = moment.tz(hour, 'HH:mm:ss','America/Lima');
-          const serverTime = objetMoment.tz('UTC'); //  'ZonaHorariaDelServidor' 
+          const serverTime = objetMoment.tz('America/Lima'); //  'ZonaHorariaDelServidor' ------------------cambiar al servidor
           const minutes = serverTime.format('mm');
           const hours = serverTime.format('HH');
         
@@ -81,4 +126,4 @@ async function startProgramming() {
   scheduleTask(cronExpression);
   });
 }
-startProgramming();
+startProgramming(1); 
