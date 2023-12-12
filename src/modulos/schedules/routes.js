@@ -10,8 +10,8 @@ errorMessageSchedule = "Algo salio mal, intente más tarde."
 
 async function allSchedules(req, res, next) {
     try{
-        const user = await controller.allSchedules();
-        response.success(req, res, user, 'Con éxito', 200);
+        const schedule = await controller.allSchedules();
+        response.success(req, res, schedule, 'Con éxito', 200);
     }catch(err){
         response.error(req, res, false, errorMessageSchedule, 500);
     }
@@ -22,7 +22,7 @@ async function addScheduleUser(req, res, next){
         const updateScheduleUser  = await controller.addScheduleUser(req.body);
         if (updateScheduleUser) {
             mensaje = 'Horario asignado al usuario con éxito';
-            response.success(req, res, mensaje, 200);
+            response.success(req, res, mensaje, 'Con éxito', 200);
         } else {
             mensaje = 'Horario no asignado al usuario';
             response.error(req, res, mensaje, 400);

@@ -106,7 +106,7 @@ module.exports = function (dbInjected) {
         }
         PageSiize = 10;
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
-        return db.queryGetJustifications(tableJustifications, tableUser, tableTypesMarking, tableStateNotifications, tableAssist, body.name, body.IdEstadoJustP ?? 1, body.IdEstadoJustJ ?? 2, body.IdEstadoJustR ?? 3, PageSiize, getOffset);  
+        return db.queryGetJustifications(tableJustifications, tableUser, tableUser, tableTypesMarking, tableStateNotifications, tableAssist, body.name, body.IdEstadoJustP ?? 1, body.IdEstadoJustJ ?? 2, body.IdEstadoJustR ?? 3, PageSiize, getOffset);  
     };
 
     async function getJustificationsCounter(body) {

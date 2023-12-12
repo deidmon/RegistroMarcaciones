@@ -46,10 +46,10 @@ function queryAllWorkers(users, states, workModality, role, name, state1, state2
     return new Promise((resolve, reject) => {
         const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, e.Descripcion as Estado, u.Usuario, r.Nombre as Rol, m.Descripcion as Modalidad, u.IdHorarios 
         from ?? as u 
-        inner join ?? as e ON u.IdEstado = e.IdEstado 
+        inner join ?? as e ON u.Activo = e.IdEstado 
         inner join ?? as m ON u.IdModalidad = m.IdModalidad 
         inner join ?? as r ON u.IdRol = r.IdRol
-        WHERE u.Nombres LIKE "%${name}%" AND u.IdEstado IN (?, ?)
+        WHERE u.Nombres LIKE "%${name}%" AND u.Activo IN (?, ?)
         ORDER BY IdUsuarios ASC 
         LIMIT ? OFFSET ?
         `;
@@ -60,13 +60,13 @@ function queryAllWorkers(users, states, workModality, role, name, state1, state2
     });
 }/* return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name, body.IdEstateWorkerA ?? 0, body.IdEstateWorkerI ?? 1, PageSiize, getOffset); */
 
-/* 📌 Todos los trabajadores Cantidad total*/
+/* 📌 Todos los trabajadores Cantidad total */
 function queryGetWorkersCounter(table1, name,  state1, state2) {
     return new Promise((resolve, reject) => {
         const query = `
         SELECT COUNT(*) AS totalRegistros
         FROM ?? j
-        WHERE Nombres LIKE "%${name}%" AND IdEstado IN (?, ?)`;
+        WHERE Nombres LIKE "%${name}%" AND Activo IN (?, ?)`;
         const values = [table1, state1, state2];
         conexion.query(query, values, (error, result) => {
             if (error) {
@@ -268,18 +268,19 @@ function query(tabla, consulta) {
 }
 
 /* 📌 Optener justificación */
-function queryGetJustifications(table1, table2, table3, table4, table5, name,  state1, state2, state3, limit, ofset) {
+function queryGetJustifications(table1, table2, table3, table4, table5, table6, name,  state1, state2, state3, limit, ofset) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT u.Nombres, u.Apellidos, j.IdEstadoJust, j.IdUsuario, j.Fecha, j.IdTMarcaciones,t.descripcion,e.Descripcion, a.Hora
+        const query = `SELECT u.Nombres, u.Apellidos, j.IdEstadoJust, j.IdUsuario, j.Fecha, j.IdTMarcaciones,t.descripcion, e.Descripcion as estado, a.Hora, us.Nombres as Encargado
         FROM ?? j
         LEFT JOIN ?? u ON j.IdUsuario = u.IdUsuarios
+        LEFT JOIN ?? us ON j.Updated_by = us.IdUsuarios
         LEFT JOIN ?? t ON j.IdTMarcaciones = t.IdTMarcaciones
         LEFT JOIN ?? e ON j.IdEstadoJust = e.IdEstadoJust
         LEFT JOIN ?? a ON j.IdUsuario = a.IdUsuarios AND j.Fecha = a.Fecha AND j.IdTMarcaciones = a.idTMarcacion 
         WHERE u.Nombres LIKE "%${name}%" AND j.IdEstadoJust IN (?, ?, ?)   
         ORDER BY j.Fecha DESC
         LIMIT ? OFFSET ?`;
-        const values = [table1, table2, table3, table4, table5, state1, state2, state3, limit, ofset];
+        const values = [table1, table2, table3, table4, table5,table6, state1, state2, state3, limit, ofset];
         conexion.query(query, values, (error, result) => {
             if (error) {
                 return reject(error);

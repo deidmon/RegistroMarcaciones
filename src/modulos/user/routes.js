@@ -102,10 +102,10 @@ async function getAllWorkers(req, res, next){
         pageSize = 10;
         console.log("Aqui llega");
         const allWorkers= await controller.allWorkers(req.body);
-
+        console.log("Aqui llega");
         const pageIndex = (req.body.page)
         const workersCounter = await controller.getWorkersCounter(req.body);
-        const pageCount = Math.ceil( 13 / pageSize);
+        const pageCount = Math.ceil( workersCounter / pageSize);
         response.successPager(req, res, allWorkers, 200, workersCounter, pageCount, pageIndex, pageSize);
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
