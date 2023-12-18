@@ -12,6 +12,7 @@ router.post('/markingDay', security(),consultMarkDay);
 router.post('/update', addUser);
 router.post('/addTokenUser', addTokensUser);
 router.post('/getAllWorkers', getAllWorkers);
+router.get('/getAllWorkersAmount', getAllWorkersAmount);
 
 errorMessageUser = "Algo salio mal, intente más tarde"
 
@@ -99,7 +100,7 @@ async function addTokensUser(req, res, next){
 
 async function getAllWorkers(req, res, next){
     try{
-        pageSize = 10;
+        pageSize = 7;
         console.log("Aqui llega");
         const allWorkers= await controller.allWorkers(req.body);
         console.log("Aqui llega");
@@ -112,4 +113,13 @@ async function getAllWorkers(req, res, next){
     }
 };
 
+
+async function getAllWorkersAmount(req, res, next){
+    try{
+        const workersCounter = await controller.getWorkersCounter(req.body);
+        response.success(req, res, workersCounter, 'Con exito', 200);
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
 module.exports = router;   

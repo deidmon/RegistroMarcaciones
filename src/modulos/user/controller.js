@@ -110,14 +110,14 @@ module.exports = function (dbInjected) {
         function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
             return  offset = (numeroPagina - 1) * tamanoPagina
           }
-        PageSiize = 10;
+        PageSiize = 7;
 
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
         return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset);
     }
 
     async function getWorkersCounter(body) {
-        const result = await  db.queryGetWorkersCounter(tableUser, body.name, body.IdEstateWorkerA ?? 0, body.IdEstateWorkerI ?? 1);  
+        const result = await  db.queryGetWorkersCounter(tableUser, body.name ?? "", body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2);  
         if (result && result.length >= 0) {
             const count = result[0];
             const contador= count.totalRegistros // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
@@ -181,6 +181,17 @@ module.exports = function (dbInjected) {
         // return respuesta;
     }
 
+    async function getAllWorkersAmount (body) {
+        const result = await  db.queryGetJustificationsCounterPending(tableJustifications, body.IdEstadoJustP);  
+        if (result && result.length >= 0) {
+            const count = result[0];
+            const contador = count.totalRegistrosPendientes // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
+            return contador;
+         } else {
+            return 0;
+        }
+    };
+
     return {
         allWorkers,
         getWorkersCounter,
@@ -190,6 +201,7 @@ module.exports = function (dbInjected) {
         consultMarkWeek,
         consultMarkDay,
         addUser,
-        addTokensUser
+        addTokensUser,
+        getAllWorkersAmount
     }
 }

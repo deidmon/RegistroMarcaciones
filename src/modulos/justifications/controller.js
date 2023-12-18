@@ -63,7 +63,8 @@ module.exports = function (dbInjected) {
             message = 'No existe la justificación a actualizar';
             return { "messages": message };
         }
-        const idJustification = datum[0].IdJustificacion;
+        const idJustification = datum[0].idJustificacion;
+        /* console.log(`hoaaaaaaaaaaaaaa ${idJustification}`) */
         if (body.idStatusJustification != 1) {
 
             const respond = await db.queryUpdateJustifactions(tableJustifications, { IdEstadoJust: body.idStatusJustification, Updated_by: body.idUserModifier }, idJustification);
@@ -104,7 +105,7 @@ module.exports = function (dbInjected) {
         function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
           return  offset = (numeroPagina - 1) * tamanoPagina
         }
-        PageSiize = 10;
+        PageSiize = 7;
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
         return db.queryGetJustifications(tableJustifications, tableUser, tableUser, tableTypesMarking, tableStateNotifications, tableAssist, body.name, body.IdEstadoJustP ?? 1, body.IdEstadoJustJ ?? 2, body.IdEstadoJustR ?? 3, PageSiize, getOffset);  
     };

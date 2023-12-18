@@ -58,7 +58,7 @@ function queryAllWorkers(users, states, workModality, role, name, state1, state2
             return  error ? reject(error) : resolve(result);
         });
     });
-}/* return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name, body.IdEstateWorkerA ?? 0, body.IdEstateWorkerI ?? 1, PageSiize, getOffset); */
+}
 
 /* 📌 Todos los trabajadores Cantidad total */
 function queryGetWorkersCounter(table1, name,  state1, state2) {
@@ -222,6 +222,24 @@ function addJustification(tabla, data) {
     });
 }
 
+function queryReportAsistance(tabla, tabla2, tabla3, consulta) {
+    return new Promise((resolve, reject) => {
+        const query =
+         `SELECT  tm.descripcion as Marcación ,CIP,DATE_FORMAT(Fecha, '%Y%m%d') as Fecha, LPAD(HOUR(Hora), 2, '0') AS Hora,
+                LPAD( MINUTE(Hora), 2, '0') AS Minutos, 27 AS Código_Local, concat(CIP, DATE_FORMAT(Fecha, '%Y%m%d'),LPAD(HOUR(Hora), 2, '0'), 
+                LPAD( MINUTE(Hora), 2, '0'), "27") AS TXT, length(concat(CIP, DATE_FORMAT(Fecha, '%Y%m%d'),LPAD(HOUR(Hora), 2, '0'), 
+                LPAD( MINUTE(Hora), 2, '0') , "27")) AS Longitud
+        FROM ?? AS a INNER JOIN ?? as u ON a.IdUsuarios = u.IdUsuarios INNER JOIN ?? as tm ON a.idTMarcacion = tm.idTMarcaciones
+        WHERE a.Fecha = ?
+        AND idTMarcacion IN (1,4)
+        ORDER BY a.IdUsuarios`;
+        const values = [tabla, tabla2, tabla3, consulta];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        })
+    });
+}
+
 function queryUpdateAssists(tabla, consulta, IdAsistencias) {
     return new Promise((resolve, reject) => {
         conexion.query(`UPDATE ${tabla} SET ? WHERE IdAsistencias = ?`, [consulta, IdAsistencias], (error, result) => {
@@ -250,8 +268,6 @@ function update(tabla, consulta) {
 function queryUpdateJustifactions(tabla, consulta, idJustificacion) {
     return new Promise((resolve, reject) => {
         conexion.query(`UPDATE ${tabla} SET ? WHERE idJustificacion = ?`, [consulta, idJustificacion], (error, result) => {
-            console.log("error: ",error);
-            console.log("resultado: ",result);
             return error ? reject(error) : resolve(result);
         })
     });
@@ -270,7 +286,7 @@ function query(tabla, consulta) {
 /* 📌 Optener justificación */
 function queryGetJustifications(table1, table2, table3, table4, table5, table6, name,  state1, state2, state3, limit, ofset) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT u.Nombres, u.Apellidos, j.IdEstadoJust, j.IdUsuario, j.Fecha, j.IdTMarcaciones,t.descripcion, e.Descripcion as estado, a.Hora, us.Nombres as Encargado
+        const query = `SELECT u.CIP, CONCAT(u.Nombres, ' ', u.Apellidos) AS NombreCompleto, j.IdEstadoJust, j.IdUsuario, DATE_FORMAT(j.Fecha, '%Y-%m-%d') AS Fecha,j.Motivo, j.IdTMarcaciones,t.descripcion, e.Descripcion as estado, a.Hora, us.Nombres as Encargado
         FROM ?? j
         LEFT JOIN ?? u ON j.IdUsuario = u.IdUsuarios
         LEFT JOIN ?? us ON j.Updated_by = us.IdUsuarios
@@ -531,11 +547,12 @@ function recordFoulsCronjob(tabla, tabla2, consulta, consulta2, consulta3) {
             WHERE U.IdUsuarios NOT IN (
                 SELECT DISTINCT IdUsuarios
                 FROM ??
-                WHERE Fecha = CURDATE()
+                WHERE Fecha = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
                 AND ?
                 AND ?
                 GROUP BY IdUsuarios
-            ) 
+            )
+            AND U.IdRol = 2 
             AND ?;`
         const values = [tabla, tabla2, consulta, consulta2, consulta3];
         conexion.query(query, values, (error, result) => {
@@ -653,6 +670,7 @@ module.exports = {
     querylistSchedule,
     queryGetDaysOffBySchedule,
     queryScheduleNotification,
+    queryReportAsistance,
     recordFouls,
     recordFoulsCronjob,
     tokenUsersUnmarked,

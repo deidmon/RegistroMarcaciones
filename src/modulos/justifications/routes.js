@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.post('/add', addJustifications);
 router.post('/update', updateJustifications);
-router.get('/getJustifications', getAllJustifications);
-router.get('/getTotalPending', getJustificationsCounterPending);
+router.post('/getJustifications', getAllJustifications);
+router.post('/getTotalPending', getJustificationsCounterPending);
 errorMessageJustifications = "Algo salio mal, intente más tarde";
 
 
@@ -38,7 +38,7 @@ async function updateJustifications(req, res, next){
 
 async function getAllJustifications(req, res, next){
     try{
-        pageSize = 10;
+        pageSize = 7;
         const Usersjustifications= await controller.getAllJustifications(req.body);
         const pageIndex = (req.body.page)
         const UsersjustificationsCounter= await controller.getJustificationsCounter(req.body);

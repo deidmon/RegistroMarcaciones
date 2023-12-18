@@ -114,7 +114,7 @@ async function startProgramming(idTypesMarking) {
   const hourCronJob = cronJob.map((row) => {
           const hour = row.Horario; 
           const objetMoment = moment.tz(hour, 'HH:mm:ss','America/Lima');
-          const serverTime = objetMoment.tz('America/Lima'); //  'ZonaHorariaDelServidor' ------------------cambiar al servidor
+          const serverTime = objetMoment.tz('UTC'); //  'ZonaHorariaDelServidor' ------------------cambiar al servidor
           const minutes = serverTime.format('mm');
           const hours = serverTime.format('HH');
         
@@ -127,3 +127,4 @@ async function startProgramming(idTypesMarking) {
   });
 }
 startProgramming(1); 
+startProgramming(4); 

@@ -5,6 +5,7 @@ const cors = require('cors');
 
 const user = require('./modulos/user/routes')
 const auth = require('./modulos/auth/routes')
+const report = require('./modulos/report/routes')
 const assistance = require('./modulos/assistance/routes')
 const informationTables = require('./modulos/informationTables/routes')
 const error = require('./red/errors');
@@ -30,6 +31,7 @@ app.use('/api/informationTables', informationTables)
 app.use('/api/assistance', assistance)
 app.use('/api/justifications', Justifications)
 app.use('/api/schedules', schedules)
+app.use('/api/report', report)
 app.use(error);
 
 module.exports = app; 
