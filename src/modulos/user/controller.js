@@ -10,6 +10,7 @@ const tableTokenUser = 'tokennotificaciones';
 const tableStateUser = 'estados'
 const tableModalityWork = 'modalidadtrabajo' 
 const tableRol = 'rol'
+const tablePermissions = 'solicitudes';
 const bcrypt = require('bcrypt');
 
 module.exports = function (dbInjected) {
@@ -97,7 +98,8 @@ module.exports = function (dbInjected) {
             message = 'Usuario incorrecto'
             return { "messages": message }
         }
-        const dataDay = await db.queryMarkDay(tableAssist, tableTypeMarking, tabletypeValidation, tabletypeJustifications, idUser, date);
+        /* const dataDay = await db.queryMarkDay(tableAssist, tableTypeMarking, tabletypeValidation, tabletypeJustifications, idUser, date); */
+        const dataDay = await db.queryMarkDay(tableAssist, tableTypeMarking, tabletypeValidation, tablePermissions, idUser, date);
         if (!dataDay) {
             message = 'No se encuentran asistencias para esta fecha.'
             return { "messages": message }
@@ -128,8 +130,16 @@ module.exports = function (dbInjected) {
     };
 
     async function addUser(body) {
+        if(body.idUser != 0){
+            const dataUser = await db.query(tableUser, { IdUsuarios: body.idUser });
+            if (dataUser.length == 0) {
+                message = 'Usuario incorrecto'
+                return { "messages": message }
+            }
+        }
+        
         let user = body.user || '';
-        let password = body.contraseña || '';
+        let password = body.password || '';
 
         if (body.password) {
             password = await bcrypt.hash(body.password.toString(), 5)
@@ -142,23 +152,43 @@ module.exports = function (dbInjected) {
             Usuario: user,
             Contraseña: password,
             IdRol: body.idRole,
-            IdDirec: body.idAdrres,
+            IdDirec: body.idAddress,
             IdDirecSecu: body.idSecondaryAddress,
             IdModalidad: body.idModality,
             CIP: body.cip,
-            DNI: body.dni
+            DNI: body.DNI,
+            idHorarios: body.schedule,
+            idPerfil: body.idProfile
         }
-        if (body.idUser === 0) {
-            const respuesta = await db.add(tableUser, usuario);
-            return respuesta;
-        } else if (body.idUser !== 0) {
-            const respuesta = await db.update(tableUser, usuario);
-            return respuesta;
+        const updateUser = {
+            IdUsuarios: body.idUser,
+            Activo: body.status,
+            /* Usuario: user, */
+            /* Contraseña: password, */
+            IdRol: body.idRole,
+            IdDirec: body.idAddress,
+            IdDirecSecu: body.idSecondaryAddress,
+            IdModalidad: body.idModality,
+            idHorarios: body.schedule,
+            idPerfil: body.idProfile
+        }
+        
+        if (body.idUser !== 0) {
+            const respuesta = await db.update(tableUser, updateUser);
+            if (respuesta && respuesta.changedRows > 0) {
+                return 'Usuario modificado con éxito';
+            } else {
+                return 'No se modificó el usuario';
+            }
+        } 
+        const respuesta = await db.add(tableUser, usuario);
+        if (respuesta && respuesta.affectedRows > 0) {
+            return 'Usuario añadido con éxito';
         } else {
-            /* throw new Error('El valor de TConsulta no es válido'); */
-            message = 'El valor de TConsulta no es válido'
-            return { "messages": message }
+            return 'No se añadió el usuario';
         }
+
+        
     }
 
     async function addTokensUser(body) {
@@ -192,6 +222,20 @@ module.exports = function (dbInjected) {
         }
     };
 
+    async function activateUsers(body) {
+        if (body.idProfile != 1) {
+            message = 'No tienes permiso para actualizar';
+            return { "messages": message }
+        }
+
+        const respuesta = await db.queryActivateUsers(tableUser, body.status, body.idUsers);
+        if (respuesta && respuesta.changedRows > 0) {
+            return 'Modificación de estado con éxito';
+        } else {
+            return 'No se realizó ninguna modificación';
+        }
+    }
+
     return {
         allWorkers,
         getWorkersCounter,
@@ -202,6 +246,7 @@ module.exports = function (dbInjected) {
         consultMarkDay,
         addUser,
         addTokensUser,
-        getAllWorkersAmount
+        getAllWorkersAmount,
+        activateUsers
     }
 }

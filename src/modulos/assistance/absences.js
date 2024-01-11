@@ -7,6 +7,7 @@ const tableSchedule = 'horarios';
 const tableDaysOff = 'descansos';
 const tableJustifications = 'justificaciones';
 const tableParameterization = 'parametrizacion'; 
+const tablePermissions = 'solicitudes';
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/Lima');
 
@@ -71,15 +72,15 @@ async function addJustifications(date, idUser, idTypeMark){
       return {"messages": message};
   }
   const Justifications = {
-
-      IdUsuario: idUser,
+      idTipoSolicitud: 1,
+      idUsuario: idUser,
       Fecha: date,
       IdTMarcaciones: idTypeMark,
       Motivo: 'No registra marcación' ,
-      IdEstadoJust: 1,
+      estadoSolicitudF: 1,
   }  
 
-  const respuesta = await db.addJustification(tableJustifications, Justifications);
+  const respuesta = await db.addJustification(tablePermissions, Justifications);
       
   if (respuesta) {
       message = 'Justificación añadida con éxito';

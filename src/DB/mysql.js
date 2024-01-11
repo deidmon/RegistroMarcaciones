@@ -101,6 +101,284 @@ function allUsers(tabla) {
     });
 }
 
+function queryGroupedModules(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM ??';
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            /* return error ? reject(error) : resolve(result); */
+            if (error) {
+                return reject(error);
+            }
+            
+            // Agrupar por nombre
+            let grouped = {};
+            result.forEach(item => {
+                if (!grouped[item.nombre]) {
+                   grouped[item.nombre] = [];
+                }
+                grouped[item.nombre].push(item.descripcion);
+            });
+ 
+            // Formatear la respuesta
+            let formatted = Object.keys(grouped).map(key => {
+                return {
+                   IdModulo: grouped[key][0].IdModulo,
+                   nombre: key,
+                   descripcion: grouped[key]
+                };
+            });
+
+            return resolve(formatted)
+        });
+    });
+}
+function queryAllModules(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM ??';
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
+function queryActivateUsers(tabla, status, users) {
+    return new Promise((resolve, reject) => {
+        const query = `UPDATE ?? SET Activo = ? WHERE IdUsuarios IN (?)`;
+        const values = [tabla, status, users];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        });
+    });
+}
+
+function queryPermissionByModule(tabla, idModule) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM ?? WHERE idModulo = ?';
+        const values = [tabla, idModule];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
+function queryPermissionByProfile(tabla, tabla2, idProfile, idModule) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT pp.idPerfil, pp.idModulo, pp.idPermiso, p.nombre 
+        FROM ?? pp INNER JOIN ?? p ON pp.idModulo = p.idModulo 
+        AND pp.idPermiso = p.idPermiso 
+        WHERE pp.idPerfil = ? AND p.idModulo = ?`;
+        const values = [tabla, tabla2, idProfile, idModule];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
+function queryAllProfiles(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM ??';
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
+function queryActivateProfile(tabla, status, profiles) {
+    return new Promise((resolve, reject) => {
+        const query = `UPDATE ?? SET idEstado = ? WHERE idPerfil IN (?)`;
+        const values = [tabla, status, profiles];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        });
+    });
+}
+
+function queryDeletePermissions(tabla, profile, module) {
+    return new Promise((resolve, reject) => {
+        const query = `DELETE FROM ?? WHERE idPerfil = ? AND idModulo = ?`;
+        const values = [tabla, profile, module];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
+function queryLastSchedule(tabla, profile, module) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT idHorarios FROM ?? GROUP BY idHorarios ORDER BY idHorarios DESC LIMIT 1`;
+        const values = [tabla, profile, module];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].idHorarios);
+        });
+    });
+}
+
+function queryUpdateSchedule(tabla, consulta, consulta2, consulta3, consulta4) {
+    return new Promise((resolve, reject) => {
+        const query = `UPDATE ?? SET ? WHERE IdHorarios = ? AND IdTipoMarcacion = ? AND IdValidacion = ?`;
+        const values = [tabla, consulta, consulta2, consulta3, consulta4];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        })
+    });
+}
+
+function queryActivateSchedule(tabla, status, schedules) {
+    return new Promise((resolve, reject) => {
+        const query = `UPDATE ?? SET IdEstado = ? WHERE IdHorarios IN (?)`;
+        const values = [tabla, status, schedules];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
+function queryActivateSchedule(tabla, status, schedules) {
+    return new Promise((resolve, reject) => {
+        const query = `UPDATE ?? SET IdEstado = ? WHERE IdHorarios IN (?)`;
+        const values = [tabla, status, schedules];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
+function queryUsersWithSchedule(tabla, schedules) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT EXISTS( SELECT 1 FROM ?? WHERE IdHorarios IN (?) LIMIT 1 ) AS existe_usuario;`;
+        const values = [tabla, schedules];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].existe_usuario);
+        });
+    });
+}
+
+/* function queryListPermissions(tabla, tabla2) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT p.idSolicitud, p.descripcion, p.idEstado,e.Descripcion FROM ?? AS p INNER JOIN ?? AS e ON p.idEstado = e.IdEstado';
+        const values = [tabla, tabla2];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+} */
+
+function queryListPermissions(tabla,tabla2, consulta, consulta2) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT ts.idSolicitud, ts.descripcion, ts.idEstado,e.Descripcion
+        FROM ?? AS ts INNER JOIN ?? as e ON ts.idEstado = e.IdEstado
+        WHERE  FIND_IN_SET(ts.IdEstado, COALESCE(?, (SELECT GROUP_CONCAT(ts.IdEstado) FROM ??))) > 0
+        AND FIND_IN_SET(ts.idSolicitud, COALESCE(?, (SELECT GROUP_CONCAT(ts.idSolicitud) FROM ??))) > 0`;
+        const values = [tabla, tabla2, consulta, tabla, consulta2, tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
+/* 📌 Actualizar permisos*/
+function queryUpdatePermission(tabla, consulta, idJustificacion) {
+    return new Promise((resolve, reject) => {
+        const query = `UPDATE ?? SET ? WHERE id = ?`;
+        const values = [tabla, consulta, idJustificacion];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
+/* 📌 Optener justificación */
+function queryGetPermissions(table1, table2, table3, table4, table5, table6, table7, name,  state1, state2, limit, ofset) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT s.IdUsuario, u.CIP, CONCAT(u.Nombres, ' ', u.Apellidos) AS NombreCompleto, DATE_FORMAT(s.Fecha, '%Y-%m-%d') AS Fecha,s.Motivo, s.idTMarcaciones,t.descripcion, ts.descripcion, s.estadoSolicitudF,ef.descripcion as estado, s.estadoSolicitudS, es.descripcion,us.Nombres as Encargado, ap.idLider, l.idUsuario
+        FROM  ?? s
+        LEFT JOIN ??  u ON s.idUsuario = u.IdUsuarios
+        LEFT JOIN ?? us ON s.Updated_byF = us.IdUsuarios
+        LEFT JOIN  ?? t ON s.idTMarcaciones = t.IdTMarcaciones
+        INNER JOIN ?? ef ON s.estadoSolicitudF = ef.idEstadoSolicitud
+        LEFT JOIN  ?? es on s.estadoSolicitudS = es.idEstadoSolicitud
+        INNER JOIN ?? ts ON s.idTipoSolicitud = ts.idSolicitud
+        LEFT JOIN ?? ap ON s.idUsuario = ap.idUsuario
+        LEFT JOIN ?? l ON ap.idLider = l.idLider
+        WHERE u.Nombres LIKE "%${name}%" AND s.estadoSolicitudF IN (1, 2, 3,4,5,6)   
+        AND l.idUsuario = ?
+        AND FIND_IN_SET(s.estadoSolicitudF, COALESCE(?, (SELECT GROUP_CONCAT(s.estadoSolicitudF) FROM ??))) > 0
+        ORDER BY s.id 
+        LIMIT ? OFFSET ?`;
+        const values = [table1, table2,table2 ,table3, table4, table4,table5,table6, table7,  state1, state2,table4, limit, ofset];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
+function queryMarkDay2(tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha) {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT DISTINCT LOWER(TIME_FORMAT(STR_TO_DATE(a.Hora, '%H:%i:%s'), '%h:%i:%s %p')) AS 'time',a.idTMarcacion AS "idTypesMarking",t.descripcion AS 'typesMarking', a.idValidacion AS "idValidation", v.descripcion AS 'validation', j.Motivo AS 'reason'
+            FROM ?? a 
+            INNER JOIN ?? t ON a.idTMarcacion = t.idTMarcaciones 
+            INNER JOIN ?? v ON a.idValidacion = v.idValidacion 
+            LEFT JOIN ?? s ON a.idTMarcacion = s.idTMarcaciones AND a.IdUsuarios =s.idUsuario AND a.Fecha = s.Fecha
+            WHERE a.IdUsuarios = ? AND a.Fecha = ?
+            ORDER BY idTypesMarking`;
+        const values = [tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha];
+
+        conexion.query(query, values, (error, result) => {
+            if (error) {
+                reject(error);
+            } else {
+                if (result.length === 0) {
+                    resolve()
+                } else {
+                    resolve(result);
+                }
+            }
+        });
+    });
+}
+
+function queryScheduleByUser(table1, table2, consult1) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT 
+                h.IdHorarios,
+                MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 5 MINUTE) END) AS HoraInicio,
+                MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END) AS HoraFin,
+                h.IdDescanso,
+                GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día, 1) DESC SEPARATOR ', ') AS Descanso
+        FROM ?? AS h 
+        INNER JOIN ?? AS d ON h.IdDescanso = d.IdDescansos
+        WHERE h.IdHorarios = ?
+        GROUP BY h.IdHorarios, h.IdDescanso`;
+        const values = [table1, table2, consult1];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0]);
+        });
+    });
+}
+
 /* function cronjob(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT * FROM ?? WHERE IdEstado = 1';
@@ -213,11 +491,8 @@ function addJustification(tabla, data) {
         const values = [tabla, data];
 
         conexion.query(insertQuery, values, (error, result) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(result);
-            }
+            return error ? reject(error) : resolve(result);
+            
         });
     });
 }
@@ -232,7 +507,7 @@ function queryReportAsistance(tabla, tabla2, tabla3, consulta) {
         FROM ?? AS a INNER JOIN ?? as u ON a.IdUsuarios = u.IdUsuarios INNER JOIN ?? as tm ON a.idTMarcacion = tm.idTMarcaciones
         WHERE a.Fecha = ?
         AND idTMarcacion IN (1,4)
-        ORDER BY a.IdUsuarios`;
+        ORDER BY a.IdUsuarios, tm.descripcion`;
         const values = [tabla, tabla2, tabla3, consulta];
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result);
@@ -278,7 +553,8 @@ function query(tabla, consulta) {
         const query = `SELECT * FROM ?? WHERE ?`;
         const values = [tabla, consulta];
         conexion.query(query, values, (error, result) => {
-            return error ? reject(error) : resolve(result[0]);
+            return error ? reject(error) : resolve(result[0] || []);
+            
         })
     });
 }
@@ -294,7 +570,7 @@ function queryGetJustifications(table1, table2, table3, table4, table5, table6, 
         LEFT JOIN ?? e ON j.IdEstadoJust = e.IdEstadoJust
         LEFT JOIN ?? a ON j.IdUsuario = a.IdUsuarios AND j.Fecha = a.Fecha AND j.IdTMarcaciones = a.idTMarcacion 
         WHERE u.Nombres LIKE "%${name}%" AND j.IdEstadoJust IN (?, ?, ?)   
-        ORDER BY j.Fecha DESC
+        ORDER BY j.Fecha DESC, a.Hora desc, u.IdUsuarios
         LIMIT ? OFFSET ?`;
         const values = [table1, table2, table3, table4, table5,table6, state1, state2, state3, limit, ofset];
         conexion.query(query, values, (error, result) => {
@@ -655,6 +931,23 @@ module.exports = {
     cronjobNotification,
     update,
     query,
+    queryAllModules,
+    queryGroupedModules,
+    queryPermissionByModule,
+    queryPermissionByProfile,
+    queryAllProfiles,
+    queryActivateUsers,
+    queryActivateProfile,
+    queryActivateSchedule,
+    queryDeletePermissions,
+    queryLastSchedule,
+    queryListPermissions,
+    queryUpdateSchedule,
+    queryUsersWithSchedule,
+    queryUpdatePermission,
+    queryGetPermissions,
+    queryMarkDay2,
+    queryScheduleByUser,
     queryConsultTable,
     queryMarkWeek,
     queryMarkDay,

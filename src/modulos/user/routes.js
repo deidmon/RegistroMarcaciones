@@ -9,10 +9,11 @@ router.post('/information', security(),consultUser);
 router.post('/markingMonth', security(),consultMarkMonth); 
 router.post('/markingWeek', security(),consultMarkWeek); 
 router.post('/markingDay', security(),consultMarkDay);
-router.post('/update', addUser);
+router.post('/modifyUser', addUser);
 router.post('/addTokenUser', addTokensUser);
 router.post('/getAllWorkers', getAllWorkers);
 router.get('/getAllWorkersAmount', getAllWorkersAmount);
+router.put('/activateUsers', activateUsers);
 
 errorMessageUser = "Algo salio mal, intente más tarde"
 
@@ -73,12 +74,12 @@ async function consultMarkDay(req, res, next) {
 async function addUser(req, res, next){
     try{
         const items = await controller.addUser(req.body);
-       if(req.body.idUser == 0){
-            mensaje = 'Item guardado con exito';
-       }else{
-            mensaje = 'Item actualizado con exito';
-       }
-       response.success(req, res,"", mensaje, 201);
+       if(!items.messages){
+            response.success(req, res, items,"",200);
+        }else{
+            response.error(req, res,false, items.messages, 200);
+        }
+       
     }catch(err){
         response.error(req, res, false, errorMessageUser, 500);
     }
@@ -122,4 +123,18 @@ async function getAllWorkersAmount(req, res, next){
         response.error(req, res, false, errorMessage, 500);
     }
 };
+
+async function activateUsers(req, res, next) {
+    try{
+        const activeUsers = await controller.activateUsers(req.body);
+        if(!activeUsers.messages){
+            response.success(req, res, activeUsers, "", 200);
+        }else{
+            response.error(req, res, false, activeUsers.messages, 200);
+        }
+    }catch(err){
+        response.error(req, res,false,errorMessageUser, 500);
+    }
+};
+
 module.exports = router;   
