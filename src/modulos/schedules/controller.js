@@ -14,7 +14,7 @@ module.exports = function(dbInyectada){
     };
 
     async function scheduleByUser(body){   
-        const user = await db.query(tableUser, {DNI:body.username})
+        const user = await db.query(tableUser, {IdUsuarios: body.idUser})
         const idSchedule =  user.IdHorarios;
         const dataSchedule = await db.queryScheduleByUser(tableSchedule, tableRestDays, idSchedule);
         if (!dataSchedule) {

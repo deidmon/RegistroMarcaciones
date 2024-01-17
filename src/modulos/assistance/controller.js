@@ -124,6 +124,7 @@ module.exports = function (dbInyectada) {
                             idHorario :idSchedule.IdHorarios
                         }
                         const respuesta = await db.add(tableAssist, assists);
+                        /* const update = await db.update(tableUser, {tiempoPermiso : 0},body.idUser); */
                         return { "idTipoValidacion": 5,"idMostrarForm": 0, "Registrado como": `La asistencia ha sido registrada como: FUERA DE HORARIO.`, "Detalle": `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
                     }
                 }
