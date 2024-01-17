@@ -14,9 +14,9 @@ module.exports = function(dbInyectada){
     }
 
     async function reportAsistance(body) {
-        console.log(body.Fecha)
-        const dataUser = await db.queryReportAsistance( tableAssistance,tableUser, tableTypeMarking,body.Fecha/* "2023-12-12" */ );
-        console.log(dataUser)
+        /* console.log(body.Fecha) */
+        const dataUser = await db.queryReportAsistance( tableAssistance,tableUser, tableTypeMarking, body.FechaInicio, body.FechaFin);
+        /* console.log(dataUser) */
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Mi Hoja');
         worksheet.columns = [

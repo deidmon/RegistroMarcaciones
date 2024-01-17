@@ -17,15 +17,6 @@ async function reportAsistance(req, res, next){
             res.setHeader('Content-Disposition', 'attachment; filename=MiArchivo.xlsx');
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             pass.pipe(res);
-            /* mensaje = 'Reporte generado con éxito.';
-            response.success(req, res, mensaje, 'Con éxito', 200); */
-            /* const blob = new Blob([updateScheduleUser], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      const url = URL.createObjectURL(blob); */
-     /*  res.setHeader('Content-Disposition', 'attachment; filename=MiArchivo.xlsx');
-     res.end(updateScheduleUser); */
-     /*  mensaje = 'Reporte generado con éxito.';
-            response.success(req, res, updateScheduleUser, 'Con éxito', 200); */
-            /* response.success(req, res, updateScheduleUser, 'Con éxito', 200); */
         } else {
             mensaje = 'No se pudo generar el reporte.';
             response.error(req, res, mensaje, 400);

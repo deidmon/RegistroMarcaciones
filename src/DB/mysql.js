@@ -497,7 +497,7 @@ function addJustification(tabla, data) {
     });
 }
 
-function queryReportAsistance(tabla, tabla2, tabla3, consulta) {
+function queryReportAsistance(tabla, tabla2, tabla3, consult1, consult2) {
     return new Promise((resolve, reject) => {
         const query =
          `SELECT  tm.descripcion as Marcación ,CIP,DATE_FORMAT(Fecha, '%Y%m%d') as Fecha, LPAD(HOUR(Hora), 2, '0') AS Hora,
@@ -505,10 +505,10 @@ function queryReportAsistance(tabla, tabla2, tabla3, consulta) {
                 LPAD( MINUTE(Hora), 2, '0'), "27") AS TXT, length(concat(CIP, DATE_FORMAT(Fecha, '%Y%m%d'),LPAD(HOUR(Hora), 2, '0'), 
                 LPAD( MINUTE(Hora), 2, '0') , "27")) AS Longitud
         FROM ?? AS a INNER JOIN ?? as u ON a.IdUsuarios = u.IdUsuarios INNER JOIN ?? as tm ON a.idTMarcacion = tm.idTMarcaciones
-        WHERE a.Fecha = ?
+        WHERE a.Fecha BETWEEN ? AND ?
         AND idTMarcacion IN (1,4)
-        ORDER BY a.IdUsuarios, tm.descripcion`;
-        const values = [tabla, tabla2, tabla3, consulta];
+        ORDER BY Fecha DESC, a.IdUsuarios, tm.descripcion`;
+        const values = [tabla, tabla2, tabla3, consult1, consult2];
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result);
         })
