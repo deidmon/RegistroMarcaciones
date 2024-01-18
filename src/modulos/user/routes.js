@@ -102,9 +102,9 @@ async function addTokensUser(req, res, next){
 async function getAllWorkers(req, res, next){
     try{
         pageSize = 7;
-        console.log("Aqui llega");
+        /* console.log("Aqui llega"); */
         const allWorkers= await controller.allWorkers(req.body);
-        console.log("Aqui llega");
+        /* console.log("Aqui llega"); */
         const pageIndex = (req.body.page)
         const workersCounter = await controller.getWorkersCounter(req.body);
         const pageCount = Math.ceil( workersCounter / pageSize);

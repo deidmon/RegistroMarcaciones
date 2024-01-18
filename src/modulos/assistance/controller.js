@@ -5,6 +5,7 @@ const tableSchedule = 'horarios';
 const tableTypeMarking = 'tipomarcaciones';
 const tableAddress = 'direcciones';
 const tableDaysOff = 'descansos';
+const tablePermissions = 'solicitudes';
 moment.tz.setDefault('America/Lima');
 moment.locale('es'); 
 module.exports = function (dbInyectada) {
@@ -35,8 +36,7 @@ module.exports = function (dbInyectada) {
         }
         const idSchedule = await db.queryGetIdSchedule(tableUser, { IdUsuarios: body.idUser });
         const parametrization = await db.getTableParametrization(tableSchedule, tableTypeMarking, idSchedule.IdHorarios, body.idTypesMarking);
-        const consultTimePermission = await db.query(tableUser, {IdUsuarios : body.idUser})
-        const timePermission = consultTimePermission.tiempoPermiso
+        const timePermission = await db.queryCheckTimePermission(tablePermissions, 4, body.idUser, date)
         const startTimeAllowed = parametrization[0].HoraInicio;
         const [hourStartTimeAllowed, minutesHourStartTimeAllowed] = startTimeAllowed.split(':');
         const startTimeAllowedInMinutes = parseInt(hourStartTimeAllowed) * 60 + parseInt(minutesHourStartTimeAllowed);
@@ -125,7 +125,7 @@ module.exports = function (dbInyectada) {
                         }
                         const respuesta = await db.add(tableAssist, assists);
                         /* const update = await db.update(tableUser, {tiempoPermiso : 0},body.idUser); */
-                        return { "idTipoValidacion": 5,"idMostrarForm": 0, "Registrado como": `La asistencia ha sido registrada como: FUERA DE HORARIO.`, "Detalle": `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
+                        return { "idTipoValidacion": 6,"idMostrarForm": 0, "Registrado como": 'La asistencia ha sido registrada como: SOBRETIEMPO', "Detalle": `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
                     }
                 }
                 const resultValidation = validateTime(formattedTime);
@@ -210,7 +210,7 @@ module.exports = function (dbInyectada) {
                     idHorario :idSchedule.IdHorarios
                 }
                 const respuesta = await db.add(tableAssist, assists);
-                return { "idTipoValidacion": 5,"idMostrarForm": 0, "Registrado como": 'La asistencia ha sido registrada como: FUERA DE HORARIO.', "Detalle": `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
+                return { "idTipoValidacion": 6,"idMostrarForm": 0, "Registrado como": 'La asistencia ha sido registrada como: SOBRETIEMPO.', "Detalle": `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
             }
         }
         const resultValidation = validateTime(formattedTime);

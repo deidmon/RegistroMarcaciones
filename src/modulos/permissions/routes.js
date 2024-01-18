@@ -6,6 +6,7 @@ const router = express.Router();
 router.post('/addJustifications', addJustifications);
 router.post('/addVacations', addVacations);
 router.post('/addPermissions', addPermissions);
+router.post('/addAuthorization', addAuthorization);
 router.post('/listPermissions',listPermissions);
 router.post('/update', updatePermissions);
 router.post('/getPermissions', getAllPermissions);
@@ -39,6 +40,18 @@ async function addPermissions(req, res, next){
 async function addVacations(req, res, next){
     try{
         const items = await controller.addVacations(req.body);
+         if(items){
+            response.success(req, res,"", items.messages, 200);
+        }
+       
+    }catch(err){
+        response.error(req, res, false, errorMessagePermissions, 500);
+    }
+};
+
+async function addAuthorization(req, res, next){
+    try{
+        const items = await controller.addAuthorization(req.body);
          if(items){
             response.success(req, res,"", items.messages, 200);
         }

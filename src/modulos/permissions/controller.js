@@ -135,6 +135,47 @@ module.exports = function(dbInyectada){
 
     }
 
+    async function addAuthorization(body) {
+        const checkAuthorization = await db.queryCheckTimePermission(tablePermissions, 4, body.idUser, body.date);
+
+        if (checkAuthorization > 0) {
+            message = 'Ya tiene una autorización asignada para esa fecha';
+            return { "messages": message };
+        }
+        let initialDate = moment();
+        let day = initialDate.format('DD');
+        let month = initialDate.format('MM');
+        let age = initialDate.format('YYYY');
+        let hour = initialDate.format('HH');
+        let minutes = initialDate.format('mm');
+        let date = `${age}-${month}-${day}`;
+        
+
+        let statusPermission = 2
+
+        const authorization = {          		
+            idTipoSolicitud: 4,
+            idUsuario: body.idUser,
+            Fecha: date,
+            FechaPermiso: body.date,
+            idTMarcaciones: 1,
+            Motivo: body.reason,
+            estadoSolicitudF: 2,
+            Updated_byF: body.idUserAuthorizer,
+            tiempoPermiso: body.timePermission,
+        }
+
+        const respuesta = await db.addJustification(tablePermissions, authorization);
+
+        if (respuesta) {
+            message = 'Autorización añadida con éxito';
+            return { "messages": message };
+        }
+        message = 'No se pudo hacer el registro de autorizción';
+        return { "messages": message };
+
+    }
+
     async function updatePermissions(body) {
 
         let initialDate = moment();
@@ -241,6 +282,7 @@ module.exports = function(dbInyectada){
     };
 
     return {
+        addAuthorization,
         addJustifications,
         addPermissions,
         addVacations,

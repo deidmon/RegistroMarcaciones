@@ -270,6 +270,18 @@ function queryUsersWithSchedule(tabla, schedules) {
     });
 }
 
+function queryCheckTimePermission(tabla, consult1, consult2, consult3) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT IFNULL((SELECT tiempoPermiso FROM ?? WHERE idTipoSolicitud = ? AND idUsuario = ? AND FechaPermiso = ? LIMIT 1), 0) AS tiempoPermiso`;
+        const values = [tabla, consult1, consult2, consult3];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].tiempoPermiso);
+            
+        });
+    });
+}
+
 /* function queryListPermissions(tabla, tabla2) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT p.idSolicitud, p.descripcion, p.idEstado,e.Descripcion FROM ?? AS p INNER JOIN ?? AS e ON p.idEstado = e.IdEstado';
@@ -948,6 +960,7 @@ module.exports = {
     queryGetPermissions,
     queryMarkDay2,
     queryScheduleByUser,
+    queryCheckTimePermission,
     queryConsultTable,
     queryMarkWeek,
     queryMarkDay,
