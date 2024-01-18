@@ -42,14 +42,14 @@ function allTypeMarking(tabla) {
 }
 
 /* 📌 Todos los trabajadores */
-function queryAllWorkers(users, states, workModality, role, name, state1, state2, limit, ofset) {
+function queryAllWorkers(users, states, workModality, role, name, cip, dni,state1, state2, limit, ofset) {
     return new Promise((resolve, reject) => {
         const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, e.Descripcion as Estado, u.Usuario, r.Nombre as Rol, m.Descripcion as Modalidad, u.IdHorarios 
         from ?? as u 
         inner join ?? as e ON u.Activo = e.IdEstado 
         inner join ?? as m ON u.IdModalidad = m.IdModalidad 
         inner join ?? as r ON u.IdRol = r.IdRol
-        WHERE u.Nombres LIKE "%${name}%" AND u.Activo IN (?, ?)
+        WHERE u.Nombres LIKE "%${name}%" AND u.CIP LIKE "%${cip}%" AND u.DNI LIKE "%${dni}%" AND u.Activo IN (?, ?)  
         ORDER BY IdUsuarios ASC 
         LIMIT ? OFFSET ?
         `;
@@ -69,12 +69,8 @@ function queryGetWorkersCounter(table1, name,  state1, state2) {
         WHERE Nombres LIKE "%${name}%" AND Activo IN (?, ?)`;
         const values = [table1, state1, state2];
         conexion.query(query, values, (error, result) => {
-            if (error) {
-                console.log(error);
-                return reject(error);
-            }
-            console.log(result);
-            return resolve(result);
+            return  error ? reject(error) : resolve(result);
+
         });
     });
 }

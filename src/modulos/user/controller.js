@@ -115,7 +115,7 @@ module.exports = function (dbInjected) {
         PageSiize = 7;
 
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
-        return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset);
+        return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name,body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset);
     }
 
     async function getWorkersCounter(body) {

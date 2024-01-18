@@ -49,7 +49,7 @@ async function notificationUsersUnmarked() {
       },
     },
     );
-    console.log(`Usuario notificado con éxito: ${JSON.stringify(jsonData)}`);
+    /* console.log(`Usuario notificado con éxito: ${JSON.stringify(jsonData)}`); */
     return "Usuarios notificados con éxito"
   } catch (error) {
     console.error(`Error al notificar usuario: ${error.message}`);
