@@ -64,6 +64,11 @@ module.exports = function(dbInyectada){
     }
 
     async function addPermissions(body) {
+        const checkPermissions = await db.queryCheckPermission(tablePermissions, 2, body.idUser, body.datePermission);
+        if (checkPermissions === 1) {
+            message = 'Ya tiene un permiso enviado para esa fecha';
+            return { "messages": message };
+        }
         let initialDate = moment();
         let day = initialDate.format('DD');
         let month = initialDate.format('MM');

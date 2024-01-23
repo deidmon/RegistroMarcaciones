@@ -6,6 +6,7 @@ const tableTypeMarking = 'tipomarcaciones';
 const tableAddress = 'direcciones';
 const tableDaysOff = 'descansos';
 const tablePermissions = 'solicitudes';
+const tableExceptions = 'excepciones';
 moment.tz.setDefault('America/Lima');
 moment.locale('es'); 
 module.exports = function (dbInyectada) {
@@ -35,9 +36,17 @@ module.exports = function (dbInyectada) {
             return { "messages": message }
         }
         const idSchedule = await db.queryGetIdSchedule(tableUser, { IdUsuarios: body.idUser });
-        const parametrization = await db.getTableParametrization(tableSchedule, tableTypeMarking, idSchedule.IdHorarios, body.idTypesMarking);
+        const exceptionDay = await db.queryGetExceptionDays(tableDaysOff,tableSchedule, tableUser, { IdUsuarios: body.idUser });
+        const IdExcepcion = await db.queryGetIdException(tableSchedule, {IdHorarios :idSchedule.IdHorarios })
+        let parametrization;
+        if (exceptionDay.includes(dayOfWeekName)){
+             parametrization = await db.getTableParametrization(tableExceptions, tableTypeMarking, {IdExcepcion : IdExcepcion.IdExcepcion}, body.idTypesMarking);
+        }else {
+            parametrization = await db.getTableParametrization(tableSchedule, tableTypeMarking, {IdHorarios : idSchedule.IdHorarios}, body.idTypesMarking);
+        }
+        
         const timePermission = await db.queryCheckTimePermission(tablePermissions, 4, body.idUser, date)
-        const startTimeAllowed = parametrization[0].HoraInicio;
+        const startTimeAllowed = parametrization[0].HoraInicio;        
         const [hourStartTimeAllowed, minutesHourStartTimeAllowed] = startTimeAllowed.split(':');
         const startTimeAllowedInMinutes = parseInt(hourStartTimeAllowed) * 60 + parseInt(minutesHourStartTimeAllowed);
         const entryOneHourAfter = parseInt(hourStartTimeAllowed) * 60 + parseInt(minutesHourStartTimeAllowed) + 75;

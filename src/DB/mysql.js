@@ -278,6 +278,19 @@ function queryCheckTimePermission(tabla, consult1, consult2, consult3) {
     });
 }
 
+function queryCheckPermission(tabla, consult1, consult2, consult3) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT EXISTS((SELECT idTipoSolicitud FROM ?? WHERE idTipoSolicitud = ? AND idUsuario = ? AND FechaPermiso = ? LIMIT 1)) AS idTipoSolicitud`;
+        const values = [tabla, consult1, consult2, consult3];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].idTipoSolicitud);
+            
+            
+        });
+    });
+}
+
 /* function queryListPermissions(tabla, tabla2) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT p.idSolicitud, p.descripcion, p.idEstado,e.Descripcion FROM ?? AS p INNER JOIN ?? AS e ON p.idEstado = e.IdEstado';
@@ -762,12 +775,33 @@ function queryGetIdSchedule(tabla, consulta) {
         })
     });
 }
+function queryGetIdException(tabla, consulta) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT h.IdExcepcion FROM ?? AS h WHERE ? GROUP BY IdHorarios`;
+        const values = [tabla, consulta];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0]);
+        })
+    });
+}
 
 function queryGetDaysOff(tabla, tabla2, tabla3, consulta) {
     return new Promise((resolve, reject) => {
         const query = `     
         SELECT d.IdDescansos, LOWER(d.Día) AS Día FROM ?? AS d WHERE d.IdDescansos =
         (SELECT h.IdDescanso FROM ?? AS h INNER JOIN ?? AS u ON 
+            h.IdHorarios = u.IdHorarios WHERE ? LIMIT 1)`;
+        const values = [tabla, tabla2, tabla3, consulta];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result.map((row) => row.Día));
+        })
+    });
+}
+function queryGetExceptionDays(tabla, tabla2, tabla3, consulta) {
+    return new Promise((resolve, reject) => {
+        const query = `     
+        SELECT d.IdDescansos, LOWER(d.Día) AS Día FROM ?? AS d WHERE d.IdDescansos =
+        (SELECT h.diaExcepcion FROM ?? AS h INNER JOIN ?? AS u ON 
             h.IdHorarios = u.IdHorarios WHERE ? LIMIT 1)`;
         const values = [tabla, tabla2, tabla3, consulta];
         conexion.query(query, values, (error, result) => {
@@ -870,14 +904,17 @@ function tokenUsersUnmarked(tabla, IdUsuarios) {
 function getTableParametrization(tabla, tabla2, IdHorario, idTipoMarcaciones) {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ?? AS h INNER JOIN  ?? AS t ON h.
-        IdTipoMarcacion = t.idTMarcaciones WHERE h.IdHorarios = ? AND h.IdTipoMarcacion = ? `;
+        IdTipoMarcacion = t.idTMarcaciones WHERE ? AND h.IdTipoMarcacion = ? `;
 
         const values = [tabla, tabla2, IdHorario, idTipoMarcaciones];
         conexion.query(query, values, (error, results) => {
-            if (error) {
+            return error ? reject(error) : resolve(results);
+            /* if (error) {
+                console.log(error)
                 return reject(error);
             }
-            resolve(results);
+            console.log(results)
+            resolve(results); */
         });
     });
 }
@@ -957,6 +994,7 @@ module.exports = {
     queryMarkDay2,
     queryScheduleByUser,
     queryCheckTimePermission,
+    queryCheckPermission,
     queryConsultTable,
     queryMarkWeek,
     queryMarkDay,
@@ -971,6 +1009,8 @@ module.exports = {
     queryAllSchedules,
     querylistSchedule,
     queryGetDaysOffBySchedule,
+    queryGetExceptionDays,
+    queryGetIdException,
     queryScheduleNotification,
     queryReportAsistance,
     recordFouls,
