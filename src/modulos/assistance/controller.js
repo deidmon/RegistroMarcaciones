@@ -18,6 +18,7 @@ module.exports = function (dbInyectada) {
         db = require('../../DB/mysql');
     }
 
+    /* 📌 Añadir registro de asistencia */ 
     async function addMarking(body) {
         let initialDate = moment();
         let day = initialDate.format('DD');
@@ -28,6 +29,7 @@ module.exports = function (dbInyectada) {
         let date = `${age}-${month}-${day}`;
         const formattedTime = /* "07:02" */ `${hour}:${minutes}`;
         const radiusMeters = 50;
+        var dateToMark = new Date(date);
 
         const dayOfWeekName = initialDate.format('dddd');  
         const daysOff = await db.queryGetDaysOff(tableDaysOff,tableSchedule, tableUser, { IdUsuarios: body.idUser });
@@ -35,6 +37,22 @@ module.exports = function (dbInyectada) {
             message = `Hoy ${dayOfWeekName.toUpperCase()} es su día no laborable.`
             return { "messages": message }
         }
+        /* 📌 Verificar si esta de vacaciones */ 
+        var haveVacation = await db.queryCheckVacation(tablePermissions, body.idUser);
+        if (haveVacation.length > 0) {
+            if (dateToMark >= haveVacation[0].FechaDesde && dateToMark <= haveVacation[0].FechaHasta) {
+                message = `Está de vacaciones, disfrútelas al máximo`;
+                return { "messages": message }
+            }
+        }
+
+        /* 📌 Verificar si trabajador tiene permiso todo el día */ 
+        const havePermissionAllDay = await db.queryCheckPermissionAllDay(tablePermissions, body.idUser, date);
+        if (havePermissionAllDay) {
+            message = `Día libre, aprovéchalo`;
+            return { "messages": message }
+        }
+
         const idSchedule = await db.queryGetIdSchedule(tableUser, { IdUsuarios: body.idUser });
         const exceptionDay = await db.queryGetExceptionDays(tableDaysOff,tableSchedule, tableUser, { IdUsuarios: body.idUser });
         const IdExcepcion = await db.queryGetIdException(tableSchedule, {IdHorarios :idSchedule.IdHorarios })
@@ -55,6 +73,8 @@ module.exports = function (dbInyectada) {
         const hourInMinutesNow = parseInt(hour) * 60 + parseInt(minutes);
         const endTimeAllowed = /* parametrization[parametrization.length - 1].HoraFin;  */ parametrization[0].HoraFin;
         const descrptionTypeMarking = parametrization[0].descripcion;
+        
+        /* 📌 Validar (Conforme, tardanza, fuera de horario, sobretiempo) */ 
         function validateTime(formattedTime) {
             const [hour, minutes] = formattedTime.split(':');
             const hourInMinutes = parseInt(hour) * 60 + parseInt(minutes);
@@ -75,12 +95,14 @@ module.exports = function (dbInyectada) {
             return 0;
         }
 
+        /* 📌 Verificar usuario es correcto */ 
         const data = await db.query(tableUser, { IdUsuarios: body.idUser });
         if (!data) {
             message = 'Usuario incorrecto'
             return { "messages": message }
         }
 
+        /* 📌 Descripción de resultados */ 
         const resultDescriptions = {
             0: `Lo sentimos, no se pudo registrar su asistencia, ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de: ${startTimeAllowed} a ${endTimeAllowed}`,
             1: 'Conforme',
@@ -89,7 +111,8 @@ module.exports = function (dbInyectada) {
             5: 'Fuera de horario',
             6: 'Sobretiempo'
            };
-
+        
+        /* 📌 Verificar si es presencial o virtual */ 
         const workModality = await db.queryModalityValidation(tableUser, { IdUsuarios: body.idUser });
         if (!workModality) {
             const locations = await db.compareLocation(tableUser, tableAddress, body.idUser, body.latitude, body.latitude, body.longitude, radiusMeters, body.idUser, body.latitude, body.latitude, body.longitude, radiusMeters)
@@ -180,7 +203,8 @@ module.exports = function (dbInyectada) {
             message = `El rango para registrar su asistencia es de ${radiusMeters} metros. Por favor, verifique que se encuentra dentro de ese rango.`
             return { "messages": message }
         }
-
+        
+        /* 📌 Verificar que primero ingrese la entrada antes de poder registrar salida */ 
         let alreadyMarkedEntry = false;   
         if(body.idTypesMarking === 4){
             const userAlreadyMarkedEntry = await db.userAlreadyMarkedToday(tableAssist, body.idUser, date, 1);
@@ -193,6 +217,7 @@ module.exports = function (dbInyectada) {
             }
         }
 
+        /* 📌 Verificar si ya registro su entrada o salida del día */ 
         const userAlreadyMarked = await db.userAlreadyMarkedToday(tableAssist, body.idUser, date, body.idTypesMarking);
         let alreadyMarked = false;
         if (userAlreadyMarked.length > 0) {
@@ -202,6 +227,8 @@ module.exports = function (dbInyectada) {
             message = `Usted ya ha registrado su ${descrptionTypeMarking.toUpperCase()} hoy.`
             return { "messages": message }
         }
+
+        /* 📌 Verificar si tiene permiso por parte del lider */ 
         if(timePermission > 0 && body.idTypesMarking === 1){
             if( entryMinutesBefore <= hourInMinutesNow && hourInMinutesNow <entryThirtyMinutesBefore){
                 
@@ -262,6 +289,7 @@ module.exports = function (dbInyectada) {
 
     }
 
+    /* 📌 Actualizar  */ 
     async function update(body) {
 
         let user = body.username || '';

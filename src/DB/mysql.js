@@ -966,6 +966,36 @@ function compareLocation(tabla, tabla2, IdUsuarios, latitudUsuario, latitudUsuar
     });
 }
 
+/* 📌 Verificar si tiene permiso */
+function queryCheckPermissionAllDay(table, user, date) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT id, COUNT(*) as count FROM ?? WHERE IdUsuario = ? AND idTipoSolicitud = 2 AND FechaPermiso = ? `;
+        const values = [table, user, date];
+        
+        conexion.query(query, values, (error, result) => {
+            if (error) {
+                reject(error);
+            } else {
+                const tienePermiso = result[0].count > 0;
+                resolve(tienePermiso);
+            }
+        });
+    });
+};
+
+/* 📌 Verificar vacaciones */
+
+function queryCheckVacation(table, consult) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT FechaDesde, FechaHasta, COUNT(*) as count FROM ?? WHERE IdUsuario = ? AND idTipoSolicitud = 3 `;
+        const values = [table, consult];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+            
+        });
+    });
+};
 module.exports = {
 
     add,
@@ -1024,5 +1054,7 @@ module.exports = {
     queryModalityValidation,
     queryAllWorkers,
     queryGetWorkersCounter,
-    queryGetJustificationsCounterPending
+    queryGetJustificationsCounterPending,
+    queryCheckPermissionAllDay,
+    queryCheckVacation
 }
