@@ -1002,10 +1002,11 @@ function queryCheckVacation(table, consult) {
 /* 📌 Todos los requerimientos de un trabajador*/
 function queryAllRequestOfUser(idUser, typeRequest, stateInProgress, stateApprovedByLeader, stateRejectedByLeader, stateInProgressRRHH, stateAprovedByRRHH, stateRejectedByRRHH, limit, ofset) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT s.id, s.idTipoSolicitud, s.idUsuario, s.Fecha, s.FechaPermiso, s.FechaDesde, s.FechaHasta, s.idTMarcaciones, s.Motivo, s.estadoSolicitudF, s.estadoSolicitudS, s.Updated_byF, s.Updated_byS, s.tiempoPermiso, t.descripcion AS descripcionTipoSolicitud, e.descripcion AS descripcionEstadoSolicitud
+        const query = `SELECT s.id, s.idTipoSolicitud, s.idUsuario, s.Fecha, s.FechaPermiso, s.FechaDesde, s.FechaHasta, s.idTMarcaciones, s.Motivo, s.estadoSolicitudF, s.estadoSolicitudS, s.Updated_byF, s.Updated_byS, s.tiempoPermiso, t.descripcion AS descripcionTipoSolicitud, e.descripcion AS descripcionEstadoSolicitud, tipo.descripcion AS descripcionTipoMarcacion
         from solicitudes as s 
         INNER JOIN tiposolicitudes AS t ON t.idSolicitud = s.idTipoSolicitud
         INNER JOIN estadosolicitudes AS e ON e.idEstadoSolicitud = s.estadoSolicitudF
+        INNER JOIN tipomarcaciones AS tipo ON tipo.idTMarcaciones = s.idTMarcaciones
         WHERE idUsuario = ${idUser}  AND idTipoSolicitud IN(${typeRequest}) AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})
         ORDER BY idTipoSolicitud ASC 
         LIMIT ? OFFSET ?`;
