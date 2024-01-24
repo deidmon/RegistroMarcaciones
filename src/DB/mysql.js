@@ -1006,7 +1006,7 @@ function queryAllRequestOfUser(idUser, typeRequest, stateInProgress, stateApprov
         from solicitudes as s 
         INNER JOIN tiposolicitudes AS t ON t.idSolicitud = s.idTipoSolicitud
         INNER JOIN estadosolicitudes AS e ON e.idEstadoSolicitud = s.estadoSolicitudF
-        INNER JOIN tipomarcaciones AS tipo ON tipo.idTMarcaciones = s.idTMarcaciones
+        LEFT JOIN tipomarcaciones AS tipo ON tipo.idTMarcaciones = s.idTMarcaciones
         WHERE idUsuario = ${idUser}  AND idTipoSolicitud IN(${typeRequest}) AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})
         ORDER BY idTipoSolicitud ASC 
         LIMIT ? OFFSET ?`;
