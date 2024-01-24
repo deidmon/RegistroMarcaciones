@@ -61,7 +61,7 @@ module.exports = function(dbInyectada){
         message = 'No se pudo añadir la justificación';
         return { "messages": message };
 
-    }
+    };
 
     async function addPermissions(body) {
         const checkPermissions = await db.queryCheckPermission(tablePermissions, 2, body.idUser, body.datePermission);
@@ -102,7 +102,7 @@ module.exports = function(dbInyectada){
         message = 'No se pudo añadir el permiso';
         return { "messages": message };
 
-    }
+    };
 
     async function addVacations(body) {
         let initialDate = moment();
@@ -138,7 +138,7 @@ module.exports = function(dbInyectada){
         message = 'No se pudo hacer el registro de vacaciones';
         return { "messages": message };
 
-    }
+    };
 
     async function addAuthorization(body) {
         const checkAuthorization = await db.queryCheckTimePermission(tablePermissions, 4, body.idUser, body.date);
@@ -179,7 +179,7 @@ module.exports = function(dbInyectada){
         message = 'No se pudo hacer el registro de autorizción';
         return { "messages": message };
 
-    }
+    };
 
     async function updatePermissions(body) {
 
@@ -236,8 +236,7 @@ module.exports = function(dbInyectada){
         }
         message = 'No se puede actualizar la justificación';
         return { "messages": message };
-    }
-
+    };
 
     async function listPermissions(body){
         if (body.idPermission === -1) {
@@ -275,6 +274,7 @@ module.exports = function(dbInyectada){
             return 0;
         }
     };
+
     async function getPermissionsCounterPending (body) {
         const result = await  db.queryGetJustificationsCounterPending(tableJustifications, body.IdEstadoJustP);  
         if (result && result.length >= 0) {
@@ -286,6 +286,31 @@ module.exports = function(dbInyectada){
         }
     };
 
+    /* 📌 Todos los solicitudes de un trabajador*/
+    async function allRequestOfWorker(body) { 
+        PageSiize = 7;
+        const getOffset = obtenerDatosPaginados(body.page, PageSiize);
+        return db.queryAllRequestOfUser(body.idUser, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH, PageSiize, getOffset)
+    }
+
+    /* 📌 Todos los solicitudes de un trabajador - contador */
+    async function allRequestOfWorkerCounter(body){
+        const resultRequestOfWorkerCount = await  db.queryAllRequestOfUserCounter(body.idUser, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH);  
+        console.log(resultRequestOfWorkerCount.length);
+        if (resultRequestOfWorkerCount && resultRequestOfWorkerCount.length >= 0) {//Mayor a cero porque si es >= 0 si es cero al intentar acceder a la posicion 0 saldra error
+            const count = resultRequestOfWorkerCount[0];
+            const contador = count.totalRecords // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
+            return contador; 
+         } else {
+            return 0;
+        }
+    }
+
+    /* 📌 Para obtener datos paginados */
+    function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
+        return  offset = (numeroPagina - 1) * tamanoPagina
+    }
+
     return {
         addAuthorization,
         addJustifications,
@@ -295,7 +320,9 @@ module.exports = function(dbInyectada){
         updatePermissions,
         getAllPermissions,
         getPermissionsCounter,
-        getPermissionsCounterPending
+        getPermissionsCounterPending,
+        allRequestOfWorker,
+        allRequestOfWorkerCounter
         
     }
 }

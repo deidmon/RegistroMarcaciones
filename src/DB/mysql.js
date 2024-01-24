@@ -130,6 +130,7 @@ function queryGroupedModules(tabla) {
         });
     });
 }
+
 function queryAllModules(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT * FROM ??';
@@ -602,6 +603,7 @@ function queryGetJustifications(table1, table2, table3, table4, table5, table6, 
         });
     });
 }
+
 /* 📌 contador de justificaciónes */
 function queryGetJustificationsCounter(table1, table2, name,  state1, state2, state3) {
     return new Promise((resolve, reject) => {
@@ -775,6 +777,7 @@ function queryGetIdSchedule(tabla, consulta) {
         })
     });
 }
+
 function queryGetIdException(tabla, consulta) {
     return new Promise((resolve, reject) => {
         const query = `SELECT h.IdExcepcion FROM ?? AS h WHERE ? GROUP BY IdHorarios`;
@@ -797,6 +800,7 @@ function queryGetDaysOff(tabla, tabla2, tabla3, consulta) {
         })
     });
 }
+
 function queryGetExceptionDays(tabla, tabla2, tabla3, consulta) {
     return new Promise((resolve, reject) => {
         const query = `     
@@ -819,6 +823,7 @@ function queryAddScheduleUser(tabla, consulta, consulta2) {
         })
     });
 }
+
 function queryGetDaysOffBySchedule(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         const query = `     
@@ -834,7 +839,6 @@ function queryGetDaysOffBySchedule(tabla, tabla2, consulta) {
         })
     });
 }
-
 
 function recordFouls(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
@@ -996,6 +1000,38 @@ function queryCheckVacation(table, consult) {
         });
     });
 };
+
+/* 📌 Todos los requerimientos de un trabajador*/
+function queryAllRequestOfUser(idUser, typeRequest, stateInProgress, stateApprovedByLeader, stateRejectedByLeader, stateInProgressRRHH, stateAprovedByRRHH, stateRejectedByRRHH, limit, ofset) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT s.id, s.idTipoSolicitud, s.idUsuario, s.Fecha, s.FechaPermiso, s.FechaDesde, s.FechaHasta, s.idTMarcaciones, s.Motivo, s.estadoSolicitudF, s.estadoSolicitudS, s.Updated_byF, s.Updated_byS, s.tiempoPermiso, t.descripcion AS descripcionTipoSolicitud, e.descripcion AS descripcionEstadoSolicitud
+        from solicitudes as s 
+        INNER JOIN tiposolicitudes AS t ON t.idSolicitud = s.idTipoSolicitud
+        INNER JOIN estadosolicitudes AS e ON e.idEstadoSolicitud = s.estadoSolicitudF
+        WHERE idUsuario = ${idUser}  AND idTipoSolicitud IN(${typeRequest}) AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})
+        ORDER BY idTipoSolicitud ASC 
+        LIMIT ? OFFSET ?`;
+        const values = [limit, ofset];
+        conexion.query(query, values, (error, result) => {
+            return  error ? reject(error) : resolve(result);
+        });
+    });
+};
+
+/* 📌 Todos los requerimientos de un trabajador - contador*/
+function queryAllRequestOfUserCounter(idUser, typeRequest, stateInProgress, stateApprovedByLeader, stateRejectedByLeader, stateInProgressRRHH, stateAprovedByRRHH, stateRejectedByRRHH) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT COUNT(*) AS totalRecords
+        from solicitudes as s 
+        WHERE idUsuario = ${idUser}  AND idTipoSolicitud IN(${typeRequest}) AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})`
+        const values = [];
+        conexion.query(query, values, (error, result) => {
+            return  error ? reject(error) : resolve(result);
+        });
+    });
+};
+
+
 module.exports = {
 
     add,
@@ -1056,5 +1092,7 @@ module.exports = {
     queryGetWorkersCounter,
     queryGetJustificationsCounterPending,
     queryCheckPermissionAllDay,
-    queryCheckVacation
+    queryCheckVacation,
+    queryAllRequestOfUser,
+    queryAllRequestOfUserCounter
 }

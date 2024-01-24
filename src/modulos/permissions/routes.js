@@ -11,6 +11,7 @@ router.post('/listPermissions',listPermissions);
 router.post('/update', updatePermissions);
 router.post('/getPermissions', getAllPermissions);
 router.post('/getTotalPending', getPermissionsCounterPending);
+router.post('/getAllRequestOfWorker', allRequestOfWorker);
 errorMessagePermissions = "Algo salio mal, intente más tarde."
 
 async function addJustifications(req, res, next){
@@ -108,5 +109,18 @@ async function getPermissionsCounterPending(req, res, next) {
     }
 };
 
+/* 📌 Obtener las solicitudes de cada trabajador */
+async function allRequestOfWorker(req, res, next){
+    try{
+        pageSize = 7;
+        const allRequestOfWorker = await controller.allRequestOfWorker(req.body);
+        const pageIndex = (req.body.page)
+        const allRequestOfWorkerCounter= await controller.allRequestOfWorkerCounter(req.body);
+        const pageCount = Math.ceil(allRequestOfWorkerCounter / pageSize);
+        response.successPager(req, res, allRequestOfWorker, 200, allRequestOfWorkerCounter, pageCount, pageIndex, pageSize);
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
 
 module.exports = router;   
