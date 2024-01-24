@@ -119,7 +119,7 @@ module.exports = function (dbInjected) {
     }
 
     async function getWorkersCounter(body) {
-        const result = await  db.queryGetWorkersCounter(tableUser, body.name ?? "", body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2);  
+        const result = await  db.queryGetWorkersCounter(tableUser, body.name ?? "", body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2);  
         if (result && result.length >= 0) {
             const count = result[0];
             const contador= count.totalRegistros // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0

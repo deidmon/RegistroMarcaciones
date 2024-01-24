@@ -61,12 +61,12 @@ function queryAllWorkers(users, states, workModality, role, name, cip, dni,state
 }
 
 /* 📌 Todos los trabajadores Cantidad total */
-function queryGetWorkersCounter(table1, name,  state1, state2) {
+function queryGetWorkersCounter(table1, name, cip, dni, state1, state2) {
     return new Promise((resolve, reject) => {
         const query = `
         SELECT COUNT(*) AS totalRegistros
         FROM ?? j
-        WHERE Nombres LIKE "%${name}%" AND Activo IN (?, ?)`;
+        WHERE Nombres LIKE "%${name}%" AND CIP LIKE "%${cip}%" AND DNI LIKE "%${dni}%" AND Activo IN (?, ?)`;
         const values = [table1, state1, state2];
         conexion.query(query, values, (error, result) => {
             return  error ? reject(error) : resolve(result);
@@ -281,13 +281,11 @@ function queryCheckTimePermission(tabla, consult1, consult2, consult3) {
 
 function queryCheckPermission(tabla, consult1, consult2, consult3) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT EXISTS((SELECT idTipoSolicitud FROM ?? WHERE idTipoSolicitud = ? AND idUsuario = ? AND FechaPermiso = ? LIMIT 1)) AS idTipoSolicitud`;
+        const query = `SELECT EXISTS((SELECT idTipoSolicitud FROM ?? WHERE idTipoSolicitud = ? AND idUsuario = ? AND  ? LIMIT 1)) AS idTipoSolicitud`;
         const values = [tabla, consult1, consult2, consult3];
 
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result[0].idTipoSolicitud);
-            
-            
         });
     });
 }

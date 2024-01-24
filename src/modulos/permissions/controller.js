@@ -10,6 +10,8 @@ const tableTypeMark = 'tipomarcaciones';
 const tableStatePermissions = 'estadosolicitudes';
 const tableAssignmentStaff = 'asignacionpersonal';
 const tableLeader = 'lider';
+const tableDaysOff = 'descansos';
+const tableSchedule = 'horarios';
 
 module.exports = function(dbInyectada){
     let db = dbInyectada;
@@ -64,7 +66,15 @@ module.exports = function(dbInyectada){
     };
 
     async function addPermissions(body) {
-        const checkPermissions = await db.queryCheckPermission(tablePermissions, 2, body.idUser, body.datePermission);
+        let fechaString =  body.datePermission;
+        let fechaMoment = moment(fechaString, 'YYYY/MM/DD');
+        const dayOfWeekName = fechaMoment.format('dddd');  
+        const daysOff = await db.queryGetDaysOff(tableDaysOff,tableSchedule, tableUser, { IdUsuarios: body.idUser });
+        if (daysOff.includes(dayOfWeekName)) {
+            message = `Debes elegir un día laborable para pedir permiso`
+            return { "messages": message }
+        }
+        const checkPermissions = await db.queryCheckPermission(tablePermissions, 2, body.idUser, {FechaPermiso: body.datePermission});
         if (checkPermissions === 1) {
             message = 'Ya tiene un permiso enviado para esa fecha';
             return { "messages": message };
@@ -105,6 +115,11 @@ module.exports = function(dbInyectada){
     };
 
     async function addVacations(body) {
+        const checkPermissions = await db.queryCheckPermission(tablePermissions, 3, body.idUser, {FechaDesde: body.dateStart} );
+        if (checkPermissions === 1) {
+            message = 'Ya registro vacaciones para esa fecha';
+            return { "messages": message };
+        }
         let initialDate = moment();
         let day = initialDate.format('DD');
         let month = initialDate.format('MM');
