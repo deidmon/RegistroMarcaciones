@@ -37,6 +37,7 @@ module.exports = function (dbInyectada) {
             message = `Hoy ${dayOfWeekName.toUpperCase()} es su día no laborable.`
             return { "messages": message }
         }
+        
         /* 📌 Verificar si esta de vacaciones */ 
         var haveVacation = await db.queryCheckVacation(tablePermissions, body.idUser);
         if (haveVacation.length > 0) {

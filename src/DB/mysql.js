@@ -30,6 +30,7 @@ function conMysql() {
 }
 conMysql();
 
+/* 📌 Obtener los tipos de marcación */
 function allTypeMarking(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT idTMarcaciones AS "idTypesMarking", descripcion AS "description"  FROM ?? WHERE IdEstado = 1 ORDER BY idTypesMarking';
@@ -58,9 +59,9 @@ function queryAllWorkers(users, states, workModality, role, name, cip, dni,state
             return  error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
-/* 📌 Todos los trabajadores Cantidad total */
+/* 📌 Todos los trabajadores cantidad total */
 function queryGetWorkersCounter(table1, name, cip, dni, state1, state2) {
     return new Promise((resolve, reject) => {
         const query = `
@@ -73,8 +74,9 @@ function queryGetWorkersCounter(table1, name, cip, dni, state1, state2) {
 
         });
     });
-}
+};
 
+/* 📌 Todos los trabajadores */
 function allTypeValidation(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT idValidacion AS "idValidation", descripcion AS "description" FROM ?? ORDER BY idValidation';
@@ -84,8 +86,9 @@ function allTypeValidation(tabla) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
+/* 📌 Obtener todos los usuarios */
 function allUsers(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT * FROM ??';
@@ -95,8 +98,9 @@ function allUsers(tabla) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
+/* 📌 ... */
 function queryGroupedModules(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT * FROM ??';
@@ -129,8 +133,9 @@ function queryGroupedModules(tabla) {
             return resolve(formatted)
         });
     });
-}
+};
 
+/* 📌 Obtener todos los modulos */
 function queryAllModules(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT * FROM ??';
@@ -140,8 +145,9 @@ function queryAllModules(tabla) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
+/* 📌 Actuivar o desactivar usuarios */
 function queryActivateUsers(tabla, status, users) {
     return new Promise((resolve, reject) => {
         const query = `UPDATE ?? SET Activo = ? WHERE IdUsuarios IN (?)`;
@@ -152,8 +158,9 @@ function queryActivateUsers(tabla, status, users) {
 
         });
     });
-}
+};
 
+/* 📌 Obtener permisos por modulo */
 function queryPermissionByModule(tabla, idModule) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT * FROM ?? WHERE idModulo = ?';
@@ -163,8 +170,9 @@ function queryPermissionByModule(tabla, idModule) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
+/* 📌 Obtener permisos por perfiles */
 function queryPermissionByProfile(tabla, tabla2, idProfile, idModule) {
     return new Promise((resolve, reject) => {
         const query = `SELECT pp.idPerfil, pp.idModulo, pp.idPermiso, p.nombre 
@@ -177,8 +185,9 @@ function queryPermissionByProfile(tabla, tabla2, idProfile, idModule) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
+/* 📌 Obtener todos los perfiles */
 function queryAllProfiles(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT * FROM ??';
@@ -188,8 +197,9 @@ function queryAllProfiles(tabla) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
+/* 📌 Activar o desactivar perfil */
 function queryActivateProfile(tabla, status, profiles) {
     return new Promise((resolve, reject) => {
         const query = `UPDATE ?? SET idEstado = ? WHERE idPerfil IN (?)`;
@@ -200,8 +210,9 @@ function queryActivateProfile(tabla, status, profiles) {
 
         });
     });
-}
+};
 
+/* 📌 Eliminar permisos del perfil */
 function queryDeletePermissions(tabla, profile, module) {
     return new Promise((resolve, reject) => {
         const query = `DELETE FROM ?? WHERE idPerfil = ? AND idModulo = ?`;
@@ -211,8 +222,9 @@ function queryDeletePermissions(tabla, profile, module) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
+/* 📌 ... */
 function queryLastSchedule(tabla, profile, module) {
     return new Promise((resolve, reject) => {
         const query = `SELECT idHorarios FROM ?? GROUP BY idHorarios ORDER BY idHorarios DESC LIMIT 1`;
@@ -222,8 +234,9 @@ function queryLastSchedule(tabla, profile, module) {
             return error ? reject(error) : resolve(result[0].idHorarios);
         });
     });
-}
+};
 
+/* 📌 Para actualizar horario */
 function queryUpdateSchedule(tabla, consulta, consulta2, consulta3, consulta4) {
     return new Promise((resolve, reject) => {
         const query = `UPDATE ?? SET ? WHERE IdHorarios = ? AND IdTipoMarcacion = ? AND IdValidacion = ?`;
@@ -232,8 +245,9 @@ function queryUpdateSchedule(tabla, consulta, consulta2, consulta3, consulta4) {
             return error ? reject(error) : resolve(result);
         })
     });
-}
+};
 
+/* 📌 Para activar o desactivar horario */
 function queryActivateSchedule(tabla, status, schedules) {
     return new Promise((resolve, reject) => {
         const query = `UPDATE ?? SET IdEstado = ? WHERE IdHorarios IN (?)`;
@@ -243,19 +257,9 @@ function queryActivateSchedule(tabla, status, schedules) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
-function queryActivateSchedule(tabla, status, schedules) {
-    return new Promise((resolve, reject) => {
-        const query = `UPDATE ?? SET IdEstado = ? WHERE IdHorarios IN (?)`;
-        const values = [tabla, status, schedules];
-
-        conexion.query(query, values, (error, result) => {
-            return error ? reject(error) : resolve(result);
-        });
-    });
-}
-
+/* 📌 ... */
 function queryUsersWithSchedule(tabla, schedules) {
     return new Promise((resolve, reject) => {
         const query = `SELECT EXISTS( SELECT 1 FROM ?? WHERE IdHorarios IN (?) LIMIT 1 ) AS existe_usuario;`;
@@ -265,8 +269,9 @@ function queryUsersWithSchedule(tabla, schedules) {
             return error ? reject(error) : resolve(result[0].existe_usuario);
         });
     });
-}
+};
 
+/* 📌 Chequear el tiempo de permiso */
 function queryCheckTimePermission(tabla, consult1, consult2, consult3) {
     return new Promise((resolve, reject) => {
         const query = `SELECT IFNULL((SELECT tiempoPermiso FROM ?? WHERE idTipoSolicitud = ? AND idUsuario = ? AND FechaPermiso = ? LIMIT 1), 0) AS tiempoPermiso`;
@@ -277,8 +282,9 @@ function queryCheckTimePermission(tabla, consult1, consult2, consult3) {
             
         });
     });
-}
+};
 
+/* 📌 Chequear si tiene permisos */
 function queryCheckPermission(tabla, consult1, consult2, consult3) {
     return new Promise((resolve, reject) => {
         const query = `SELECT EXISTS((SELECT idTipoSolicitud FROM ?? WHERE idTipoSolicitud = ? AND idUsuario = ? AND  ? LIMIT 1)) AS idTipoSolicitud`;
@@ -288,19 +294,9 @@ function queryCheckPermission(tabla, consult1, consult2, consult3) {
             return error ? reject(error) : resolve(result[0].idTipoSolicitud);
         });
     });
-}
+};
 
-/* function queryListPermissions(tabla, tabla2) {
-    return new Promise((resolve, reject) => {
-        const query = 'SELECT p.idSolicitud, p.descripcion, p.idEstado,e.Descripcion FROM ?? AS p INNER JOIN ?? AS e ON p.idEstado = e.IdEstado';
-        const values = [tabla, tabla2];
-
-        conexion.query(query, values, (error, result) => {
-            return error ? reject(error) : resolve(result);
-        });
-    });
-} */
-
+/* 📌 Obtener la lista de permisos */
 function queryListPermissions(tabla,tabla2, consulta, consulta2) {
     return new Promise((resolve, reject) => {
         const query = `SELECT ts.idSolicitud, ts.descripcion, ts.idEstado,e.Descripcion
@@ -325,7 +321,7 @@ function queryUpdatePermission(tabla, consulta, idJustificacion) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
 /* 📌 Optener justificación */
 function queryGetPermissions(table1, table2, table3, table4, table5, table6, table7, name,  state1, state2, limit, ofset) {
@@ -350,8 +346,9 @@ function queryGetPermissions(table1, table2, table3, table4, table5, table6, tab
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
+/* 📌 ... */
 function queryMarkDay2(tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha) {
     return new Promise((resolve, reject) => {
         const query = `
@@ -376,8 +373,9 @@ function queryMarkDay2(tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha) {
             }
         });
     });
-}
+};
 
+/* 📌 Obtener horario por usuario*/
 function queryScheduleByUser(table1, table2, consult1) {
     return new Promise((resolve, reject) => {
         const query = `
@@ -397,18 +395,9 @@ function queryScheduleByUser(table1, table2, consult1) {
             return error ? reject(error) : resolve(result[0]);
         });
     });
-}
+};
 
-/* function cronjob(tabla) {
-    return new Promise((resolve, reject) => {
-        const query = 'SELECT * FROM ?? WHERE IdEstado = 1';
-        const values = [tabla];
-
-        conexion.query(query, values, (error, result) => {
-            return error ? reject(error) : resolve(result);
-        });
-    });
-} */
+/* 📌 Obtener todos los horarios */
 function queryAllSchedules(tabla) {
     return new Promise((resolve, reject) => {
         const query = `
@@ -427,8 +416,9 @@ function queryAllSchedules(tabla) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
+/* 📌 ... */
 function querylistSchedule(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT DISTINCT IdHorarios FROM ??';
@@ -438,8 +428,9 @@ function querylistSchedule(tabla) {
             return error ? reject(error) : resolve(result.map((row) => row.IdHorarios));
         });
     });
-}
+};
 
+/* 📌 ... */
 function cronjob(tabla, consulta) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT * FROM ?? WHERE IdEstado = 1 AND idTMarcacion = ?';
@@ -449,9 +440,9 @@ function cronjob(tabla, consulta) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
-
+/* 📌 ... */
 function cronjobNotification(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT * FROM ?? WHERE IdEstado = 1';
@@ -461,8 +452,9 @@ function cronjobNotification(tabla) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
+/* 📌 ... */
 function queryScheduleNotification(tabla) {
     return new Promise((resolve, reject) => {
         const query = `SELECT DISTINCT HoraInicio AS Hora FROM ?? WHERE IdValidacion = 1
@@ -474,8 +466,9 @@ function queryScheduleNotification(tabla) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
+/* 📌 Información del usuario */
 function userInformation(tabla, tabla2, id) {
     return new Promise((resolve, reject) => {
         const query = `SELECT IdUsuarios AS "idUser", Nombres AS "names", Apellidos AS "lastNames", Activo AS "status", Usuario AS "user", IdRol AS 'idRole', IdDirec AS "idPrimaryAddress", d1.Direccion AS "primaryAddress", IdDirecSecu AS "idSecondaryAddress", d2.Direccion AS "secondaryAddress"
@@ -490,8 +483,9 @@ function userInformation(tabla, tabla2, id) {
             return error ? reject(error) : resolve(result[0]);
         });
     });
-}
+};
 
+/* 📌 ... */
 function add(tabla, data) {
     return new Promise((resolve, reject) => {
 
@@ -502,8 +496,9 @@ function add(tabla, data) {
             return error ? reject(error) : resolve(result);
         });
     });
-}
+};
 
+/* 📌 Para añadir solicitud de justificación */
 function addJustification(tabla, data) {
     return new Promise((resolve, reject) => {
 
@@ -515,8 +510,9 @@ function addJustification(tabla, data) {
             
         });
     });
-}
+};
 
+/* 📌 Para el reporte diario */
 function queryReportAsistance(tabla, tabla2, tabla3, consult1, consult2) {
     return new Promise((resolve, reject) => {
         const query =
@@ -533,8 +529,9 @@ function queryReportAsistance(tabla, tabla2, tabla3, consult1, consult2) {
             return error ? reject(error) : resolve(result);
         })
     });
-}
+};
 
+/* 📌 Actualizar tabla de asistencia, solo el tipo de validación a autorizado o rechazado */
 function queryUpdateAssists(tabla, consulta, IdAsistencias) {
     return new Promise((resolve, reject) => {
         conexion.query(`UPDATE ${tabla} SET ? WHERE IdAsistencias = ?`, [consulta, IdAsistencias], (error, result) => {
@@ -549,15 +546,16 @@ function queryUpdateAssists(tabla, consulta, IdAsistencias) {
             }
         })
     });
-}
+};
 
+/* 📌 ... */
 function update(tabla, consulta) {
     return new Promise((resolve, reject) => {
         conexion.query(`UPDATE ${tabla} SET ? WHERE IdUsuarios = ?`, [consulta, consulta.IdUsuarios], (error, result) => {
             return error ? reject(error) : resolve(result);
         })
     });
-}
+};
 
 /* 📌 Actualizar justificación */
 function queryUpdateJustifactions(tabla, consulta, idJustificacion) {
@@ -566,8 +564,9 @@ function queryUpdateJustifactions(tabla, consulta, idJustificacion) {
             return error ? reject(error) : resolve(result);
         })
     });
-}
+};
 
+/* 📌 ... */
 function query(tabla, consulta) {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ?? WHERE ?`;
@@ -577,7 +576,7 @@ function query(tabla, consulta) {
             
         })
     });
-}
+};
 
 /* 📌 Optener justificación */
 function queryGetJustifications(table1, table2, table3, table4, table5, table6, name,  state1, state2, state3, limit, ofset) {
@@ -600,7 +599,7 @@ function queryGetJustifications(table1, table2, table3, table4, table5, table6, 
             return resolve(result);
         });
     });
-}
+};
 
 /* 📌 contador de justificaciónes */
 function queryGetJustificationsCounter(table1, table2, name,  state1, state2, state3) {
@@ -619,7 +618,7 @@ function queryGetJustificationsCounter(table1, table2, name,  state1, state2, st
             return resolve(result);
         });
     });
-}
+};
 
 /* 📌 Contador justificación pendientes*/
 function queryGetJustificationsCounterPending(table1, state1) {
@@ -637,8 +636,9 @@ function queryGetJustificationsCounterPending(table1, state1) {
             return resolve(result);
         });
     });
-}
+};
 
+/* 📌 ... */
 function queryConsultTable(tabla, consult1, consult2, consult3) {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ?? WHERE  ? AND  ? AND  ?`;
@@ -652,8 +652,9 @@ function queryConsultTable(tabla, consult1, consult2, consult3) {
             }
         })
     });
-}
+};
 
+/* 📌 saber que modalidad tiene el usuario */
 function queryModalityValidation(tabla, consulta) {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ?? WHERE ? AND IdModalidad <> 1`;
@@ -663,8 +664,9 @@ function queryModalityValidation(tabla, consulta) {
 
         })
     });
-}
+};
 
+/* 📌 Para obtener el registro de la semana */
 function queryMarkWeek(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         const query = `
@@ -705,6 +707,7 @@ function queryMarkWeek(tabla, tabla2, consulta) {
     });
 }
 
+/* 📌 Para obtener el registro del mes */
 function queryMarkMonth(tabla, tabla2, IdUsuario, Fecha, Fecha) {
     return new Promise((resolve, reject) => {
         const query = `            
@@ -738,8 +741,9 @@ function queryMarkMonth(tabla, tabla2, IdUsuario, Fecha, Fecha) {
             }
         });
     });
-}
+};
 
+/* 📌 Para obtener el registro del día */
 function queryMarkDay(tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha) {
     return new Promise((resolve, reject) => {
         const query = `
@@ -764,8 +768,9 @@ function queryMarkDay(tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha) {
             }
         });
     });
-}
+};
 
+/* 📌 Para obtener el id del horario */
 function queryGetIdSchedule(tabla, consulta) {
     return new Promise((resolve, reject) => {
         const query = `SELECT u.IdHorarios FROM ?? AS u WHERE ?`;
@@ -774,8 +779,9 @@ function queryGetIdSchedule(tabla, consulta) {
             return error ? reject(error) : resolve(result[0]);
         })
     });
-}
+};
 
+/* 📌 Para saber si ese horario tiene excepción */
 function queryGetIdException(tabla, consulta) {
     return new Promise((resolve, reject) => {
         const query = `SELECT h.IdExcepcion FROM ?? AS h WHERE ? GROUP BY IdHorarios`;
@@ -784,8 +790,9 @@ function queryGetIdException(tabla, consulta) {
             return error ? reject(error) : resolve(result[0]);
         })
     });
-}
+};
 
+/* 📌 Para saber los días libres */
 function queryGetDaysOff(tabla, tabla2, tabla3, consulta) {
     return new Promise((resolve, reject) => {
         const query = `     
@@ -797,8 +804,9 @@ function queryGetDaysOff(tabla, tabla2, tabla3, consulta) {
             return error ? reject(error) : resolve(result.map((row) => row.Día));
         })
     });
-}
+};
 
+/* 📌 Para saber si tiene un horario diferente durante la semana */
 function queryGetExceptionDays(tabla, tabla2, tabla3, consulta) {
     return new Promise((resolve, reject) => {
         const query = `     
@@ -810,8 +818,9 @@ function queryGetExceptionDays(tabla, tabla2, tabla3, consulta) {
             return error ? reject(error) : resolve(result.map((row) => row.Día));
         })
     });
-}
+};
 
+/* 📌 Para añadir horario a un usuario */
 function queryAddScheduleUser(tabla, consulta, consulta2) {
     return new Promise((resolve, reject) => {
         const query ='UPDATE ?? SET IdHorarios = ? WHERE IdUsuarios = ?'
@@ -820,8 +829,9 @@ function queryAddScheduleUser(tabla, consulta, consulta2) {
             return error ? reject(error) : resolve(result);          
         })
     });
-}
+};
 
+/* 📌 Obtener dias de cada horario */
 function queryGetDaysOffBySchedule(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         const query = `     
@@ -836,8 +846,9 @@ function queryGetDaysOffBySchedule(tabla, tabla2, consulta) {
             return error ? reject(error) : resolve(result.map((row) => row.Día)) ;
         })
     });
-}
+};
 
+/* 📌 Guardar en la tabla de asistencias quienes no marcaron ni entrada ni salida */
 function recordFouls(tabla, tabla2, consulta) {
     return new Promise((resolve, reject) => {
         conexion.query(`SELECT DISTINCT U.IdUsuarios
@@ -856,10 +867,11 @@ function recordFouls(tabla, tabla2, consulta) {
             }
         })
     });
-}
+};
 
 /* U.IdRol = 2 */
 // DATE_SUB(CURDATE(), INTERVAL 1 DAY)------------------------------------------------------------------------
+/* 📌 Guardar en la tabla de asistencias quienes no marcaron ni entrada ni salida*/
 function recordFoulsCronjob(tabla, tabla2, consulta, consulta2, consulta3) {
     return new Promise((resolve, reject) => {
         const query = `SELECT DISTINCT U.IdUsuarios
@@ -884,8 +896,9 @@ function recordFoulsCronjob(tabla, tabla2, consulta, consulta2, consulta3) {
             }
         })
     });
-}
+};
 
+/* 📌 Obtener token de usuarios que aun no registran asistencia para notificarlos*/
 function tokenUsersUnmarked(tabla, IdUsuarios) {
     return new Promise((resolve, reject) => {
         const query = `SELECT Token FROM ??  WHERE IdUsuarios IN (?)`;
@@ -901,8 +914,9 @@ function tokenUsersUnmarked(tabla, IdUsuarios) {
             }
         });
     });
-}
+};
 
+/* 📌 Obtener la tabla de horarios */
 function getTableParametrization(tabla, tabla2, IdHorario, idTipoMarcaciones) {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ?? AS h INNER JOIN  ?? AS t ON h.
@@ -911,16 +925,11 @@ function getTableParametrization(tabla, tabla2, IdHorario, idTipoMarcaciones) {
         const values = [tabla, tabla2, IdHorario, idTipoMarcaciones];
         conexion.query(query, values, (error, results) => {
             return error ? reject(error) : resolve(results);
-            /* if (error) {
-                console.log(error)
-                return reject(error);
-            }
-            console.log(results)
-            resolve(results); */
         });
     });
-}
+};
 
+/* 📌 Revisa si el usuario ya registro su asistencia previamente */
 function userAlreadyMarkedToday(tabla, IdUsuarios, fechaHoy, idTMarcacion) {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM ??  WHERE IdUsuarios = ? AND Fecha = ? AND idTMarcacion = ?`;
@@ -933,8 +942,9 @@ function userAlreadyMarkedToday(tabla, IdUsuarios, fechaHoy, idTMarcacion) {
             }
         });
     });
-}
+};
 
+/* 📌 Comparar la localizacion y si coincide dejara registrar la asistencia(solo modalidad presencial) */
 function compareLocation(tabla, tabla2, IdUsuarios, latitudUsuario, latitudUsuario, longitudUsuario, radioMetros, IdUsuarios, latitudUsuario, latitudUsuario, longitudUsuario, radioMetros) {
     return new Promise((resolve, reject) => {
         const query = `SELECT IdUsuarios, IdDireccion,Direccion FROM ${tabla} u INNER JOIN ${tabla2} d ON u.IdDirec = d.IdDireccion 
@@ -971,7 +981,7 @@ function compareLocation(tabla, tabla2, IdUsuarios, latitudUsuario, latitudUsuar
 /* 📌 Verificar si tiene permiso */
 function queryCheckPermissionAllDay(table, user, date) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT id, COUNT(*) as count FROM ?? WHERE IdUsuario = ? AND idTipoSolicitud = 2 AND FechaPermiso = ? `;
+        const query = `SELECT id, COUNT(*) as count FROM ?? WHERE IdUsuario = ? AND idTipoSolicitud = 2 AND FechaPermiso = ? AND estadoSolicitudF = 2 `;
         const values = [table, user, date];
         
         conexion.query(query, values, (error, result) => {
@@ -986,10 +996,9 @@ function queryCheckPermissionAllDay(table, user, date) {
 };
 
 /* 📌 Verificar vacaciones */
-
 function queryCheckVacation(table, consult) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT FechaDesde, FechaHasta, COUNT(*) as count FROM ?? WHERE IdUsuario = ? AND idTipoSolicitud = 3 `;
+        const query = `SELECT FechaDesde, FechaHasta, COUNT(*) as count FROM ?? WHERE IdUsuario = ? AND idTipoSolicitud = 3 AND estadoSolicitudF = 2`;
         const values = [table, consult];
 
         conexion.query(query, values, (error, result) => {
