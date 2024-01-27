@@ -20,6 +20,12 @@ module.exports = function(dbInyectada){
         db = require('../../DB/mysql');
     }
 
+    /* 📌 Para obtener datos paginados */
+    function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
+        return  offset = (numeroPagina - 1) * tamanoPagina
+    };
+
+    /* 📌 Para añadir una justificacion*/
     async function addJustifications(body) {
         let initialDate = moment();
         let day = initialDate.format('DD');
@@ -65,6 +71,7 @@ module.exports = function(dbInyectada){
 
     };
 
+    /* 📌 Para añadir un permiso*/
     async function addPermissions(body) {
         let fechaString =  body.datePermission;
         let fechaMoment = moment(fechaString, 'YYYY/MM/DD');
@@ -114,6 +121,7 @@ module.exports = function(dbInyectada){
 
     };
 
+    /* 📌 Para añadir solicitud de vacaciones */
     async function addVacations(body) {
         const checkPermissions = await db.queryCheckPermission(tablePermissions, 3, body.idUser, {FechaDesde: body.dateStart} );
         if (checkPermissions === 1) {
@@ -155,7 +163,16 @@ module.exports = function(dbInyectada){
 
     };
 
+    /* 📌 Para permitir que el trabajador ingrese antes de su hora - solo puede realizar el lider*/
     async function addAuthorization(body) {
+        let fechaString =  body.date;
+        let fechaMoment = moment(fechaString, 'YYYY/MM/DD');
+        const dayOfWeekName = fechaMoment.format('dddd');  
+        const daysOff = await db.queryGetDaysOff(tableDaysOff,tableSchedule, tableUser, { IdUsuarios: body.idUser });
+        if (daysOff.includes(dayOfWeekName)) {
+            message = `No se puede asignar está autorización porque es un día no laborable para este usuario`
+            return { "messages": message }
+        }
         const checkAuthorization = await db.queryCheckTimePermission(tablePermissions, 4, body.idUser, body.date);
 
         if (checkAuthorization > 0) {
@@ -196,6 +213,7 @@ module.exports = function(dbInyectada){
 
     };
 
+    /* 📌 Para actualizar aceptar o rechazar solicitud*/
     async function updatePermissions(body) {
 
         let initialDate = moment();
@@ -253,6 +271,7 @@ module.exports = function(dbInyectada){
         return { "messages": message };
     };
 
+    /* 📌 Para listar permisos */
     async function listPermissions(body){
         if (body.idPermission === -1) {
             body.idPermission = null;
@@ -263,6 +282,7 @@ module.exports = function(dbInyectada){
         return db.queryListPermissions(tableTypePermissions, tableState, body.idStatus, body.idPermission);
     };
 
+    /* 📌 Obtener todos permisos */
     async function getAllPermissions(body) {
         if (body.idStatusPermission === -1) {
             body.idStatusPermission = null;
@@ -278,6 +298,7 @@ module.exports = function(dbInyectada){
         return db.queryGetPermissions(tablePermissions, tableUser, tableTypeMark, tableStatePermissions,tableTypePermissions, tableAssignmentStaff, tableLeader,body.name, body.idUser, body.idStatusPermission, PageSiize, getOffset);  
     };
 
+    /* 📌 Contador de permisos */
     async function getPermissionsCounter(body) {
         const result = await  db.queryGetJustificationsCounter(tableJustifications, tableUser, body.name, body.IdEstadoJustP , body.IdEstadoJustJ , body.IdEstadoJustR );  
         if (result && result.length >= 0) {
@@ -290,6 +311,7 @@ module.exports = function(dbInyectada){
         }
     };
 
+    /* 📌 Contador de permisos pendientes */
     async function getPermissionsCounterPending (body) {
         const result = await  db.queryGetJustificationsCounterPending(tableJustifications, body.IdEstadoJustP);  
         if (result && result.length >= 0) {
@@ -306,7 +328,7 @@ module.exports = function(dbInyectada){
         PageSiize = 7;
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
         return db.queryAllRequestOfUser(body.idUser, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH, PageSiize, getOffset)
-    }
+    };
 
     /* 📌 Todos los solicitudes de un trabajador - contador */
     async function allRequestOfWorkerCounter(body){
@@ -319,13 +341,44 @@ module.exports = function(dbInyectada){
          } else {
             return 0;
         }
-    }
+    };
 
-    /* 📌 Para obtener datos paginados */
-    function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
-        return  offset = (numeroPagina - 1) * tamanoPagina
-    }
-
+    /* 📌 Todos los solicitudes de los trabajadores asignados a un lider*/
+    async function allRequestOfWorkersAsignedToLeader(body) { 
+        PageSiize = 7;
+        var getIdsOfWorkers = await db.queryGetIdAsignedToLeader(body.idLeader);//Obtener los ids de trabajadores asignados al lider
+        var listaDeIds = getIdsOfWorkers.map(function(rowDataPacket) {//Mapear los objetos RowDataPacket y pasarlos a una lista de  los                 
+            return rowDataPacket.idUsuario;
+        });
+        var idWorkersString = listaDeIds.join(', ');//convierte el array en una cadena separada por comas. 
+        if (idWorkersString === '') { //Poner almenos un valor para que no salga error
+            idWorkersString = '0';
+        };
+        const getOffset = obtenerDatosPaginados(body.page, PageSiize);
+        return db.queryAllRequestOfUserAsignedToLeader(idWorkersString, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH, PageSiize, getOffset)
+        
+    };
+    
+    /* 📌 Todos los solicitudes de los trabajadores asignados a un lider - contador */
+    async function allRequestOfUserAsignedToLeaderCounter(body){
+        var getIdsOfWorkers = await db.queryGetIdAsignedToLeader(body.idLeader);//Obtener los ids de trabajadores asignados al lider
+        var listaDeIds = getIdsOfWorkers.map(function(rowDataPacket) {//Mapear los objetos RowDataPacket y pasarlos a una lista de  los                 
+            return rowDataPacket.idUsuario;
+        });
+        var idWorkersString = listaDeIds.join(', ');//convierte el array en una cadena separada por comas. 
+        if (idWorkersString === '') {
+            idWorkersString = '0';
+        };
+        const resultRequestOfWorkerCount = await  db.queryAllRequestOfUserAsignedToLeaderCounter(idWorkersString, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH);  
+        if (resultRequestOfWorkerCount && resultRequestOfWorkerCount.length >= 0) {//Mayor a cero porque si es >= 0 si es cero al intentar acceder a la posicion 0 saldra error
+            const count = resultRequestOfWorkerCount[0];
+            const contador = count.totalRecords // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
+            return contador; 
+         } else {
+            return 0;
+        }
+    };
+    
     return {
         addAuthorization,
         addJustifications,
@@ -337,7 +390,9 @@ module.exports = function(dbInyectada){
         getPermissionsCounter,
         getPermissionsCounterPending,
         allRequestOfWorker,
-        allRequestOfWorkerCounter
+        allRequestOfWorkerCounter,
+        allRequestOfWorkersAsignedToLeader,
+        allRequestOfUserAsignedToLeaderCounter
         
     }
 }

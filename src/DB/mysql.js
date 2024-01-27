@@ -381,8 +381,8 @@ function queryScheduleByUser(table1, table2, consult1) {
         const query = `
         SELECT 
                 h.IdHorarios,
-                MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 5 MINUTE) END) AS HoraInicio,
-                MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END) AS HoraFin,
+                MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_FORMAT(DATE_ADD(h.HoraInicio, INTERVAL 15 MINUTE), '%H:%i') END) AS HoraInicio,
+                MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN DATE_FORMAT(h.HoraInicio,'%H:%i') END) AS HoraFin,
                 h.IdDescanso,
                 GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día, 1) DESC SEPARATOR ', ') AS Descanso
         FROM ?? AS h 
@@ -1039,6 +1039,48 @@ function queryAllRequestOfUserCounter(idUser, typeRequest, stateInProgress, stat
     });
 };
 
+/* 📌 Obtener los id de trabajadores que tiene asignado un lider*/
+function queryGetIdAsignedToLeader(idLeader) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT idUsuario FROM asignacionpersonal
+        WHERE idLider = ${idLeader} `
+        const values = [];
+        conexion.query(query, values, (error, result) => {
+            return  error ? reject(error) : resolve(result);
+        });
+    });
+};
+
+/* 📌 Todos los requerimientos de los trabajadores asignados al un lider*/
+function queryAllRequestOfUserAsignedToLeader(idWorkers, typeRequest, stateInProgress, stateApprovedByLeader, stateRejectedByLeader, stateInProgressRRHH, stateAprovedByRRHH, stateRejectedByRRHH, limit, ofset) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT s.id, s.idTipoSolicitud, s.idUsuario, s.Fecha, s.FechaPermiso, s.FechaDesde, s.FechaHasta, s.idTMarcaciones, s.Motivo, s.estadoSolicitudF, s.estadoSolicitudS, s.Updated_byF, s.Updated_byS, s.tiempoPermiso, t.descripcion AS descripcionTipoSolicitud, e.descripcion AS descripcionEstadoSolicitud, tipo.descripcion AS descripcionTipoMarcacion
+        from solicitudes as s 
+        INNER JOIN tiposolicitudes AS t ON t.idSolicitud = s.idTipoSolicitud
+        INNER JOIN estadosolicitudes AS e ON e.idEstadoSolicitud = s.estadoSolicitudF
+        LEFT JOIN tipomarcaciones AS tipo ON tipo.idTMarcaciones = s.idTMarcaciones
+        WHERE idUsuario IN(${idWorkers})  AND idTipoSolicitud IN(${typeRequest}) AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})
+        ORDER BY idTipoSolicitud ASC 
+        LIMIT ? OFFSET ?`
+        const values = [limit, ofset];
+        conexion.query(query, values, (error, result) => {
+            return  error ? reject(error) : resolve(result);
+        });
+    });
+};
+
+/* 📌 Todos los requerimientos de los trabajadores asignados al un lider - contador*/
+function queryAllRequestOfUserAsignedToLeaderCounter(idWorkers, typeRequest, stateInProgress, stateApprovedByLeader, stateRejectedByLeader, stateInProgressRRHH, stateAprovedByRRHH, stateRejectedByRRHH) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT COUNT(*) AS totalRecords
+        from solicitudes as s 
+        WHERE idUsuario IN (${idWorkers})  AND idTipoSolicitud IN(${typeRequest}) AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})`
+        const values = [];
+        conexion.query(query, values, (error, result) => {
+            return  error ? reject(error) : resolve(result);
+        });
+    });
+};
 
 module.exports = {
 
@@ -1102,5 +1144,8 @@ module.exports = {
     queryCheckPermissionAllDay,
     queryCheckVacation,
     queryAllRequestOfUser,
-    queryAllRequestOfUserCounter
+    queryAllRequestOfUserCounter,
+    queryGetIdAsignedToLeader,
+    queryAllRequestOfUserAsignedToLeader,
+    queryAllRequestOfUserAsignedToLeaderCounter
 }

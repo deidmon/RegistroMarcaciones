@@ -12,6 +12,7 @@ router.post('/update', updatePermissions);
 router.post('/getPermissions', getAllPermissions);
 router.post('/getTotalPending', getPermissionsCounterPending);
 router.post('/getAllRequestOfWorker', allRequestOfWorker);
+router.post('/getRequestOfWorkersAsignedToLeader', allRequestOfWorkersAsignedToLeader);
 errorMessagePermissions = "Algo salio mal, intente más tarde."
 
 async function addJustifications(req, res, next){
@@ -118,6 +119,20 @@ async function allRequestOfWorker(req, res, next){
         const allRequestOfWorkerCounter= await controller.allRequestOfWorkerCounter(req.body);
         const pageCount = Math.ceil(allRequestOfWorkerCounter / pageSize);
         response.successPager(req, res, allRequestOfWorker, 200, allRequestOfWorkerCounter, pageCount, pageIndex, pageSize);
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
+/* 📌 Todos los solicitudes de los trabajadores asignados a un lider*/
+async function allRequestOfWorkersAsignedToLeader(req, res, next){
+    try{
+        pageSize = 7;
+        const requestOfWorkersAsignedToLeader = await controller.allRequestOfWorkersAsignedToLeader(req.body);
+        const pageIndex = (req.body.page)
+        const allRequestOfUserAsignedToLeaderCounter = await controller.allRequestOfUserAsignedToLeaderCounter(req.body);
+        const pageCount = Math.ceil(allRequestOfUserAsignedToLeaderCounter / pageSize);
+        response.successPager(req, res, requestOfWorkersAsignedToLeader, 200, allRequestOfUserAsignedToLeaderCounter, pageCount, pageIndex, pageSize);
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
     }

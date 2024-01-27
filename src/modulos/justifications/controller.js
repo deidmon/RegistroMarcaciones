@@ -15,6 +15,7 @@ module.exports = function (dbInjected) {
         db = require('../../DB/mysql');
     }
 
+    /* 📌 Para añadir una justificacion*/
     async function addJustifications(body) {
         let initialDate = moment();
         let day = initialDate.format('DD');
@@ -24,7 +25,7 @@ module.exports = function (dbInjected) {
         let minutes = initialDate.format('mm');
         let date = `${age}-${month}-${day}`;
         const data = await db.queryConsultTable(tableAssist, { IdUsuarios: body.idUser }, { Fecha: date }, { IdTMarcacion: body.idTypeMark });
-        /* console.log(data) */
+
         if (!data || data.length === 0) {
             message = 'No existe marcación a justificar';
             return { "messages": message };
@@ -47,8 +48,9 @@ module.exports = function (dbInjected) {
         message = 'No se pudo añadir la justificación';
         return { "messages": message };
 
-    }
+    };
 
+    /* 📌 Para actualizar justificaciones*/
     async function updateJustifications(body) {
 
         let initialDate = moment();
@@ -64,7 +66,7 @@ module.exports = function (dbInjected) {
             return { "messages": message };
         }
         const idJustification = datum[0].idJustificacion;
-        /* console.log(`hoaaaaaaaaaaaaaa ${idJustification}`) */
+        
         if (body.idStatusJustification != 1) {
 
             const respond = await db.queryUpdateJustifactions(tableJustifications, { IdEstadoJust: body.idStatusJustification, Updated_by: body.idUserModifier }, idJustification);
@@ -99,8 +101,9 @@ module.exports = function (dbInjected) {
         }
         message = 'No se puede actualizar la justificación';
         return { "messages": message };
-    }
+    };
 
+    /* 📌 Obtener todas las justificaciones de todos los trabajadores*/
     async function getAllJustifications(body) {
         function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
           return  offset = (numeroPagina - 1) * tamanoPagina
@@ -109,7 +112,8 @@ module.exports = function (dbInjected) {
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
         return db.queryGetJustifications(tableJustifications, tableUser, tableUser, tableTypesMarking, tableStateNotifications, tableAssist, body.name, body.IdEstadoJustP ?? 1, body.IdEstadoJustJ ?? 2, body.IdEstadoJustR ?? 3, PageSiize, getOffset);  
     };
-
+    
+    /* 📌 Obtener justificaciones - contador*/
     async function getJustificationsCounter(body) {
         const result = await  db.queryGetJustificationsCounter(tableJustifications, tableUser, body.name, body.IdEstadoJustP , body.IdEstadoJustJ , body.IdEstadoJustR );  
         if (result && result.length >= 0) {
@@ -121,6 +125,8 @@ module.exports = function (dbInjected) {
             return 0;
         }
     };
+
+    /* 📌 Obtener justificaciones pendientes*/
     async function getJustificationsCounterPending (body) {
         const result = await  db.queryGetJustificationsCounterPending(tableJustifications, body.IdEstadoJustP);  
         if (result && result.length >= 0) {
