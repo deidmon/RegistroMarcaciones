@@ -1175,6 +1175,64 @@ function queryToKnowWhatRolIs(consult) {
     });
 };
 
+/* 📌 Para el reporte horas extras*/
+function queryReportOvertime(tabla, tabla2, tabla3, tabla4, tabla5,consult1, consult2) {
+    return new Promise((resolve, reject) => {
+        const query =
+         `SELECT  tm.descripcion as Marcación, tm.idTMarcaciones, a.idValidacion, a.idValidacionSecond, u.IdUsuarios, u.IdHorarios,CIP,DATE_FORMAT(Fecha, '%Y%m%d') as Fecha, DATE_FORMAT(Hora,'%H:%i') AS Hora,
+                  subQuery.HoraInicio AS HoraEntrada, subQuery.HoraFin AS HoraSalida
+        FROM ?? AS a INNER JOIN ?? as u ON a.IdUsuarios = u.IdUsuarios
+        INNER JOIN
+                (
+                    SELECT
+                        h.IdHorarios,
+                        MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_FORMAT(DATE_ADD(h.HoraInicio, INTERVAL 15 MINUTE), '%H:%i') END) AS HoraInicio,
+                        MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN DATE_FORMAT(h.HoraInicio,'%H:%i') END) AS HoraFin,
+                        h.IdDescanso,
+                        GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día, 1) DESC SEPARATOR ', ') AS Descanso
+                    FROM ?? AS h
+                    INNER JOIN ?? AS d ON h.IdDescanso = d.IdDescansos
+                    GROUP BY h.IdHorarios, h.IdDescanso
+                ) AS subQuery ON u.IdHorarios = subQuery.IdHorarios
+        INNER JOIN ?? AS tm ON a.idTMarcacion = tm.idTMarcaciones
+        WHERE a.Fecha BETWEEN ? AND ?
+        AND a.idValidacion = 4
+        AND a.idValidacionSecond = 6
+        AND idTMarcacion IN (1,4)
+        ORDER BY Fecha DESC, a.IdUsuarios, tm.descripcion`;
+        const values = [tabla, tabla2, tabla3, tabla4, tabla5, consult1, consult2];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+           /*  if (error) {
+                return reject(error);
+            }
+            return resolve(result); */
+        })
+    });
+};
+ 
+/* 📌 Para el reporte solicitudes*/
+function queryReportRequest(tabla, tabla2, tabla3, tabla4, tabla5,consult1, consult2,consult3) {
+    return new Promise((resolve, reject) => {
+        const query =
+         `SELECT    s.idTipoSolicitud, ts.descripcion AS TipoSolicitud,tm.idTMarcaciones,tm.descripcion as Marcación,s.Motivo, u.IdUsuarios, u.CIP,DATE_FORMAT(Fecha, '%Y%m%d') as Fecha,
+                    s.estadoSolicitudF AS idEstadoSolicitud, es.descripcion AS EstadoSolicitud, s.Updated_byF, uest.Nombres AS Modificador
+        FROM ?? AS s INNER JOIN ?? as u ON s.idUsuario = u.IdUsuarios
+        LEFT JOIN ?? as tm ON s.idTMarcaciones = tm.idTMarcaciones
+        INNER JOIN ?? as ts ON s.idTipoSolicitud = ts.idSolicitud
+        INNER JOIN ?? as es ON s.estadoSolicitudF = es.idEstadoSolicitud
+        LEFT JOIN ?? as uest ON s.Updated_byF = uest.IdUsuarios
+        WHERE s.estadoSolicitudF = 2
+        AND FIND_IN_SET(s.idTipoSolicitud, COALESCE(?, (SELECT GROUP_CONCAT(idSolicitud) FROM ??))) > 0
+        AND s.Fecha BETWEEN ? AND ?
+        ORDER BY Fecha DESC, tm.descripcion`;
+        const values = [tabla, tabla2, tabla3, tabla4, tabla5, tabla2, consult1, tabla4, consult2, consult3];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        })
+    });
+};
+
 
 module.exports = {
 
@@ -1245,5 +1303,7 @@ module.exports = {
     queryAllRequestOfUserToRRHH,
     queryAllRequestOfUserToRRHHCounter,
     queryManagementOfRequests,
-    queryToKnowWhatRolIs
+    queryToKnowWhatRolIs,
+    queryReportOvertime,
+    queryReportRequest
 }
