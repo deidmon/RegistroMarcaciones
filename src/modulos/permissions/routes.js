@@ -13,6 +13,8 @@ router.post('/getPermissions', getAllPermissions);
 router.post('/getTotalPending', getPermissionsCounterPending);
 router.post('/getAllRequestOfWorker', allRequestOfWorker);
 router.post('/getRequestOfWorkersAsignedToLeader', allRequestOfWorkersAsignedToLeader);
+router.post('/getAllRequestOfAllWorkerstoRRHH', allRequestOfAllWorkerstoRRHH);
+router.put('/putManagementOfRequests', managementOfRequests);
 errorMessagePermissions = "Algo salio mal, intente más tarde."
 
 async function addJustifications(req, res, next){
@@ -133,6 +135,38 @@ async function allRequestOfWorkersAsignedToLeader(req, res, next){
         const allRequestOfUserAsignedToLeaderCounter = await controller.allRequestOfUserAsignedToLeaderCounter(req.body);
         const pageCount = Math.ceil(allRequestOfUserAsignedToLeaderCounter / pageSize);
         response.successPager(req, res, requestOfWorkersAsignedToLeader, 200, allRequestOfUserAsignedToLeaderCounter, pageCount, pageIndex, pageSize);
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
+/* 📌 Todos los solicitudes de todos los trabajadores para RRHH*/
+async function allRequestOfAllWorkerstoRRHH(req, res, next){
+    try{
+        pageSize = 7;
+        console.log("147");
+        const requestOfAllWorkersAsignedToLeader = await controller.allRequestOfAllWorkersToRRHH(req.body);
+        console.log("149");
+        const pageIndex = (req.body.page);
+        const allRequestOfAllUserToRRHHCounter = await controller.allRequestOfAllWorkersCounterToRRHH(req.body);
+        console.log("152");
+        const pageCount = Math.ceil(allRequestOfAllUserToRRHHCounter / pageSize);
+        response.successPager(req, res, requestOfAllWorkersAsignedToLeader, 200, allRequestOfAllUserToRRHHCounter, pageCount, pageIndex, pageSize);
+        console.log("155");
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+/* 📌 Aceptar o rechazar solicitudes */
+async function managementOfRequests(req, res, next){
+    try{ 
+        const managementOfRequest = await controller.managementOfRequests(req.body)
+        if(!managementOfRequest.messages){
+            response.success(req, res, managementOfRequest, "", 200);
+        }else{
+            console.log("aqui");
+            response.error(req, res, false, managementOfRequest.messages, 403);
+        }
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
     }

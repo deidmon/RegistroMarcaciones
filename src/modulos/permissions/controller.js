@@ -13,16 +13,16 @@ const tableLeader = 'lider';
 const tableDaysOff = 'descansos';
 const tableSchedule = 'horarios';
 
-module.exports = function(dbInyectada){
+module.exports = function (dbInyectada) {
     let db = dbInyectada;
     message = ""
-    if(!db){
+    if (!db) {
         db = require('../../DB/mysql');
     }
 
     /* 📌 Para obtener datos paginados */
     function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
-        return  offset = (numeroPagina - 1) * tamanoPagina
+        return offset = (numeroPagina - 1) * tamanoPagina
     };
 
     /* 📌 Para añadir una justificacion*/
@@ -40,8 +40,8 @@ module.exports = function(dbInyectada){
             return { "messages": message };
         }
 
-        const consultRole = await db.query(tableUser, {IdUsuarios : body.idUser})
-        const idRole =  consultRole.IdRol;
+        const consultRole = await db.query(tableUser, { IdUsuarios: body.idUser })
+        const idRole = consultRole.IdRol;
         let statusPermission = 1
         /* if(idRole === 1){
             statusPermission = 1
@@ -51,7 +51,7 @@ module.exports = function(dbInyectada){
             statusPermission = 1
         } */
 
-        const Justifications = {          		
+        const Justifications = {
             idTipoSolicitud: 1,
             idUsuario: body.idUser,
             Fecha: date,
@@ -73,15 +73,15 @@ module.exports = function(dbInyectada){
 
     /* 📌 Para añadir un permiso*/
     async function addPermissions(body) {
-        let fechaString =  body.datePermission;
+        let fechaString = body.datePermission;
         let fechaMoment = moment(fechaString, 'YYYY/MM/DD');
-        const dayOfWeekName = fechaMoment.format('dddd');  
-        const daysOff = await db.queryGetDaysOff(tableDaysOff,tableSchedule, tableUser, { IdUsuarios: body.idUser });
+        const dayOfWeekName = fechaMoment.format('dddd');
+        const daysOff = await db.queryGetDaysOff(tableDaysOff, tableSchedule, tableUser, { IdUsuarios: body.idUser });
         if (daysOff.includes(dayOfWeekName)) {
             message = `Debes elegir un día laborable para pedir permiso`
             return { "messages": message }
         }
-        const checkPermissions = await db.queryCheckPermission(tablePermissions, 2, body.idUser, {FechaPermiso: body.datePermission});
+        const checkPermissions = await db.queryCheckPermission(tablePermissions, 2, body.idUser, { FechaPermiso: body.datePermission });
         if (checkPermissions === 1) {
             message = 'Ya tiene un permiso enviado para esa fecha';
             return { "messages": message };
@@ -101,7 +101,7 @@ module.exports = function(dbInyectada){
             statusPermission = 1
         } */
 
-        const Permissions = {          		
+        const Permissions = {
             idTipoSolicitud: 2,
             idUsuario: body.idUser,
             Fecha: date,
@@ -123,7 +123,7 @@ module.exports = function(dbInyectada){
 
     /* 📌 Para añadir solicitud de vacaciones */
     async function addVacations(body) {
-        const checkPermissions = await db.queryCheckPermission(tablePermissions, 3, body.idUser, {FechaDesde: body.dateStart} );
+        const checkPermissions = await db.queryCheckPermission(tablePermissions, 3, body.idUser, { FechaDesde: body.dateStart });
         if (checkPermissions === 1) {
             message = 'Ya registro vacaciones para esa fecha';
             return { "messages": message };
@@ -142,7 +142,7 @@ module.exports = function(dbInyectada){
             statusPermission = 1
         } */   //OTRA OPCION ES MANDAR TODAS LAS VACIONES EN ESTADO 4
 
-        const Vacations = {          		
+        const Vacations = {
             idTipoSolicitud: 3,
             idUsuario: body.idUser,
             Fecha: date,
@@ -165,10 +165,10 @@ module.exports = function(dbInyectada){
 
     /* 📌 Para permitir que el trabajador ingrese antes de su hora - solo puede realizar el lider*/
     async function addAuthorization(body) {
-        let fechaString =  body.date;
+        let fechaString = body.date;
         let fechaMoment = moment(fechaString, 'YYYY/MM/DD');
-        const dayOfWeekName = fechaMoment.format('dddd');  
-        const daysOff = await db.queryGetDaysOff(tableDaysOff,tableSchedule, tableUser, { IdUsuarios: body.idUser });
+        const dayOfWeekName = fechaMoment.format('dddd');
+        const daysOff = await db.queryGetDaysOff(tableDaysOff, tableSchedule, tableUser, { IdUsuarios: body.idUser });
         if (daysOff.includes(dayOfWeekName)) {
             message = `No se puede asignar está autorización porque es un día no laborable para este usuario`
             return { "messages": message }
@@ -186,11 +186,11 @@ module.exports = function(dbInyectada){
         let hour = initialDate.format('HH');
         let minutes = initialDate.format('mm');
         let date = `${age}-${month}-${day}`;
-        
+
 
         let statusPermission = 2
 
-        const authorization = {          		
+        const authorization = {
             idTipoSolicitud: 4,
             idUsuario: body.idUser,
             Fecha: date,
@@ -223,28 +223,28 @@ module.exports = function(dbInyectada){
         let hour = initialDate.format('HH');
         let minutes = initialDate.format('mm');
         let date = `${age}-${month}-${day}`;
-        const datum = await db.queryConsultTable(tablePermissions, { idTipoSolicitud: body.idTypePermission }, { IdUsuario: body.idUser }, { Fecha: body.date }, );
+        const datum = await db.queryConsultTable(tablePermissions, { idTipoSolicitud: body.idTypePermission }, { IdUsuario: body.idUser }, { Fecha: body.date },);
         if (!datum || datum.length === 0) {
             message = 'No existe la permiso a actualizar';
             return { "messages": message };
         }
         const idPermission = datum[0].id;
         if (body.idStatusPermission != 1) {
-                
-            if (body.idStatusPermission <= 3){
-                const firstUpdate = {          		
-                    estadoSolicitudF: body.idStatusPermission, 
-                    Updated_byF: body.idUserModifier 
+
+            if (body.idStatusPermission <= 3) {
+                const firstUpdate = {
+                    estadoSolicitudF: body.idStatusPermission,
+                    Updated_byF: body.idUserModifier
                 }
                 const respond = await db.queryUpdatePermission(tablePermissions, firstUpdate, idPermission);
             } else {
-                const secondUpdate = {          		
-                    estadoSolicitudS: body.idStatusPermission, 
-                    Updated_byS: body.idUserModifier 
+                const secondUpdate = {
+                    estadoSolicitudS: body.idStatusPermission,
+                    Updated_byS: body.idUserModifier
                 }
                 const respond = await db.queryUpdatePermission(tablePermissions, secondUpdate, idPermission);
             }
-                       
+
             if (body.idStatusPermission == 2 && body.idTypePermission === 1) {
                 idTypeMark = datum[0].idTMarcaciones
                 const data = await db.queryConsultTable(tableAssist, { IdUsuarios: body.idUser }, { Fecha: body.date }, { IdTMarcacion: idTypeMark });
@@ -262,7 +262,7 @@ module.exports = function(dbInyectada){
                 message = 'Justificación actualizada con éxito';
                 return { "messages": message };
             }
-            
+
             message = 'Permiso ha sido actualizado';
             return { "messages": message };
 
@@ -272,7 +272,7 @@ module.exports = function(dbInyectada){
     };
 
     /* 📌 Para listar permisos */
-    async function listPermissions(body){
+    async function listPermissions(body) {
         if (body.idPermission === -1) {
             body.idPermission = null;
         }
@@ -291,63 +291,63 @@ module.exports = function(dbInyectada){
             body.idStatusPermission = null;
         }
         function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
-          return  offset = (numeroPagina - 1) * tamanoPagina
+            return offset = (numeroPagina - 1) * tamanoPagina
         }
         PageSiize = 7;
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
-        return db.queryGetPermissions(tablePermissions, tableUser, tableTypeMark, tableStatePermissions,tableTypePermissions, tableAssignmentStaff, tableLeader,body.name, body.idUser, body.idStatusPermission, PageSiize, getOffset);  
+        return db.queryGetPermissions(tablePermissions, tableUser, tableTypeMark, tableStatePermissions, tableTypePermissions, tableAssignmentStaff, tableLeader, body.name, body.idUser, body.idStatusPermission, PageSiize, getOffset);
     };
 
     /* 📌 Contador de permisos */
     async function getPermissionsCounter(body) {
-        const result = await  db.queryGetJustificationsCounter(tableJustifications, tableUser, body.name, body.IdEstadoJustP , body.IdEstadoJustJ , body.IdEstadoJustR );  
+        const result = await db.queryGetJustificationsCounter(tableJustifications, tableUser, body.name, body.IdEstadoJustP, body.IdEstadoJustJ, body.IdEstadoJustR);
         if (result && result.length >= 0) {
             const count = result[0];
-            const contador= count.totalRegistros // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
+            const contador = count.totalRegistros // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
             console.log(contador);
-            return contador; 
-         } else {
+            return contador;
+        } else {
             return 0;
         }
     };
 
     /* 📌 Contador de permisos pendientes */
-    async function getPermissionsCounterPending (body) {
-        const result = await  db.queryGetJustificationsCounterPending(tableJustifications, body.IdEstadoJustP);  
+    async function getPermissionsCounterPending(body) {
+        const result = await db.queryGetJustificationsCounterPending(tableJustifications, body.IdEstadoJustP);
         if (result && result.length >= 0) {
             const count = result[0];
             const contador = count.totalRegistrosPendientes // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
-            return contador; 
-         } else {
+            return contador;
+        } else {
             return 0;
         }
     };
 
     /* 📌 Todos los solicitudes de un trabajador*/
-    async function allRequestOfWorker(body) { 
+    async function allRequestOfWorker(body) {
         PageSiize = 7;
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
         return db.queryAllRequestOfUser(body.idUser, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH, PageSiize, getOffset)
     };
 
     /* 📌 Todos los solicitudes de un trabajador - contador */
-    async function allRequestOfWorkerCounter(body){
-        const resultRequestOfWorkerCount = await  db.queryAllRequestOfUserCounter(body.idUser, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH);  
+    async function allRequestOfWorkerCounter(body) {
+        const resultRequestOfWorkerCount = await db.queryAllRequestOfUserCounter(body.idUser, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH);
         console.log(resultRequestOfWorkerCount.length);
         if (resultRequestOfWorkerCount && resultRequestOfWorkerCount.length >= 0) {//Mayor a cero porque si es >= 0 si es cero al intentar acceder a la posicion 0 saldra error
             const count = resultRequestOfWorkerCount[0];
             const contador = count.totalRecords // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
-            return contador; 
-         } else {
+            return contador;
+        } else {
             return 0;
         }
     };
 
     /* 📌 Todos los solicitudes de los trabajadores asignados a un lider*/
-    async function allRequestOfWorkersAsignedToLeader(body) { 
+    async function allRequestOfWorkersAsignedToLeader(body) {
         PageSiize = 7;
         var getIdsOfWorkers = await db.queryGetIdAsignedToLeader(body.idLeader);//Obtener los ids de trabajadores asignados al lider
-        var listaDeIds = getIdsOfWorkers.map(function(rowDataPacket) {//Mapear los objetos RowDataPacket y pasarlos a una lista de  los                 
+        var listaDeIds = getIdsOfWorkers.map(function (rowDataPacket) {//Mapear los objetos RowDataPacket y pasarlos a una lista de  los                 
             return rowDataPacket.idUsuario;
         });
         var idWorkersString = listaDeIds.join(', ');//convierte el array en una cadena separada por comas. 
@@ -355,30 +355,79 @@ module.exports = function(dbInyectada){
             idWorkersString = '0';
         };
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
-        return db.queryAllRequestOfUserAsignedToLeader(idWorkersString, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH, PageSiize, getOffset)
-        
+        return db.queryAllRequestOfUserAsignedToLeader(idWorkersString, body.filterName, body.filterCIP, body.filterDNI, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH, PageSiize, getOffset)
     };
-    
+
     /* 📌 Todos los solicitudes de los trabajadores asignados a un lider - contador */
-    async function allRequestOfUserAsignedToLeaderCounter(body){
+    async function allRequestOfUserAsignedToLeaderCounter(body) {
         var getIdsOfWorkers = await db.queryGetIdAsignedToLeader(body.idLeader);//Obtener los ids de trabajadores asignados al lider
-        var listaDeIds = getIdsOfWorkers.map(function(rowDataPacket) {//Mapear los objetos RowDataPacket y pasarlos a una lista de  los                 
+        var listaDeIds = getIdsOfWorkers.map(function (rowDataPacket) {//Mapear los objetos RowDataPacket y pasarlos a una lista de  los                 
             return rowDataPacket.idUsuario;
         });
         var idWorkersString = listaDeIds.join(', ');//convierte el array en una cadena separada por comas. 
         if (idWorkersString === '') {
             idWorkersString = '0';
         };
-        const resultRequestOfWorkerCount = await  db.queryAllRequestOfUserAsignedToLeaderCounter(idWorkersString, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH);  
+        const resultRequestOfWorkerCount = await db.queryAllRequestOfUserAsignedToLeaderCounter(idWorkersString, body.filterName, body.filterCIP, body.filterDNI, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH);
         if (resultRequestOfWorkerCount && resultRequestOfWorkerCount.length >= 0) {//Mayor a cero porque si es >= 0 si es cero al intentar acceder a la posicion 0 saldra error
             const count = resultRequestOfWorkerCount[0];
             const contador = count.totalRecords // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
-            return contador; 
-         } else {
+            return contador;
+        } else {
             return 0;
         }
     };
-    
+
+    /* 📌 Todos los solicitudes de todos los trabajadores para RRHH*/
+    async function allRequestOfAllWorkersToRRHH(body) {
+        PageSiize = 7;
+        const getOffset = obtenerDatosPaginados(body.page, PageSiize);
+        return db.queryAllRequestOfUserToRRHH(body.typeRequest, body.filterName, body.filterCIP, body.filterDNI, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH, PageSiize, getOffset);
+    };
+
+    /* 📌 Todos los solicitudes de todos los trabajadores para RRHH - contador */
+    async function allRequestOfAllWorkersCounterToRRHH(body) {
+        const resultRequestOfWorkerCounter = await db.queryAllRequestOfUserToRRHHCounter(body.typeRequest, body.filterName, body.filterCIP, body.filterDNI, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH);
+        if (resultRequestOfWorkerCounter && resultRequestOfWorkerCounter.length >= 0) {//Mayor a cero porque si es >= 0 si es cero al intentar acceder a la posicion 0 saldra error
+            const count = resultRequestOfWorkerCounter[0];
+            const contador = count.totalRecords // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
+            return contador;
+        } else {
+            return 0;
+        }
+    };
+
+    /* 📌 Aceptar o rechazar solicitudes */
+    async function managementOfRequests(body) {
+        //1.Primero verificar el rol si es lider o rrhh
+        const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idUser);
+        const idRoles = whatRolHaveWorker.map(row => row.IdRol);
+        if (idRoles.includes(1)) {
+            message = 'No tienes permiso para actualizar';
+            return { "messages": message }
+        }
+
+        //Si es lider actualizara estos datos
+        const valuesOfLider = {
+            estadoSolicitudF: body.estadoSolicitudF,
+            Updated_byF: body.idUser,
+        }
+
+        //Si es rrhh actualizara estos otros
+        const valuesOfRRHH = {
+            estadoSolicitudF: body.estadoSolicitudF,
+            Updated_byS: body.idUser,
+
+        }
+
+        const updatigRequests = await db.queryManagementOfRequests(tablePermissions, idRoles.includes(2) ? valuesOfLider : valuesOfRRHH, body.ids);
+        if (updatigRequests && updatigRequests.changedRows > 0) {
+            return 'Modificación de estado con éxito';
+        } else {
+            return 'No se realizó ninguna modificación';
+        }
+    };
+
     return {
         addAuthorization,
         addJustifications,
@@ -392,7 +441,10 @@ module.exports = function(dbInyectada){
         allRequestOfWorker,
         allRequestOfWorkerCounter,
         allRequestOfWorkersAsignedToLeader,
-        allRequestOfUserAsignedToLeaderCounter
-        
+        allRequestOfUserAsignedToLeaderCounter,
+        allRequestOfAllWorkersToRRHH,
+        allRequestOfAllWorkersCounterToRRHH,
+        managementOfRequests,
+
     }
 }

@@ -23,7 +23,7 @@ async function consultUser(req, res, next) {
         if(!user.messages){
             response.success(req, res, user, "", 200);
         }else{
-            response.error(req, res, false, user.messages, 200);
+            response.error(req, res, false, user.messages, 403);
         }
     }catch(err){
         /* next(err); */

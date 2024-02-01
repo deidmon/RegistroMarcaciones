@@ -43,7 +43,7 @@ function allTypeMarking(tabla) {
 }
 
 /* 📌 Todos los trabajadores */
-function queryAllWorkers(users, states, workModality, role, name, cip, dni,state1, state2, limit, ofset) {
+function queryAllWorkers(users, states, workModality, role, name, cip, dni, state1, state2, limit, ofset) {
     return new Promise((resolve, reject) => {
         const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, e.Descripcion as Estado, u.Usuario, r.Nombre as Rol, m.Descripcion as Modalidad, u.IdHorarios 
         from ?? as u 
@@ -56,7 +56,7 @@ function queryAllWorkers(users, states, workModality, role, name, cip, dni,state
         `;
         const values = [users, states, workModality, role, state1, state2, limit, ofset];
         conexion.query(query, values, (error, result) => {
-            return  error ? reject(error) : resolve(result);
+            return error ? reject(error) : resolve(result);
         });
     });
 };
@@ -70,7 +70,7 @@ function queryGetWorkersCounter(table1, name, cip, dni, state1, state2) {
         WHERE Nombres LIKE "%${name}%" AND CIP LIKE "%${cip}%" AND DNI LIKE "%${dni}%" AND Activo IN (?, ?)`;
         const values = [table1, state1, state2];
         conexion.query(query, values, (error, result) => {
-            return  error ? reject(error) : resolve(result);
+            return error ? reject(error) : resolve(result);
 
         });
     });
@@ -111,22 +111,22 @@ function queryGroupedModules(tabla) {
             if (error) {
                 return reject(error);
             }
-            
+
             // Agrupar por nombre
             let grouped = {};
             result.forEach(item => {
                 if (!grouped[item.nombre]) {
-                   grouped[item.nombre] = [];
+                    grouped[item.nombre] = [];
                 }
                 grouped[item.nombre].push(item.descripcion);
             });
- 
+
             // Formatear la respuesta
             let formatted = Object.keys(grouped).map(key => {
                 return {
-                   IdModulo: grouped[key][0].IdModulo,
-                   nombre: key,
-                   descripcion: grouped[key]
+                    IdModulo: grouped[key][0].IdModulo,
+                    nombre: key,
+                    descripcion: grouped[key]
                 };
             });
 
@@ -279,7 +279,7 @@ function queryCheckTimePermission(tabla, consult1, consult2, consult3) {
 
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result[0].tiempoPermiso);
-            
+
         });
     });
 };
@@ -297,7 +297,7 @@ function queryCheckPermission(tabla, consult1, consult2, consult3) {
 };
 
 /* 📌 Obtener la lista de permisos */
-function queryListPermissions(tabla,tabla2, consulta, consulta2) {
+function queryListPermissions(tabla, tabla2, consulta, consulta2) {
     return new Promise((resolve, reject) => {
         const query = `SELECT ts.idSolicitud, ts.descripcion, ts.idEstado,e.Descripcion
         FROM ?? AS ts INNER JOIN ?? as e ON ts.idEstado = e.IdEstado
@@ -324,7 +324,7 @@ function queryUpdatePermission(tabla, consulta, idJustificacion) {
 };
 
 /* 📌 Optener justificación */
-function queryGetPermissions(table1, table2, table3, table4, table5, table6, table7, name,  state1, state2, limit, ofset) {
+function queryGetPermissions(table1, table2, table3, table4, table5, table6, table7, name, state1, state2, limit, ofset) {
     return new Promise((resolve, reject) => {
         const query = `SELECT s.IdUsuario, u.CIP, CONCAT(u.Nombres, ' ', u.Apellidos) AS NombreCompleto, DATE_FORMAT(s.Fecha, '%Y-%m-%d') AS Fecha,s.Motivo, s.idTMarcaciones,t.descripcion, ts.descripcion, s.estadoSolicitudF,ef.descripcion as estado, s.estadoSolicitudS, es.descripcion,us.Nombres as Encargado, ap.idLider, l.idUsuario
         FROM  ?? s
@@ -341,7 +341,7 @@ function queryGetPermissions(table1, table2, table3, table4, table5, table6, tab
         AND FIND_IN_SET(s.estadoSolicitudF, COALESCE(?, (SELECT GROUP_CONCAT(s.estadoSolicitudF) FROM ??))) > 0
         ORDER BY s.id 
         LIMIT ? OFFSET ?`;
-        const values = [table1, table2,table2 ,table3, table4, table4,table5,table6, table7,  state1, state2,table4, limit, ofset];
+        const values = [table1, table2, table2, table3, table4, table4, table5, table6, table7, state1, state2, table4, limit, ofset];
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result);
         });
@@ -507,7 +507,7 @@ function addJustification(tabla, data) {
 
         conexion.query(insertQuery, values, (error, result) => {
             return error ? reject(error) : resolve(result);
-            
+
         });
     });
 };
@@ -516,7 +516,7 @@ function addJustification(tabla, data) {
 function queryReportAsistance(tabla, tabla2, tabla3, consult1, consult2) {
     return new Promise((resolve, reject) => {
         const query =
-         `SELECT  tm.descripcion as Marcación ,CIP,DATE_FORMAT(Fecha, '%Y%m%d') as Fecha, LPAD(HOUR(Hora), 2, '0') AS Hora,
+            `SELECT  tm.descripcion as Marcación ,CIP,DATE_FORMAT(Fecha, '%Y%m%d') as Fecha, LPAD(HOUR(Hora), 2, '0') AS Hora,
                 LPAD( MINUTE(Hora), 2, '0') AS Minutos, 27 AS Código_Local, concat(CIP, DATE_FORMAT(Fecha, '%Y%m%d'),LPAD(HOUR(Hora), 2, '0'), 
                 LPAD( MINUTE(Hora), 2, '0'), "27") AS TXT, length(concat(CIP, DATE_FORMAT(Fecha, '%Y%m%d'),LPAD(HOUR(Hora), 2, '0'), 
                 LPAD( MINUTE(Hora), 2, '0') , "27")) AS Longitud
@@ -541,7 +541,7 @@ function queryUpdateAssists(tabla, consulta, IdAsistencias) {
             } else {
                 console.log(result);
                 const actualizacionExitosa = result.changedRows > 0;
-                console.log("asistencias: ",actualizacionExitosa)
+                console.log("asistencias: ", actualizacionExitosa)
                 resolve(actualizacionExitosa);
             }
         })
@@ -573,13 +573,13 @@ function query(tabla, consulta) {
         const values = [tabla, consulta];
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result[0] || []);
-            
+
         })
     });
 };
 
 /* 📌 Optener justificación */
-function queryGetJustifications(table1, table2, table3, table4, table5, table6, name,  state1, state2, state3, limit, ofset) {
+function queryGetJustifications(table1, table2, table3, table4, table5, table6, name, state1, state2, state3, limit, ofset) {
     return new Promise((resolve, reject) => {
         const query = `SELECT u.CIP, CONCAT(u.Nombres, ' ', u.Apellidos) AS NombreCompleto, j.IdEstadoJust, j.IdUsuario, DATE_FORMAT(j.Fecha, '%Y-%m-%d') AS Fecha,j.Motivo, j.IdTMarcaciones,t.descripcion, e.Descripcion as estado, a.Hora, us.Nombres as Encargado
         FROM ?? j
@@ -591,7 +591,7 @@ function queryGetJustifications(table1, table2, table3, table4, table5, table6, 
         WHERE u.Nombres LIKE "%${name}%" AND j.IdEstadoJust IN (?, ?, ?)   
         ORDER BY j.Fecha DESC, a.Hora desc, u.IdUsuarios
         LIMIT ? OFFSET ?`;
-        const values = [table1, table2, table3, table4, table5,table6, state1, state2, state3, limit, ofset];
+        const values = [table1, table2, table3, table4, table5, table6, state1, state2, state3, limit, ofset];
         conexion.query(query, values, (error, result) => {
             if (error) {
                 return reject(error);
@@ -602,7 +602,7 @@ function queryGetJustifications(table1, table2, table3, table4, table5, table6, 
 };
 
 /* 📌 contador de justificaciónes */
-function queryGetJustificationsCounter(table1, table2, name,  state1, state2, state3) {
+function queryGetJustificationsCounter(table1, table2, name, state1, state2, state3) {
     return new Promise((resolve, reject) => {
         const query = `SELECT COUNT(*) AS totalRegistros
         FROM ?? j
@@ -823,10 +823,10 @@ function queryGetExceptionDays(tabla, tabla2, tabla3, consulta) {
 /* 📌 Para añadir horario a un usuario */
 function queryAddScheduleUser(tabla, consulta, consulta2) {
     return new Promise((resolve, reject) => {
-        const query ='UPDATE ?? SET IdHorarios = ? WHERE IdUsuarios = ?'
+        const query = 'UPDATE ?? SET IdHorarios = ? WHERE IdUsuarios = ?'
         const values = [tabla, consulta, consulta2]
         conexion.query(query, values, (error, result) => {
-            return error ? reject(error) : resolve(result);          
+            return error ? reject(error) : resolve(result);
         })
     });
 };
@@ -843,7 +843,7 @@ function queryGetDaysOffBySchedule(tabla, tabla2, consulta) {
 						group by IdHorarios);`;
         const values = [tabla, tabla2, consulta];
         conexion.query(query, values, (error, result) => {
-            return error ? reject(error) : resolve(result.map((row) => row.Día)) ;
+            return error ? reject(error) : resolve(result.map((row) => row.Día));
         })
     });
 };
@@ -983,7 +983,7 @@ function queryCheckPermissionAllDay(table, user, date) {
     return new Promise((resolve, reject) => {
         const query = `SELECT id, COUNT(*) as count FROM ?? WHERE IdUsuario = ? AND idTipoSolicitud = 2 AND FechaPermiso = ? AND estadoSolicitudF = 2 `;
         const values = [table, user, date];
-        
+
         conexion.query(query, values, (error, result) => {
             if (error) {
                 reject(error);
@@ -1003,7 +1003,7 @@ function queryCheckVacation(table, consult) {
 
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result);
-            
+
         });
     });
 };
@@ -1021,7 +1021,7 @@ function queryAllRequestOfUser(idUser, typeRequest, stateInProgress, stateApprov
         LIMIT ? OFFSET ?`;
         const values = [limit, ofset];
         conexion.query(query, values, (error, result) => {
-            return  error ? reject(error) : resolve(result);
+            return error ? reject(error) : resolve(result);
         });
     });
 };
@@ -1034,7 +1034,7 @@ function queryAllRequestOfUserCounter(idUser, typeRequest, stateInProgress, stat
         WHERE idUsuario = ${idUser}  AND idTipoSolicitud IN(${typeRequest}) AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})`
         const values = [];
         conexion.query(query, values, (error, result) => {
-            return  error ? reject(error) : resolve(result);
+            return error ? reject(error) : resolve(result);
         });
     });
 };
@@ -1046,41 +1046,135 @@ function queryGetIdAsignedToLeader(idLeader) {
         WHERE idLider = ${idLeader} `
         const values = [];
         conexion.query(query, values, (error, result) => {
-            return  error ? reject(error) : resolve(result);
+            return error ? reject(error) : resolve(result);
         });
     });
 };
 
 /* 📌 Todos los requerimientos de los trabajadores asignados al un lider*/
-function queryAllRequestOfUserAsignedToLeader(idWorkers, typeRequest, stateInProgress, stateApprovedByLeader, stateRejectedByLeader, stateInProgressRRHH, stateAprovedByRRHH, stateRejectedByRRHH, limit, ofset) {
+function queryAllRequestOfUserAsignedToLeader(idWorkers, filterName, filterCIP, filterDNI, typeRequest, stateInProgress,
+    stateApprovedByLeader, stateRejectedByLeader, stateInProgressRRHH, stateAprovedByRRHH, stateRejectedByRRHH, limit, ofset) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT s.id, s.idTipoSolicitud, s.idUsuario, s.Fecha, s.FechaPermiso, s.FechaDesde, s.FechaHasta, s.idTMarcaciones, s.Motivo, s.estadoSolicitudF, s.estadoSolicitudS, s.Updated_byF, s.Updated_byS, s.tiempoPermiso, t.descripcion AS descripcionTipoSolicitud, e.descripcion AS descripcionEstadoSolicitud, tipo.descripcion AS descripcionTipoMarcacion
-        from solicitudes as s 
-        INNER JOIN tiposolicitudes AS t ON t.idSolicitud = s.idTipoSolicitud
-        INNER JOIN estadosolicitudes AS e ON e.idEstadoSolicitud = s.estadoSolicitudF
+        const query = `SELECT s.id, s.idTipoSolicitud, s.idUsuario, s.Fecha, s.FechaPermiso, s.FechaDesde, s.FechaHasta,
+        s.idTMarcaciones, s.Motivo, s.estadoSolicitudF, s.estadoSolicitudS, s.Updated_byF, s.Updated_byS, s.tiempoPermiso,
+        t.descripcion AS descripcionTipoSolicitud, e.descripcion AS descripcionEstadoSolicitud, tipo.descripcion AS descripcionTipoMarcacion,
+        u.Nombres AS NombreActualizadoPorF, u.Apellidos AS ApellidosActualizadoPorF,  userf.Nombres AS NombreActualizadoPorS,
+        userf.Apellidos AS ApellidosActualizadoPorS, users.Nombres AS nombreTrabajador,
+        users.Apellidos AS ApellidosTrabajador, users.DNI, asist.Hora
+        FROM solicitudes as s 
+        LEFT JOIN tiposolicitudes AS t ON t.idSolicitud = s.idTipoSolicitud
+        LEFT JOIN estadosolicitudes AS e ON e.idEstadoSolicitud = s.estadoSolicitudF
         LEFT JOIN tipomarcaciones AS tipo ON tipo.idTMarcaciones = s.idTMarcaciones
-        WHERE idUsuario IN(${idWorkers})  AND idTipoSolicitud IN(${typeRequest}) AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})
+        LEFT JOIN usuarios AS u ON u.IdUsuarios = s.Updated_byF
+        LEFT JOIN usuarios AS userf ON userf.IdUsuarios = s.Updated_byS
+        LEFT JOIN usuarios AS users ON users.IdUsuarios = s.idUsuario
+        LEFT JOIN asistencias AS asist ON asist.IdUsuarios = s.idUsuario AND asist.Fecha = s.Fecha AND asist.idTMarcacion = s.idTMarcaciones	
+        WHERE idUsuario IN(${idWorkers}) 
+        AND users.Nombres LIKE "%${filterName}%" AND users.CIP LIKE "%${filterCIP}%" AND users.DNI LIKE "%${filterDNI}%" 
+        AND idTipoSolicitud IN(${typeRequest}) 
+        AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})
         ORDER BY idTipoSolicitud ASC 
         LIMIT ? OFFSET ?`
         const values = [limit, ofset];
         conexion.query(query, values, (error, result) => {
-            return  error ? reject(error) : resolve(result);
+            return error ? reject(error) : resolve(result);
         });
     });
 };
 
 /* 📌 Todos los requerimientos de los trabajadores asignados al un lider - contador*/
-function queryAllRequestOfUserAsignedToLeaderCounter(idWorkers, typeRequest, stateInProgress, stateApprovedByLeader, stateRejectedByLeader, stateInProgressRRHH, stateAprovedByRRHH, stateRejectedByRRHH) {
+function queryAllRequestOfUserAsignedToLeaderCounter(idWorkers, filterName, filterCIP, filterDNI, typeRequest, stateInProgress, stateApprovedByLeader, stateRejectedByLeader, stateInProgressRRHH, stateAprovedByRRHH, stateRejectedByRRHH) {
     return new Promise((resolve, reject) => {
         const query = `SELECT COUNT(*) AS totalRecords
         from solicitudes as s 
-        WHERE idUsuario IN (${idWorkers})  AND idTipoSolicitud IN(${typeRequest}) AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})`
+        LEFT JOIN usuarios AS users ON users.IdUsuarios = s.idUsuario
+        WHERE idUsuario IN (${idWorkers})  
+        AND users.Nombres LIKE "%${filterName}%" AND users.CIP LIKE "%${filterCIP}%" AND users.DNI LIKE "%${filterDNI}%"
+        AND idTipoSolicitud IN(${typeRequest}) AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})`
         const values = [];
         conexion.query(query, values, (error, result) => {
-            return  error ? reject(error) : resolve(result);
+            return error ? reject(error) : resolve(result);
         });
     });
 };
+
+/* 📌 Todos los requerimientos de los trabajadores para vista de RRHH*/
+function queryAllRequestOfUserToRRHH(typeRequest, filterName, filterCIP, filterDNI, stateInProgress, stateApprovedByLeader, stateRejectedByLeader, stateInProgressRRHH, stateAprovedByRRHH, stateRejectedByRRHH, limit, ofset) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT s.id, s.idTipoSolicitud, s.idUsuario, s.Fecha, s.FechaPermiso, s.FechaDesde, s.FechaHasta,
+        s.idTMarcaciones, s.Motivo, s.estadoSolicitudF, s.estadoSolicitudS, s.Updated_byF, s.Updated_byS, s.tiempoPermiso,
+        t.descripcion AS descripcionTipoSolicitud, e.descripcion AS descripcionEstadoSolicitud,
+        tipo.descripcion AS descripcionTipoMarcacion,  u.Nombres AS NombreActualizadoPorF, 
+        u.Apellidos AS ApellidosActualizadoPorF,  userf.Nombres AS NombreActualizadoPorS, userf.Apellidos AS ApellidosActualizadoPorS,
+        users.Nombres AS nombreTrabajador, users.Apellidos AS ApellidosTrabajador,
+        users.DNI, asist.Hora
+        FROM solicitudes as s 
+        LEFT JOIN tiposolicitudes AS t ON t.idSolicitud = s.idTipoSolicitud
+        LEFT JOIN estadosolicitudes AS e ON e.idEstadoSolicitud = s.estadoSolicitudF
+        LEFT JOIN tipomarcaciones AS tipo ON tipo.idTMarcaciones = s.idTMarcaciones
+        LEFT JOIN usuarios AS u ON u.IdUsuarios = s.Updated_byF
+        LEFT JOIN usuarios AS userf ON userf.IdUsuarios = s.Updated_byS
+        LEFT JOIN usuarios AS users ON users.IdUsuarios = s.idUsuario
+        LEFT JOIN asistencias AS asist ON asist.IdUsuarios = s.idUsuario AND asist.Fecha = s.Fecha AND asist.idTMarcacion = s.idTMarcaciones	
+        WHERE idTipoSolicitud IN(${typeRequest}) 
+        AND users.Nombres LIKE "%${filterName}%" AND users.CIP LIKE "%${filterCIP}%" AND users.DNI LIKE "%${filterDNI}%"
+        AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})
+        ORDER BY idTipoSolicitud ASC 
+        LIMIT ? OFFSET ?`
+        const values = [limit, ofset];
+        conexion.query(query, values, (error, result) => {
+            console.log(error);
+            console.log(result);
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
+/* 📌 Todos los requerimientos de los trabajadores para vista de RRHH - contador*/
+function queryAllRequestOfUserToRRHHCounter(typeRequest, filterName, filterCIP, filterDNI, stateInProgress, stateApprovedByLeader, stateRejectedByLeader, stateInProgressRRHH, stateAprovedByRRHH, stateRejectedByRRHH) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT COUNT(*) AS totalRecords
+        FROM solicitudes as s 
+        LEFT JOIN usuarios AS users ON users.IdUsuarios = s.idUsuario
+        WHERE idTipoSolicitud IN(${typeRequest}) 
+        AND users.Nombres LIKE "%${filterName}%" AND users.CIP LIKE "%${filterCIP}%" AND users.DNI LIKE "%${filterDNI}%"
+        AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})`
+        const values = [];
+        conexion.query(query, values, (error, result) => {
+            console.log(error);
+            console.log(result);
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
+/* 📌 Aceptar o rechazar solicitudes */
+function queryManagementOfRequests(tabla, consult, whereConsult) {
+    return new Promise((resolve, reject) => {
+        const query = `UPDATE ?? SET ? WHERE id IN(?)`;
+        const values = [tabla, consult, whereConsult];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        });
+    });
+};
+
+/* 📌 Para saber que rol tiene el trabajador */
+function queryToKnowWhatRolIs(consult) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT IdRol FROM usuarios WHERE IdUsuarios = ?`;
+        const values = [consult];
+        conexion.query(query, values, (error, result) => {
+            return error ?
+                reject(error)
+                : resolve(result);
+
+        });
+    });
+};
+
 
 module.exports = {
 
@@ -1147,5 +1241,9 @@ module.exports = {
     queryAllRequestOfUserCounter,
     queryGetIdAsignedToLeader,
     queryAllRequestOfUserAsignedToLeader,
-    queryAllRequestOfUserAsignedToLeaderCounter
+    queryAllRequestOfUserAsignedToLeaderCounter,
+    queryAllRequestOfUserToRRHH,
+    queryAllRequestOfUserToRRHHCounter,
+    queryManagementOfRequests,
+    queryToKnowWhatRolIs
 }
