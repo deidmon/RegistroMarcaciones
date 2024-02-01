@@ -5,12 +5,50 @@ const router = express.Router();
 const stream = require('stream');
 
 router.post('/reportAsistance', reportAsistance);
+router.post('/reportOvertime', reportOvertime);
+router.post('/reportRequest', reportRequest);
 
 errorMessageSchedule = "Algo salio mal, intente más tarde."
 
 async function reportAsistance(req, res, next){
     try{
         const updateScheduleUser  = await controller.reportAsistance(req.body);
+        if (updateScheduleUser) {
+            const pass = new stream.PassThrough();
+            pass.end(updateScheduleUser);
+            res.setHeader('Content-Disposition', 'attachment; filename=MiArchivo.xlsx');
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            pass.pipe(res);
+        } else {
+            mensaje = 'No se pudo generar el reporte.';
+            response.error(req, res, mensaje, 400);
+        }
+    }catch(err){
+        response.error(req, res, false, errorMessageSchedule, 500);
+    }
+};
+
+async function reportOvertime(req, res, next){
+    try{
+        const updateScheduleUser  = await controller.reportOvertime(req.body);
+        if (updateScheduleUser) {
+            const pass = new stream.PassThrough();
+            pass.end(updateScheduleUser);
+            res.setHeader('Content-Disposition', 'attachment; filename=MiArchivo.xlsx');
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            pass.pipe(res);
+        } else {
+            mensaje = 'No se pudo generar el reporte.';
+            response.error(req, res, mensaje, 400);
+        }
+    }catch(err){
+        response.error(req, res, false, errorMessageSchedule, 500);
+    }
+};
+
+async function reportRequest(req, res, next){
+    try{
+        const updateScheduleUser  = await controller.reportRequest(req.body);
         if (updateScheduleUser) {
             const pass = new stream.PassThrough();
             pass.end(updateScheduleUser);
