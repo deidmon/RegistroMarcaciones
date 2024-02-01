@@ -108,14 +108,28 @@ module.exports = function (dbInjected) {
         }
     }
 
-    function allWorkers(body) {
+    async function allWorkers(body) {
         function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
             return  offset = (numeroPagina - 1) * tamanoPagina
           }
         PageSiize = 7;
 
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
-        return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name,body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset);
+        //1.Primero verificar el rol si es lider o rrhh
+        const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idUser);
+        let IdRolUser = whatRolHaveWorker[0].IdRol
+        if(IdRolUser === 3){
+            return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name,body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset);
+        }
+        var getIdsOfWorkers = await db.queryGetIdAsignedToLeader(body.idUser);//Obtener los ids de trabajadores asignados al lider
+        var listaDeIds = getIdsOfWorkers.map(function (rowDataPacket) {//Mapear los objetos RowDataPacket y pasarlos a una lista de  los                 
+            return rowDataPacket.idUsuario;
+        });
+        var idWorkersString = listaDeIds.join(', ');//convierte el array en una cadena separada por comas. 
+        if (idWorkersString === '') {
+            idWorkersString = '0';
+        };
+        return db.queryAllWorkersByUser(tableUser, tableStateUser, tableModalityWork, tableRol, body.name,body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset, idWorkersString);
     }
 
     async function getWorkersCounter(body) {

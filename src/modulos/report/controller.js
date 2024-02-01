@@ -98,11 +98,27 @@ module.exports = function(dbInyectada){
     };
 
     async function reportRequest(body) {
+        let dataUser;
         if (body.idTipoSolicitud === -1) {
             body.idTipoSolicitud = null;
         }
-        const dataUser = await db.queryReportRequest( tablePermissions,tableUser, tableTypeMarking, tableTypeRequest, tableStateRequest, body.idTipoSolicitud, body.FechaInicio, body.FechaFin);
-        /* console.log(dataUser) */
+        //1.Primero verificar el rol si es lider o rrhh
+        const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idUser);
+        let IdRolUser = whatRolHaveWorker[0].IdRol
+        if(IdRolUser === 3){
+            dataUser = await db.queryReportRequestRRHH( tablePermissions,tableUser, tableTypeMarking, tableTypeRequest, tableStateRequest, body.idTipoSolicitud, body.FechaInicio, body.FechaFin); 
+        }else {
+            var getIdsOfWorkers = await db.queryGetIdAsignedToLeader(body.idUser);//Obtener los ids de trabajadores asignados al lider
+            var listaDeIds = getIdsOfWorkers.map(function (rowDataPacket) {//Mapear los objetos RowDataPacket y pasarlos a una lista de  los                 
+                return rowDataPacket.idUsuario;
+            });
+            var idWorkersString = listaDeIds.join(', ');//convierte el array en una cadena separada por comas. 
+            if (idWorkersString === '') {
+                idWorkersString = '0';
+            };
+            dataUser = await db.queryReportRequest( tablePermissions,tableUser, tableTypeMarking, tableTypeRequest, tableStateRequest, body.idTipoSolicitud, body.FechaInicio, body.FechaFin,idWorkersString);
+        }
+        
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Mi Hoja');
         worksheet.columns = [

@@ -61,6 +61,27 @@ function queryAllWorkers(users, states, workModality, role, name, cip, dni, stat
     });
 };
 
+/* 📌 Todos los trabajadores */
+function queryAllWorkersByUser(users, states, workModality, role, name, cip, dni, state1, state2, limit, ofset, idWorkers) {
+    return new Promise((resolve, reject) => {
+        const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, e.Descripcion as Estado, u.Usuario, r.Nombre as Rol, m.Descripcion as Modalidad, u.IdHorarios 
+        from ?? as u 
+        inner join ?? as e ON u.Activo = e.IdEstado 
+        inner join ?? as m ON u.IdModalidad = m.IdModalidad 
+        inner join ?? as r ON u.IdRol = r.IdRol
+        WHERE u.Nombres LIKE "%${name}%" AND u.CIP LIKE "%${cip}%" AND u.DNI LIKE "%${dni}%" 
+        AND u.Activo IN (?, ?) 
+        AND u.IdUsuarios IN(${idWorkers})  
+        ORDER BY IdUsuarios ASC 
+        LIMIT ? OFFSET ?
+        `;
+        const values = [users, states, workModality, role, state1, state2, limit, ofset];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
 /* 📌 Todos los trabajadores cantidad total */
 function queryGetWorkersCounter(table1, name, cip, dni, state1, state2) {
     return new Promise((resolve, reject) => {
@@ -1212,7 +1233,30 @@ function queryReportOvertime(tabla, tabla2, tabla3, tabla4, tabla5,consult1, con
 };
  
 /* 📌 Para el reporte solicitudes*/
-function queryReportRequest(tabla, tabla2, tabla3, tabla4, tabla5,consult1, consult2,consult3) {
+function queryReportRequest(tabla, tabla2, tabla3, tabla4, tabla5,consult1, consult2,consult3, idWorkers) {
+    return new Promise((resolve, reject) => {
+        const query =
+         `SELECT    s.idTipoSolicitud, ts.descripcion AS TipoSolicitud,tm.idTMarcaciones,tm.descripcion as Marcación,s.Motivo, u.IdUsuarios, u.CIP,DATE_FORMAT(Fecha, '%Y%m%d') as Fecha,
+                    s.estadoSolicitudF AS idEstadoSolicitud, es.descripcion AS EstadoSolicitud, s.Updated_byF, uest.Nombres AS Modificador
+        FROM ?? AS s INNER JOIN ?? as u ON s.idUsuario = u.IdUsuarios
+        LEFT JOIN ?? as tm ON s.idTMarcaciones = tm.idTMarcaciones
+        INNER JOIN ?? as ts ON s.idTipoSolicitud = ts.idSolicitud
+        INNER JOIN ?? as es ON s.estadoSolicitudF = es.idEstadoSolicitud
+        LEFT JOIN ?? as uest ON s.Updated_byF = uest.IdUsuarios
+        WHERE s.estadoSolicitudF = 2
+        AND FIND_IN_SET(s.idTipoSolicitud, COALESCE(?, (SELECT GROUP_CONCAT(idSolicitud) FROM ??))) > 0
+        AND s.Fecha BETWEEN ? AND ?
+        AND idUsuario IN(${idWorkers}) 
+        ORDER BY Fecha DESC, tm.descripcion`;
+        const values = [tabla, tabla2, tabla3, tabla4, tabla5, tabla2, consult1, tabla4, consult2, consult3];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        })
+    });
+};
+
+/* 📌 Para el reporte solicitudes RRHH*/
+function queryReportRequestRRHH(tabla, tabla2, tabla3, tabla4, tabla5,consult1, consult2,consult3) {
     return new Promise((resolve, reject) => {
         const query =
          `SELECT    s.idTipoSolicitud, ts.descripcion AS TipoSolicitud,tm.idTMarcaciones,tm.descripcion as Marcación,s.Motivo, u.IdUsuarios, u.CIP,DATE_FORMAT(Fecha, '%Y%m%d') as Fecha,
@@ -1305,5 +1349,7 @@ module.exports = {
     queryManagementOfRequests,
     queryToKnowWhatRolIs,
     queryReportOvertime,
-    queryReportRequest
+    queryReportRequest,
+    queryReportRequestRRHH,
+    queryAllWorkersByUser
 }
