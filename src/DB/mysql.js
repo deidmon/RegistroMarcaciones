@@ -97,6 +97,21 @@ function queryGetWorkersCounter(table1, name, cip, dni, state1, state2) {
     });
 };
 
+/* 📌 Todos los trabajadores cantidad total por líder */
+function queryGetWorkersCounterByUser(table1, name, cip, dni, state1, state2, idWorkers) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT COUNT(*) AS totalRegistros
+        FROM ?? j
+        WHERE Nombres LIKE "%${name}%" AND CIP LIKE "%${cip}%" AND DNI LIKE "%${dni}%" AND Activo IN (?, ?)  AND j.IdUsuarios IN(${idWorkers}) `;
+        const values = [table1, state1, state2];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        });
+    });
+};
+
 /* 📌 Todos los trabajadores */
 function allTypeValidation(tabla) {
     return new Promise((resolve, reject) => {
@@ -1351,5 +1366,6 @@ module.exports = {
     queryReportOvertime,
     queryReportRequest,
     queryReportRequestRRHH,
-    queryAllWorkersByUser
+    queryAllWorkersByUser,
+    queryGetWorkersCounterByUser
 }

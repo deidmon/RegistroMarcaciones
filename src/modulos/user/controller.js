@@ -133,7 +133,23 @@ module.exports = function (dbInjected) {
     }
 
     async function getWorkersCounter(body) {
-        const result = await  db.queryGetWorkersCounter(tableUser, body.name ?? "", body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2);  
+        const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idUser);
+        let IdRolUser = whatRolHaveWorker[0].IdRol;
+        let result;
+        if(IdRolUser === 3){
+             result = await  db.queryGetWorkersCounter(tableUser, body.name ?? "", body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2); 
+        } else {
+            var getIdsOfWorkers = await db.queryGetIdAsignedToLeader(body.idUser);//Obtener los ids de trabajadores asignados al lider
+            var listaDeIds = getIdsOfWorkers.map(function (rowDataPacket) {//Mapear los objetos RowDataPacket y pasarlos a una lista de  los                 
+                return rowDataPacket.idUsuario;
+            });
+            var idWorkersString = listaDeIds.join(', ');//convierte el array en una cadena separada por comas. 
+            if (idWorkersString === '') {
+                idWorkersString = '0';
+            };
+            result = await  db.queryGetWorkersCounterByUser(tableUser, body.name ?? "", body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, idWorkersString);
+        }
+          
         if (result && result.length >= 0) {
             const count = result[0];
             const contador= count.totalRegistros // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
