@@ -30,6 +30,18 @@ function conMysql() {
 }
 conMysql();
 
+/* 📌 Query generico para traer toda la infomación de una tabla */
+function allInformationOfOneTable(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM ??';
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
 /* 📌 Obtener los tipos de marcación */
 function allTypeMarking(tabla) {
     return new Promise((resolve, reject) => {
@@ -1342,7 +1354,7 @@ function queryReportRequestRRHH(tabla, tabla2, tabla3, tabla4, tabla5,consult1, 
 
 
 module.exports = {
-
+    allInformationOfOneTable,
     add,
     addJustification,
     allUsers,
@@ -1417,5 +1429,6 @@ module.exports = {
     queryAllWorkersByUser,
     queryGetWorkersCounterByUser,
     queryLastScheduleException,
-    queryAllSchedulesFilter
+    queryAllSchedulesFilter,
+    queryGetEmailLeader,
 }

@@ -1,8 +1,11 @@
 const tableUser = 'usuarios';
 const tableAssist = 'asistencias';
 const tableNotification = 'tokennotificaciones';
+const tableSchedule = 'horarios';
+const tableRestDays = 'descansos';
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/Lima');
+moment.locale('es'); 
 
 module.exports = function (dbInjected) {
 
@@ -42,8 +45,44 @@ module.exports = function (dbInjected) {
         return db.tokenUsersUnmarked(tableNotification, usersUnmarked);
     };
 
+    /* 📌 Optenemos email del lider para notificar cada vez que alguien llega tarde*/
+    async function getEmailLeader(body) {
+        console.log("48");
+        const getObject = await db.queryGetEmailLeader(body.idUser);
+        console.log("50");
+        console.log(getObject);
+        const getVariablesToEmail = getObject[0];
+        console.log("52");
+        console.log(getVariablesToEmail.idLider);
+        console.log("54");
+        return getVariablesToEmail;
+    };
+
+    /* 📌 Obtener el horario del usuario*/
+    async function scheduleByUser(body){   
+        const user = await db.query(tableUser, {IdUsuarios: body.idUser})
+        const idSchedule =  user.IdHorarios;
+        const dataSchedule = await db.queryScheduleByUser(tableSchedule, tableRestDays, idSchedule);
+        if (!dataSchedule) {
+            message = 'No existe horario asignado'
+            return { "messages": message }
+        }
+        console.log(dataSchedule);
+        return dataSchedule
+    };
+    async function hourToRegisterMark(){
+        let initialDate = moment();
+        let hour = initialDate.format('HH');
+        let minutes = initialDate.format('mm');
+        const formattedTime = `${hour}:${minutes}`;
+        console.log(formattedTime);
+        return formattedTime;
+    }
     return {
         usersUnmarked,
-        tokenUsersUnmarked
+        tokenUsersUnmarked,
+        getEmailLeader,
+        scheduleByUser,
+        hourToRegisterMark,
     };
 }

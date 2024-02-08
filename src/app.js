@@ -38,6 +38,7 @@ app.use('/api/assistance', assistance)
 app.use('/api/justifications', Justifications)
 app.use('/api/schedules', schedules)
 app.use('/api/report', report)
+app.use('/api/notifications', cronjobNotification)
 app.use(error);
 
 module.exports = app; 
