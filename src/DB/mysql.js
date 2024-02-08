@@ -272,6 +272,18 @@ function queryLastSchedule(tabla, profile, module) {
     });
 };
 
+/* 📌Último id horario excepción */
+function queryLastScheduleException(tabla, profile, module) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT IdExcepcion FROM ?? GROUP BY IdExcepcion ORDER BY IdExcepcion DESC LIMIT 1`;
+        const values = [tabla, profile, module];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].IdExcepcion);
+        });
+    });
+};
+
 /* 📌 Para actualizar horario */
 function queryUpdateSchedule(tabla, consulta, consulta2, consulta3, consulta4) {
     return new Promise((resolve, reject) => {
@@ -450,6 +462,42 @@ function queryAllSchedules(tabla) {
 
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
+/* 📌 Obtener todos los horarios incluyendo excepciones */
+function queryAllSchedulesFilter(tabla, tabla2, tabla3, consult, tabla4,consult2) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT 
+                h.IdHorarios,
+                MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 5 MINUTE) END) AS HoraInicio,
+                MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END) AS HoraFin,
+                h.IdDescanso,
+                GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día, 1) DESC SEPARATOR ', ') AS Descanso,
+                h.diaExcepcion AS IdDiaExcepcion, de.Día AS DiaExcepcion, h.IdExcepcion, exc.HoraInicio_Excepcion, exc.HoraFin_Excepcion, h.IdEstado
+        FROM ?? AS h LEFT JOIN ?? AS de ON h.diaExcepcion = de.IdDescansos
+        LEFT JOIN (SELECT 
+            ex.IdExcepcion,
+            MIN(CASE WHEN ex.IdTipoMarcacion = 1 AND ex.IdValidacion = 1 THEN DATE_ADD(ex.HoraInicio, INTERVAL 15 MINUTE) END) AS HoraInicio_Excepcion,
+            MAX(CASE WHEN ex.IdTipoMarcacion = 4 AND ex.IdValidacion = 1 THEN ex.HoraInicio END) AS HoraFin_Excepcion
+        FROM ?? AS ex 
+        GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
+        INNER JOIN ?? AS d ON h.IdDescanso = d.IdDescansos
+        WHERE  FIND_IN_SET(h.IdEstado, COALESCE(?, (SELECT GROUP_CONCAT(IdEstado) FROM ??))) > 0
+        AND  FIND_IN_SET(h.IdHorarios, COALESCE(?, (SELECT GROUP_CONCAT(h.IdHorarios) FROM ??))) > 0
+        GROUP BY h.IdHorarios, h.IdDescanso`;
+        const values = [tabla, tabla2, tabla3, tabla2, consult,tabla4, consult2, tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+            /* if (error) {
+                console.log(error);
+                return reject(error);
+            }
+            console.log(result);
+            return resolve(result); */
         });
     });
 };
@@ -1367,5 +1415,7 @@ module.exports = {
     queryReportRequest,
     queryReportRequestRRHH,
     queryAllWorkersByUser,
-    queryGetWorkersCounterByUser
+    queryGetWorkersCounterByUser,
+    queryLastScheduleException,
+    queryAllSchedulesFilter
 }
