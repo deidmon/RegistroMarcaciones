@@ -13,6 +13,11 @@ router.get('/getAllInformationOfTypesRequest', allInformationOfTypesRequest);
 router.get('/getAllInformationOfModalityWork', allInformationOfModalityWork);
 router.get('/getAllInformationOfStateOfRequest', allInformationOfStateOfRequest);
 router.get('/getAllInformationOfStateGeneral', allInformationOfStateGeneral);
+router.put('/putUdateTableTypesRequest', udateTableTypesRequest);
+router.put('/putUdateTableValidation', udateTableValidation);
+router.put('/udateTableTypeMark', udateTableTypeMark);
+router.put('/udateTableWorkModality', udateTableWorkModality);
+router.put('/udateTablStateRequest', udateTablStateRequest);
 
 const errorMessage = "Algo salio mal, intente más tarde."
 
@@ -81,6 +86,7 @@ async function allInformationOfModalityWork(req, res, next) {
 async function allInformationOfStateOfRequest(req, res, next) {
     try{
         const responseInfo = await controller.allInformationOfStateOfRequest();
+        console.log(responseInfo);
         response.success(req, res, responseInfo, 'Con éxito', 200);
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
@@ -91,13 +97,66 @@ async function allInformationOfStateOfRequest(req, res, next) {
 async function allInformationOfStateGeneral(req, res, next) {
     try{
         const responseInfo = await controller.allInformationOfStateGeneral();
+        console.log(responseInfo);
         response.success(req, res, responseInfo, 'Con éxito', 200);
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
     }
 };
-             
+
+/* 📌 Actualizar informacion de tipo de solicitudes */
+async function udateTableTypesRequest(req, res, next) {
+    try{
+        const responseInfo = await controller.udateTableTypesRequest();
+        console.log(responseInfo);
+        response.success(req, res, responseInfo, 'Con éxito', 200);
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
+/* 📌 Actualizar información de tipos de validación */
+async function udateTableValidation(req, res, next) {
+    try{
+        const responseInfo = await controller.udateTableValidation();
+        console.log(responseInfo);
+        response.success(req, res, responseInfo, 'Con éxito', 200);
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
         
-        
+/* 📌 Actualizar información de tipos de marcaciones */
+async function udateTableTypeMark(req, res, next) {
+    try{
+        const responseInfo = await controller.udateTableTypeMark();
+        console.log(responseInfo);
+        response.success(req, res, responseInfo, 'Con éxito', 200);
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
+/* 📌 Actualizar informacion de modalidad de trabajo */
+async function udateTableWorkModality(req, res, next) {
+    try{
+        const responseInfo = await controller.udateTableWorkModality();
+        console.log(responseInfo);
+        response.success(req, res, responseInfo, 'Con éxito', 200);
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
+/* 📌 Actualizar informacion de estado de solicitudes */
+async function udateTablStateRequest(req, res, next) {
+    try{
+        const responseInfo = await controller.udateTablStateRequest();
+        console.log(responseInfo);
+        response.success(req, res, responseInfo, 'Con éxito', 200);
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
 
 module.exports = router;   

@@ -53,6 +53,31 @@ module.exports = function(dbInyectada){
     async function allInformationOfStateGeneral(){
         return db.allInformationOfOneTable(tableState);
     };
+    
+    /* 📌 Actualizar informacion de tipo de solicitudes */
+    async function udateTableTypesRequest(){
+        return db.queryUpdateAnyTable();
+    };
+
+    /* 📌 Actualizar informacion de tipos de validaciones */
+    async function udateTableValidation(){
+        return db.queryUpdateAnyTable();
+    };
+
+    /* 📌 Actualizar informacion de tipos de marcaciones */
+    async function udateTableTypeMark(){
+        return db.queryUpdateAnyTable();
+    };
+
+    /* 📌 Actualizar informacion de modalidad de trabajo */
+    async function udateTableWorkModality(){
+        return db.queryUpdateAnyTable();
+    };
+    
+    /* 📌 Actualizar informacion de estado de solicitudes */
+    async function udateTablStateRequest(){
+        return db.queryUpdateAnyTable();
+    };
 
     return {
         allTypeMarking,
@@ -62,7 +87,11 @@ module.exports = function(dbInyectada){
         allInformationOfTypesRequest,
         allInformationOfModalityWork,
         allInformationOfStateOfRequest,
-        allInformationOfStateGeneral
-
+        allInformationOfStateGeneral,
+        udateTableTypesRequest,
+        udateTableValidation,
+        udateTableTypeMark,
+        udateTableWorkModality,
+        udateTablStateRequest,
     }
 }

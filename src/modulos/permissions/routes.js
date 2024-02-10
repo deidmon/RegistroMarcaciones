@@ -78,7 +78,6 @@ async function updatePermissions(req, res, next){
     }
 };
 
-
 async function listPermissions(req, res, next) {
     try{
         const permissions = await controller.listPermissions(req.body);
@@ -144,15 +143,11 @@ async function allRequestOfWorkersAsignedToLeader(req, res, next){
 async function allRequestOfAllWorkerstoRRHH(req, res, next){
     try{
         pageSize = 7;
-        console.log("147");
         const requestOfAllWorkersAsignedToLeader = await controller.allRequestOfAllWorkersToRRHH(req.body);
-        console.log("149");
         const pageIndex = (req.body.page);
         const allRequestOfAllUserToRRHHCounter = await controller.allRequestOfAllWorkersCounterToRRHH(req.body);
-        console.log("152");
         const pageCount = Math.ceil(allRequestOfAllUserToRRHHCounter / pageSize);
         response.successPager(req, res, requestOfAllWorkersAsignedToLeader, 200, allRequestOfAllUserToRRHHCounter, pageCount, pageIndex, pageSize);
-        console.log("155");
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
     }

@@ -47,14 +47,8 @@ module.exports = function (dbInjected) {
 
     /* 📌 Optenemos email del lider para notificar cada vez que alguien llega tarde*/
     async function getEmailLeader(body) {
-        console.log("48");
-        const getObject = await db.queryGetEmailLeader(body.idUser);
-        console.log("50");
-        console.log(getObject);
+        const getObject = await db.queryGetInformationToEmail(body.idUser);
         const getVariablesToEmail = getObject[0];
-        console.log("52");
-        console.log(getVariablesToEmail.idLider);
-        console.log("54");
         return getVariablesToEmail;
     };
 

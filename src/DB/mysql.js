@@ -31,13 +31,28 @@ function conMysql() {
 conMysql();
 
 /* 📌 Query generico para traer toda la infomación de una tabla */
-function allInformationOfOneTable(tabla) {
+function allInformationOfOneTable(table) {
     return new Promise((resolve, reject) => {
-        const query = 'SELECT * FROM ??';
-        const values = [tabla];
+        const query = `SELECT t.*, e.Descripcion AS descriptionState
+        FROM ?? t 
+        INNER JOIN estados e ON e.IdEstado = t.IdEstado`;
+        const values = [table];
 
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
+/* 📌 Query para actualizar genérico */
+function queryUpdateAnyTable(table, toUpdate, whereUpdate) {
+    return new Promise((resolve, reject) => {
+        const query = `UPDATE ?? SET ? WHERE ?`;
+        const values = [table, toUpdate, whereUpdate];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
         });
     });
 };
@@ -73,7 +88,7 @@ function queryAllWorkers(users, states, workModality, role, name, cip, dni, stat
     });
 };
 
-/* 📌 Todos los trabajadores */
+/* 📌 Todos los trabajadores asignados a un lider*/
 function queryAllWorkersByUser(users, states, workModality, role, name, cip, dni, state1, state2, limit, ofset, idWorkers) {
     return new Promise((resolve, reject) => {
         const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, e.Descripcion as Estado, u.Usuario, r.Nombre as Rol, m.Descripcion as Modalidad, u.IdHorarios 
@@ -124,7 +139,7 @@ function queryGetWorkersCounterByUser(table1, name, cip, dni, state1, state2, id
     });
 };
 
-/* 📌 Todos los trabajadores */
+/* 📌 Todos los tipos de validación */
 function allTypeValidation(tabla) {
     return new Promise((resolve, reject) => {
         const query = 'SELECT idValidacion AS "idValidation", descripcion AS "description" FROM ?? ORDER BY idValidation';
@@ -1352,6 +1367,21 @@ function queryReportRequestRRHH(tabla, tabla2, tabla3, tabla4, tabla5,consult1, 
     });
 };
 
+/* 📌 Obtener nombres, apellidos y correo*/
+function queryGetInformationToEmail(idUserWork) {
+    return new Promise((resolve, reject) => {
+        const query =
+         `SELECT a.idLider,u.Email, u.Nombres as NameLeader, u.Apellidos as LastnameLeader, worker.Nombres AS NameOfWorker, worker.Apellidos AS LastNamesWorker
+         FROM asignacionpersonal a
+         LEFT JOIN usuarios u ON u.IdUsuarios = a.idLider
+         LEFT JOIN usuarios worker ON worker.IdUsuarios = a.idUsuario
+         WHERE a.idUsuario = ?`;
+        const values = [idUserWork];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        })
+    });
+};
 
 module.exports = {
     allInformationOfOneTable,
@@ -1430,5 +1460,6 @@ module.exports = {
     queryGetWorkersCounterByUser,
     queryLastScheduleException,
     queryAllSchedulesFilter,
-    queryGetEmailLeader,
+    queryGetInformationToEmail,
+    queryUpdateAnyTable,
 }
