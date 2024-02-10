@@ -1383,6 +1383,153 @@ function queryGetInformationToEmail(idUserWork) {
     });
 };
 
+/* 📌 Obtener horarios para cronjob*/
+function queryScheduleByCronjob(tabla, tabla2, tabla3,consult1) {
+    return new Promise((resolve, reject) => {
+        const query =
+         `SELECT 
+         h.IdHorarios,
+         CASE
+             WHEN  de.Día LIKE '%${consult1}%' THEN 
+              exc.HoraInicio_Excepcion 
+             ELSE MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 15 MINUTE)          END)
+         END AS HoraInicio,
+          CASE
+             WHEN de.Día LIKE '%${consult1}%' THEN exc.HoraFin_Excepcion 
+             ELSE MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END)
+         END AS HoraFin
+          FROM ?? AS h LEFT JOIN ?? AS de ON h.diaExcepcion = de.IdDescansos
+          LEFT JOIN (SELECT 
+              ex.IdExcepcion,
+              MIN(CASE WHEN ex.IdTipoMarcacion = 1 AND ex.IdValidacion = 1 THEN DATE_ADD(ex.HoraInicio, INTERVAL 15 MINUTE)           END) AS HoraInicio_Excepcion,
+              MAX(CASE WHEN ex.IdTipoMarcacion = 4 AND ex.IdValidacion = 1 THEN ex.HoraInicio END) AS HoraFin_Excepcion
+          FROM ?? AS ex 
+          GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
+          INNER JOIN descansos AS d ON h.IdDescanso = d.IdDescansos
+          WHERE H.IdEstado = 1
+          GROUP BY h.IdHorarios, h.IdDescanso
+          HAVING GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día,  1) DESC SEPARATOR ', ')NOT LIKE '%${consult1}%' 
+           `
+        const values = [tabla, tabla2, tabla3];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        })
+    });
+};
+
+/* 📌 Obtener horarios según hora*/
+function queryScheduleByHour(tabla, tabla2, tabla3,consult1, consult2) {
+    return new Promise((resolve, reject) => {
+        const query =
+         `
+        SELECT IdHorarios, HoraInicio, HoraFin
+        FROM 
+        (
+            SELECT 
+            h.IdHorarios,
+            CASE
+                WHEN  de.Día LIKE '%${consult1}%' THEN 
+                 exc.HoraInicio_Excepcion 
+                ELSE MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 15 MINUTE)          END)
+            END AS HoraInicio,
+             CASE
+                WHEN de.Día LIKE '%${consult1}%' THEN exc.HoraFin_Excepcion 
+                ELSE MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END)
+            END AS HoraFin
+             FROM ?? AS h LEFT JOIN ?? AS de ON h.diaExcepcion = de.IdDescansos
+             LEFT JOIN (SELECT 
+                 ex.IdExcepcion,
+                 MIN(CASE WHEN ex.IdTipoMarcacion = 1 AND ex.IdValidacion = 1 THEN DATE_ADD(ex.HoraInicio, INTERVAL 15 MINUTE)           END) AS HoraInicio_Excepcion,
+                 MAX(CASE WHEN ex.IdTipoMarcacion = 4 AND ex.IdValidacion = 1 THEN ex.HoraInicio END) AS HoraFin_Excepcion
+             FROM ?? AS ex 
+             GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
+             INNER JOIN descansos AS d ON h.IdDescanso = d.IdDescansos
+             WHERE H.IdEstado = 1
+             GROUP BY h.IdHorarios, h.IdDescanso
+             HAVING GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día,  1) DESC SEPARATOR ', ')NOT LIKE '%${consult1}%' 
+
+        ) AS Tabla_Horario
+        WHERE ?
+           `
+        const values = [tabla, tabla2, tabla3,consult2];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        })
+    });
+};
+
+/* 📌 Filtrar permisos aceptados por fecha */
+function queryPermissionByDate(tabla, tabla2, consult, consult2) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT s.idUsuario AS id 
+        FROM ?? AS s INNER JOIN ?? AS u ON s.idUsuario = u.IdUsuarios
+        WHERE idTipoSolicitud = 2
+        AND estadoSolicitudF = 2
+        AND FechaPermiso = ?
+        AND u.IdHorarios = ?
+        `;
+        const values = [tabla, tabla2, consult, consult2];
+
+        conexion.query(query, values, (error, result) => {
+           /*  return error ? reject(error) : resolve(result.map((row) => row.id)); */
+            return error ? reject(error) : resolve(result.length >  0 ? result.map((row) => row.id) : [0]);
+
+        });
+    });
+};
+
+/* 📌 Filtrar vacaciones aceptados por fecha */
+function queryVacationsByDate(tabla, tabla2, consult, consult2) {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT s.idUsuario AS id 
+            FROM ?? AS s INNER JOIN ?? AS u ON s.idUsuario = u.IdUsuarios
+            WHERE idTipoSolicitud = 3
+            AND estadoSolicitudF = 2
+            AND FechaDesde <= ?
+            AND FechaHasta >= ?
+            AND u.IdHorarios = ? `;
+        const values = [tabla, tabla2, consult, consult, consult2];
+
+        conexion.query(query, values, (error, result) => {
+           /*  return error ? reject(error) : resolve(result.map((row) => row.id)); */
+            return error ? reject(error) : resolve(result.length >  0 ? result.map((row) => row.id) : [0]);
+
+        });
+    });
+};
+
+// añadir u.IdRol = 2 para solo por ahora RRHH
+/* 📌 Revisa si el usuario no registro su asistencia previamente por horarios */
+function queryUserAlreadyMarkedToday(table, table2, consult, consult2, consult3, consult4) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT u.IdUsuarios AS id 
+        FROM ?? AS u
+        WHERE u.IdUsuarios NOT IN (
+            SELECT a.IdUsuarios AS id
+            FROM ?? AS a INNER JOIN ?? AS us ON a.IdUsuarios = us.IdUsuarios
+            WHERE Fecha = ?
+            AND idTMarcacion = ?
+            AND us.IdHorarios = ?
+        )
+        AND u.IdUsuarios NOT IN (?)
+        AND u.IdHorarios = ?
+        AND u.Activo = 1
+        `;
+        const values = [table, table2, table, consult, consult2, consult3, consult4, consult3];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result.map((row) => row.id));
+            /* if (error) {
+                reject(error);
+            } else {
+                resolve(result);
+            } */
+        });
+    });
+};
+
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -1462,4 +1609,9 @@ module.exports = {
     queryAllSchedulesFilter,
     queryGetInformationToEmail,
     queryUpdateAnyTable,
+    queryScheduleByCronjob,
+    queryScheduleByHour,
+    queryPermissionByDate,
+    queryVacationsByDate,
+    queryUserAlreadyMarkedToday 
 }

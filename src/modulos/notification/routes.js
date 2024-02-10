@@ -5,12 +5,17 @@ const response = require('../../red/response');
 const controller = require('./index');
 const tableCronJob = 'horarionotificaciones';
 const tableSchedule = 'horarios';
+const tableAssist = 'asistencias';
+const tableUser = 'usuarios';
+const tableDaysOff = 'descansos';
+const tableJustifications = 'justificaciones';
+const tableParameterization = 'parametrizacion'; 
+const tablePermissions = 'solicitudes';
+const tableExceptions = 'excepciones';
 const axios = require('axios');
 const nodemailer = require('nodemailer');
 const config = require('../../config');
-
 const router = express.Router();
-
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/Lima');
 
@@ -18,10 +23,9 @@ const bearerToken = 'AAAABAqfEQ8:APA91bEgr4R2yhqoez4YD1mSHtGnQcNChmI7uYRvK7CXFaV
 const endpoint = 'https://fcm.googleapis.com/fcm/send';
 
 router.post('/latenessreport', sendGmail);
-
 errorMessage = "Algo salio mal, intente más tarde.";
 
-async function UsersUnmarked() {
+/* async function UsersUnmarked() {
   try {
     const usersUnmarked = await controller.usersUnmarked();
     const tokensUsersUnmarked = await controller.tokenUsersUnmarked(usersUnmarked);
@@ -29,11 +33,23 @@ async function UsersUnmarked() {
   } catch (err) {
     console.log(err);
   }
+} */
+
+async function UsersUnmarked(usersUnmarked) {
+  try {
+    const tokensUsersUnmarked = await controller.tokenUsersUnmarked(usersUnmarked);
+    return tokensUsersUnmarked;
+  } catch (err) {
+    console.log(err);
+  }
 }
 
-async function notificationUsersUnmarked() {
-  const valuesTokenUser = await UsersUnmarked();
-  /* console.log(valuesTokenUser) */
+async function notificationUsersUnmarked(usersUnmarked) {
+  if (!usersUnmarked || usersUnmarked.length === 0) {
+    return "Todos los usuarios ya marcaron asistencia";
+  }
+  const valuesTokenUser = await UsersUnmarked(usersUnmarked);
+  // console.log(valuesTokenUser) 
   if (!valuesTokenUser || valuesTokenUser.length === 0) {
     return "Todos los usuarios ya marcaron asistencia";
   }
@@ -54,7 +70,7 @@ async function notificationUsersUnmarked() {
       },
     },
     );
-    /* console.log(`Usuario notificado con éxito: ${JSON.stringify(jsonData)}`); */
+    //console.log(`Usuario notificado con éxito: ${JSON.stringify(jsonData)}`);
     return "Usuarios notificados con éxito"
   } catch (error) {
     console.error(`Error al notificar usuario: ${error.message}`);
@@ -62,36 +78,97 @@ async function notificationUsersUnmarked() {
   }
 }
 
-async function startProgramming() {
-  function scheduleTask(cronExpression) {
+async function startProgramming(idTypesMarking) {
+  function scheduleTask(cronExpression,dayOfWeekName, date) {
     cron.schedule(cronExpression, async () => {
-      try {
-        const message = await notificationUsersUnmarked();
-        console.log(`Ejecución programada a las ${cronExpression}: ${message}`);
-      } catch (error) {
-        console.error('Error en la ejecución programada:', error);
+      let time = cronToTime(cronExpression);
+      let IdHorariosList
+      let IdScheduleByHour
+      if (idTypesMarking === 1) {
+       IdHorariosList = await db.queryScheduleByHour(tableSchedule, tableDaysOff, tableExceptions, dayOfWeekName, {HoraInicio : time});
+        IdScheduleByHour = IdHorariosList.map(row => row.IdHorarios);
+        // console.log(IdScheduleByHour) 
       }
-    });
+      if (idTypesMarking === 4) {
+        IdHorariosList = await db.queryScheduleByHour(tableSchedule, tableDaysOff, tableExceptions, dayOfWeekName, {HoraFin : time});
+        IdScheduleByHour = IdHorariosList.map(row => row.IdHorarios);
+        // console.log(IdScheduleByHour)
+      }
+      
+     await Promise.all(IdScheduleByHour.map(async (row) => {
+        try {
+          let listUsersUnregistered
+          const userWithPermision = await db.queryPermissionByDate(tablePermissions, tableUser, date, row);
+          const userWithVacations = await db.queryVacationsByDate(tablePermissions, tableUser,date, row);
+          listUsersUnregistered = [...userWithPermision, ...userWithVacations];
+          console.log(listUsersUnregistered)
+          const usersUnregistered = await db.queryUserAlreadyMarkedToday(tableUser, tableAssist, date, idTypesMarking, row, listUsersUnregistered );
+          console.log(usersUnregistered)
+          const message = await notificationUsersUnmarked(usersUnregistered); 
+          console.log(`Ejecución programada a las ${cronExpression}: ${message} el ${date} - H${row}`);
+        } catch (error) {
+          console.error('Error en la ejecución programada:', error);
+        }
+      
+     }))
+    },
+    );
   }
 
-  const cronJob = await db.cronjobNotification(tableCronJob);
-  /* const cronJob = await db.queryScheduleNotification(tableSchedule); */
-  const hourCronJob = cronJob.map((row) => {
-    const hour = row.Hora;
-    const objetMoment = moment.tz(hour, 'HH:mm:ss', 'America/Lima');
-    const serverTime = objetMoment.tz('UTC'); //  'ZonaHorariaDelServidor' 
-    const minutes = serverTime.format('mm');
-    const hours = serverTime.format('HH');
 
-    return `${minutes} ${hours} * * *`;
-  });
+  
+      
+  ///version 2
+  let initialDate = moment();
+  let day = initialDate.format('DD'); 
+  let month = initialDate.format('MM'); 
+  let age = initialDate.format('YYYY');
+  let date = `${age}-${month}-${day}`;
+  const dayOfWeekName = initialDate.format('dddd');
+  const cronJob = await db.queryScheduleByCronjob(tableSchedule, tableDaysOff, tableExceptions, dayOfWeekName);
+  /* const schedule = cronJob.map(row => row.IdHorarios);
+  console.log(schedule) */
+  let horas
+  if (idTypesMarking === 1){
+    horas = cronJob.map(row => row.HoraInicio);
+  }else {
+    horas = cronJob.map(row => row.HoraFin);
+  }
+  let uniqueHourCronJob = [...new Set(horas)];
+  const hourCronJob = uniqueHourCronJob.map((hour) => {
+          const objetMoment = moment.tz(hour, 'HH:mm:ss','America/Lima');
+          const serverTime = objetMoment.tz('America/Lima'); //  'ZonaHorariaDelServidor' ------------------cambiar al servidor 'UTC'
+          const minutes = serverTime.format('mm');
+          const hours = serverTime.format('HH');
+        
+          return `${minutes} ${hours} * * *`;
+        });
   console.log(hourCronJob);
-
   hourCronJob.forEach((cronExpression) => {
-    scheduleTask(cronExpression);
-  });
+    scheduleTask(cronExpression, dayOfWeekName, date);
+    }
+
+  );
+}
+//----------------------------------------------------------- Habilitar -5 horas cuando subimos a AWS
+function cronToTime(cron) {
+  const segments = cron.split(' ');
+  let hours = parseInt(segments[1],  10); // Cambia 'const' por 'let'
+  const minutes = parseInt(segments[0],  10);
+  /* // Restar   5 horas
+  hours -=  5;
+
+  // Si las horas son menores que   0, restarlas al día anterior
+  if (hours <   0) {
+    hours +=   24;
+  } */
+  // Formatear en 'HH:mm'
+  const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  return formattedTime;
 }
 
+peru = cronToTime('30 00 * * *')
+console.log(peru)
 sendGMailPrueba = async () => {
 
   const config = {
@@ -166,7 +243,12 @@ async function addPermissions(req, res, next) {
     response.error(req, res, false, errorProfiles, 500);
   }
 };
-/* sendGMailPrueba(); */
-/* sendGmail(); */
+// sendGMailPrueba();
+// sendGmail(); 
+
 module.exports = router;
-startProgramming();
+startProgramming(1); 
+startProgramming(4); 
+
+
+
