@@ -72,16 +72,19 @@ function allTypeMarking(tabla) {
 /* 📌 Todos los trabajadores */
 function queryAllWorkers(users, states, workModality, role, name, cip, dni, state1, state2, limit, ofset) {
     return new Promise((resolve, reject) => {
-        const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, e.Descripcion as Estado, u.Usuario, r.Nombre as Rol, m.Descripcion as Modalidad, u.IdHorarios 
+        const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, u.Usuario, m.Descripcion as Modalidad, u.IdHorarios, 
+        e.Descripcion as Estado, r.Nombre as Rol, a.idLider as idLeaderAsigned, l.Nombres as nameLeader, l.Apellidos as lastnameLeader
         from ?? as u 
-        inner join ?? as e ON u.Activo = e.IdEstado 
-        inner join ?? as m ON u.IdModalidad = m.IdModalidad 
-        inner join ?? as r ON u.IdRol = r.IdRol
-        WHERE u.Nombres LIKE "%${name}%" AND u.CIP LIKE "%${cip}%" AND u.DNI LIKE "%${dni}%" AND u.Activo IN (?, ?)  
+        left join ?? as e ON u.Activo = e.IdEstado 
+        left join ?? as m ON u.IdModalidad = m.IdModalidad 
+        left join ?? as r ON u.IdRol = r.IdRol
+        left join asignacionpersonal as a ON u.IdUsuarios = a.idUsuario
+        left join usuarios AS l ON l.IdUsuarios = a.idLider
+        WHERE u.Nombres LIKE "%${name}%" AND u.CIP LIKE "%${cip}%" AND u.DNI LIKE "%${dni}%" AND u.Activo IN (${state1}, ${state2})  
         ORDER BY IdUsuarios ASC 
         LIMIT ? OFFSET ?
         `;
-        const values = [users, states, workModality, role, state1, state2, limit, ofset];
+        const values = [users, states, workModality, role, limit, ofset];
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result);
         });
@@ -115,8 +118,8 @@ function queryGetWorkersCounter(table1, name, cip, dni, state1, state2) {
         const query = `
         SELECT COUNT(*) AS totalRegistros
         FROM ?? j
-        WHERE Nombres LIKE "%${name}%" AND CIP LIKE "%${cip}%" AND DNI LIKE "%${dni}%" AND Activo IN (?, ?)`;
-        const values = [table1, state1, state2];
+        WHERE Nombres LIKE "%${name}%" AND CIP LIKE "%${cip}%" AND DNI LIKE "%${dni}%" AND Activo IN (${state1}, ${state2})`;
+        const values = [table1];
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result);
 
@@ -1591,6 +1594,69 @@ function queryCheckHoliday(tabla, consult1) {
     });
 };
 
+
+/* 📌 Todos los lideres - Contador*/
+function queryGetLeaders(users, role, name, cip, dni, state1, state2, limit, ofset) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT u.IdUsuarios, u.Nombres, u.Apellidos, u.Usuario, u.idRol, r.Nombre AS roll
+        FROM ?? u
+        LEFT JOIN ?? as r ON u.IdRol = r.IdRol
+        WHERE u.IdRol IN (2,3) AND u.Nombres LIKE "%${name}%" AND u.CIP LIKE "%${cip}%" AND u.DNI LIKE "%${dni}%" AND u.Activo IN (${state1}, ${state2})        
+        ORDER BY IdUsuarios ASC 
+        LIMIT ? OFFSET ?
+        `;
+        const values = [users, role, limit, ofset];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
+/* 📌 Todos los lideres - Contador*/
+function queryGetLeadersCounter(table1, name, cip, dni, state1, state2) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT COUNT(*) AS totalRegistros
+        FROM ?? j
+        WHERE IdRol IN (2,3) AND Nombres LIKE "%${name}%" AND CIP LIKE "%${cip}%" AND DNI LIKE "%${dni}%" AND Activo IN (${state1}, ${state2})`;
+        const values = [table1];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        });
+    });
+};
+
+/* 📌 Para añadir un trabajador asociado a un lider */
+function addNewRegister(table, data) {
+    return new Promise((resolve, reject) => {
+
+        const insertQuery = `INSERT INTO ?? SET ?`;
+        const values = [table, data];
+
+        conexion.query(insertQuery, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        });
+    });
+};
+
+/* 📌 Filtro de tipos*/
+function queryGeneralFilter(table, idStates, name) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT t.*, e.Descripcion AS descriptionState
+        FROM ?? t
+        INNER JOIN estados e ON e.IdEstado = t.IdEstado
+        WHERE t.IdEstado IN(?) AND t.descripcion LIKE "%${name}%"`;
+        const values = [table, idStates];
+        conexion.query(query, values, (error, result) => {
+            console.log(error);
+            console.log(result);
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -1676,5 +1742,10 @@ module.exports = {
     queryVacationsByDate,
     queryUserAlreadyMarkedToday,
     queryReportOvertimeNew,
-    queryCheckHoliday
+    queryCheckHoliday,
+    queryGetLeaders,
+    queryGetLeadersCounter,
+    addNewRegister,
+    queryGeneralFilter
+
 }

@@ -13,11 +13,18 @@ router.get('/getAllInformationOfTypesRequest', allInformationOfTypesRequest);
 router.get('/getAllInformationOfModalityWork', allInformationOfModalityWork);
 router.get('/getAllInformationOfStateOfRequest', allInformationOfStateOfRequest);
 router.get('/getAllInformationOfStateGeneral', allInformationOfStateGeneral);
-router.put('/putUdateTableTypesRequest', udateTableTypesRequest);
-router.put('/putUdateTableValidation', udateTableValidation);
-router.put('/udateTableTypeMark', udateTableTypeMark);
-router.put('/udateTableWorkModality', udateTableWorkModality);
-router.put('/udateTablStateRequest', udateTablStateRequest);
+router.put('/putUpdateTableTypesRequest', updateTableTypesRequest);
+router.put('/putUpdateTableValidation', updateTableValidation);
+router.put('/putUpdateTableTypeMark', updateTableTypeMark);
+router.put('/putUpdateTableWorkModality', updateTableWorkModality);
+router.put('/putUpdateTableStateRequest', updateTableStateRequest);
+router.put('/putUpdateLiderAsignedToWork', updateLiderAsignedToWork);
+router.post('/getTypesMarkingFilter', typesMarkingFilter);
+router.post('/getTypesValidationFilter', typesValidationFilter);
+router.post('/getTypesRequestFilter', typesRequestFilter);
+router.post('/getModailityOfWorkFilter', getModailityOfWorkFilter);
+router.post('/getStateRequestFilter', getStateRequestFilter);
+
 
 const errorMessage = "Algo salio mal, intente más tarde."
 
@@ -105,58 +112,136 @@ async function allInformationOfStateGeneral(req, res, next) {
 };
 
 /* 📌 Actualizar informacion de tipo de solicitudes */
-async function udateTableTypesRequest(req, res, next) {
+async function updateTableTypesRequest(req, res, next) {
     try{
-        const responseInfo = await controller.udateTableTypesRequest();
-        console.log(responseInfo);
-        response.success(req, res, responseInfo, 'Con éxito', 200);
+        const responseInfo = await controller.updateTableTypesRequest(req.body);
+        if(!responseInfo.messages){
+            response.success(req, res, responseInfo, "", 200);
+        }else{
+            console.log("aqui");
+            response.error(req, res, false, responseInfo.messages, 403);
+        }
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
     }
 };
 
 /* 📌 Actualizar información de tipos de validación */
-async function udateTableValidation(req, res, next) {
+async function updateTableValidation(req, res, next) {
     try{
-        const responseInfo = await controller.udateTableValidation();
-        console.log(responseInfo);
-        response.success(req, res, responseInfo, 'Con éxito', 200);
+        const responseInfo = await controller.updateTableValidation(req.body);
+        if(!responseInfo.messages){
+            response.success(req, res, responseInfo, "", 200);
+        }else{
+            console.log("aqui");
+            response.error(req, res, false, responseInfo.messages, 403);
+        }
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
     }
 };
         
 /* 📌 Actualizar información de tipos de marcaciones */
-async function udateTableTypeMark(req, res, next) {
+async function updateTableTypeMark(req, res, next) {
     try{
-        const responseInfo = await controller.udateTableTypeMark();
-        console.log(responseInfo);
-        response.success(req, res, responseInfo, 'Con éxito', 200);
+        const responseInfo = await controller.updateTableTypeMark(req.body);
+        if(!responseInfo.messages){
+            response.success(req, res, responseInfo, "", 200);
+        }else{
+            response.error(req, res, false, responseInfo.messages, 403);
+        }
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
     }
 };
 
 /* 📌 Actualizar informacion de modalidad de trabajo */
-async function udateTableWorkModality(req, res, next) {
+async function updateTableWorkModality(req, res, next) {
     try{
-        const responseInfo = await controller.udateTableWorkModality();
-        console.log(responseInfo);
-        response.success(req, res, responseInfo, 'Con éxito', 200);
+        const responseInfo = await controller.updateTableWorkModality(req.body);
+        if(!responseInfo.messages){
+            response.success(req, res, responseInfo, "", 200);
+        }else{
+            response.error(req, res, false, responseInfo.messages, 403);
+        }
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
     }
 };
 
 /* 📌 Actualizar informacion de estado de solicitudes */
-async function udateTablStateRequest(req, res, next) {
+async function updateTableStateRequest(req, res, next) {
     try{
-        const responseInfo = await controller.udateTablStateRequest();
-        console.log(responseInfo);
-        response.success(req, res, responseInfo, 'Con éxito', 200);
+        const responseInfo = await controller.updateTableStateRequest(req.body);
+        if(!responseInfo.messages){
+            response.success(req, res, responseInfo, "", 200);
+        }else{
+            response.error(req, res, false, responseInfo.messages, 403);
+        }
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
     }
+};
+
+/* 📌 Actualizar el lider que tiene asignado */
+async function updateLiderAsignedToWork(req, res, next) {
+    try{
+        const responseInfo = await controller.updateLiderAsignedToWork(req.body);
+        if(!responseInfo.messages){
+            response.success(req, res, responseInfo, "", 200);
+        }else{
+            response.error(req, res, false, responseInfo.messages, 403);
+        }
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
+async function typesMarkingFilter(req, res, next){
+    try{
+        const responseInfo = await controller.typesMarkingFilter(req.body);
+        response.success(req, res, responseInfo, "Con éxito", 200);
+    }catch(e){
+        response.error(req, res, false, errorMessage, 500);
+    }
+    
+};
+
+async function typesValidationFilter(req, res, next){
+    try{
+        const responseInfo = await controller.typesValidationFilter(req.body);
+        response.success(req, res, responseInfo, "Con éxito", 200);
+    }catch(e){
+        response.error(req, res, false, errorMessage, 500);
+    } 
+};
+
+async function typesRequestFilter(req, res, next){
+    try{
+        const responseInfo = await controller.typesRequestFilter(req.body);
+        response.success(req, res, responseInfo, "Con éxito", 200);
+    }catch(e){
+        response.error(req, res, false, errorMessage, 500);
+    } 
+};
+
+async function getModailityOfWorkFilter(req, res, next){
+    try{
+        const responseInfo = await controller.getModailityOfWorkFilter(req.body);
+        response.success(req, res, responseInfo, "Con éxito", 200);
+    }catch(e){
+        response.error(req, res, false, errorMessage, 500);
+    } 
+};
+
+/* 📌 Obtener estado solicitudes filtro */
+async function getStateRequestFilter(req, res, next){
+    try{
+        const responseInfo = await controller.getStateRequestFilter(req.body);
+        response.success(req, res, responseInfo, "Con éxito", 200);
+    }catch(e){
+        response.error(req, res, false, errorMessage, 500);
+    } 
 };
 
 module.exports = router;   

@@ -20,6 +20,8 @@ module.exports = function (dbInjected) {
     if (!db) {
         db = require('../../DB/mysql');
     }
+
+    /* 📌 Autenticación */
     async function consultUser(user, password) {
         if (!user || !password) {
             message = 'Datos faltantes'
@@ -44,12 +46,14 @@ module.exports = function (dbInjected) {
                     return { "messages": message }
                 }
             })
-    }
+    };
 
+    /* 📌 Obtener información de un usuario*/
     function userInformation(id) {
         return db.userInformation(tableUser, tableAddress, id);
-    }
+    };
 
+    /* 📌 Obtener todas las asitencias del mes del trabajador*/
     async function consultMarkMonth(idUser, date) {
         if (!idUser) {
             message = 'Ingrese usuario'
@@ -67,8 +71,9 @@ module.exports = function (dbInjected) {
         } else {
             return dataMonth;
         }
-    }
+    };
 
+    /* 📌 Obtener todas las asitencias de la semana del trabajador*/
     async function consultMarkWeek(idUser) {
         if (!idUser) {
             message = 'Ingrese usuario'
@@ -86,8 +91,9 @@ module.exports = function (dbInjected) {
         } else {
             return dataWeek;
         }
-    }
+    };
 
+    /* 📌 Obtener todas las asitencias del día del trabajador*/
     async function consultMarkDay(idUser, date) {
         if (!idUser) {
             message = 'No viene usuario'
@@ -106,21 +112,25 @@ module.exports = function (dbInjected) {
         } else {
             return dataDay;
         }
-    }
+    };
 
+    /* 📌 Obtener información de todos los trabajadores*/
     async function allWorkers(body) {
         function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
             return  offset = (numeroPagina - 1) * tamanoPagina
           }
         PageSiize = 7;
-
+        console.log("123");
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
+        console.log("125"); 
         //1.Primero verificar el rol si es lider o rrhh
         const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idUser);
         let IdRolUser = whatRolHaveWorker[0].IdRol
+        console.log("128");
         if(IdRolUser === 3){
             return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name,body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset);
         }
+        console.log(132);
         var getIdsOfWorkers = await db.queryGetIdAsignedToLeader(body.idUser);//Obtener los ids de trabajadores asignados al lider
         var listaDeIds = getIdsOfWorkers.map(function (rowDataPacket) {//Mapear los objetos RowDataPacket y pasarlos a una lista de  los                 
             return rowDataPacket.idUsuario;
@@ -130,8 +140,9 @@ module.exports = function (dbInjected) {
             idWorkersString = '0';
         };
         return db.queryAllWorkersByUser(tableUser, tableStateUser, tableModalityWork, tableRol, body.name,body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset, idWorkersString);
-    }
+    };
 
+    /* 📌 Obtener información de todos los trabajadores - contador*/
     async function getWorkersCounter(body) {
         const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idUser);
         let IdRolUser = whatRolHaveWorker[0].IdRol;
@@ -159,6 +170,30 @@ module.exports = function (dbInjected) {
         }
     };
 
+    /* 📌 Obtener información de todos lideres*/
+    async function getLeaders(body) {
+        function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
+            return  offset = (numeroPagina - 1) * tamanoPagina
+          }
+        PageSiize = 7;
+        console.log("178");
+        const getOffset = obtenerDatosPaginados(body.page, PageSiize);
+        return db.queryGetLeaders(tableUser, tableRol, body.name, body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset);
+    };
+
+    /* 📌 Obtener información de todos lideres - contador*/
+    async function getLeadersCounter(body) {
+        result = await  db.queryGetLeadersCounter(tableUser, body.name, body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2);
+        if (result && result.length >= 0) {
+            const count = result[0];
+            const contador= count.totalRegistros // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
+            return contador; 
+         } else {
+            return 'No se pudo obtener el recuento.';
+        }
+    };
+    
+    /* 📌 Añadir usuario*/
     async function addUser(body) {
         if(body.idUser != 0){
             const dataUser = await db.query(tableUser, { IdUsuarios: body.idUser });
@@ -219,8 +254,9 @@ module.exports = function (dbInjected) {
         }
 
         
-    }
+    };
 
+    /* 📌 Para añadir el token del celular del usuario para las notificiones */
     async function addTokensUser(body) {
         if (!body.idUser) {
             message = 'Por favor, ingrese un usuario';
@@ -239,8 +275,9 @@ module.exports = function (dbInjected) {
         //message = 'Token registrado con éxito';
         return 'Token registrado con éxito';
         // return respuesta;
-    }
+    };
 
+    /* 📌 Cantidad de trabajadores*/
     async function getAllWorkersAmount (body) {
         const result = await  db.queryGetJustificationsCounterPending(tableJustifications, body.IdEstadoJustP);  
         if (result && result.length >= 0) {
@@ -252,6 +289,7 @@ module.exports = function (dbInjected) {
         }
     };
 
+    /* 📌 Para activar usuarios*/
     async function activateUsers(body) {
         if (body.idProfile != 1) {
             message = 'No tienes permiso para actualizar';
@@ -264,7 +302,32 @@ module.exports = function (dbInjected) {
         } else {
             return 'No se realizó ninguna modificación';
         }
-    }
+    };
+
+    /* 📌 Actualizar informacion de usuarios*/
+    async function updateRolOfWorkers(body){
+        const toUpdate = {
+            IdRol: body.idRol
+        };
+
+        const idWhere = {
+            IdUsuarios: body.id
+        };
+
+        //1.Primero verificar el rol si es lider o rrhh
+        const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idUser);
+        const idRoles = whatRolHaveWorker.map(row => row.IdRol);
+        if (idRoles.includes(1)) {
+            message = 'No tienes permiso para actualizar';
+            return { "messages": message }
+        };
+        const response = await db.queryUpdateAnyTable(tableUser, toUpdate, idWhere);
+        if (response && response.changedRows > 0) {
+            return 'Modificación de estado con éxito';
+        } else {
+            return 'No se realizó ninguna modificación';
+        }
+    };
 
     return {
         allWorkers,
@@ -277,6 +340,9 @@ module.exports = function (dbInjected) {
         addUser,
         addTokensUser,
         getAllWorkersAmount,
-        activateUsers
+        activateUsers,
+        getLeaders,
+        getLeadersCounter,
+        updateRolOfWorkers
     }
 }
