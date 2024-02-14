@@ -7,15 +7,16 @@ const stream = require('stream');
 router.post('/reportAsistance', reportAsistance);
 router.post('/reportOvertime', reportOvertime);
 router.post('/reportRequest', reportRequest);
+router.post('/reportAudit', reportAudit);
 
 errorMessageSchedule = "Algo salio mal, intente más tarde."
 
 async function reportAsistance(req, res, next){
     try{
-        const updateScheduleUser  = await controller.reportAsistance(req.body);
-        if (updateScheduleUser) {
+        const reportAsistance  = await controller.reportAsistance(req.body);
+        if (reportAsistance) {
             const pass = new stream.PassThrough();
-            pass.end(updateScheduleUser);
+            pass.end(reportAsistance);
             res.setHeader('Content-Disposition', 'attachment; filename=MiArchivo.xlsx');
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             pass.pipe(res);
@@ -30,10 +31,10 @@ async function reportAsistance(req, res, next){
 
 async function reportOvertime(req, res, next){
     try{
-        const updateScheduleUser  = await controller.reportOvertime(req.body);
-        if (updateScheduleUser) {
+        const reportOvertime  =await controller.reportOvertimeNew(req.body); /* await controller.reportOvertime(req.body); */
+        if (reportOvertime) {
             const pass = new stream.PassThrough();
-            pass.end(updateScheduleUser);
+            pass.end(reportOvertime);
             res.setHeader('Content-Disposition', 'attachment; filename=MiArchivo.xlsx');
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             pass.pipe(res);
@@ -48,10 +49,28 @@ async function reportOvertime(req, res, next){
 
 async function reportRequest(req, res, next){
     try{
-        const updateScheduleUser  = await controller.reportRequest(req.body);
-        if (updateScheduleUser) {
+        const reportRequest  = await controller.reportRequest(req.body);
+        if (reportRequest) {
             const pass = new stream.PassThrough();
-            pass.end(updateScheduleUser);
+            pass.end(reportRequest);
+            res.setHeader('Content-Disposition', 'attachment; filename=MiArchivo.xlsx');
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            pass.pipe(res);
+        } else {
+            mensaje = 'No se pudo generar el reporte.';
+            response.error(req, res, mensaje, 400);
+        }
+    }catch(err){
+        response.error(req, res, false, errorMessageSchedule, 500);
+    }
+};
+
+async function reportAudit(req, res, next){
+    try{
+        const reportAudit  = await controller.reportAudit(req.body);
+        if (reportAudit) {
+            const pass = new stream.PassThrough();
+            pass.end(reportAudit);
             res.setHeader('Content-Disposition', 'attachment; filename=MiArchivo.xlsx');
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             pass.pipe(res);

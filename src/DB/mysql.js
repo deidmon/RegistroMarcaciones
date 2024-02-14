@@ -1327,7 +1327,7 @@ function queryReportRequest(tabla, tabla2, tabla3, tabla4, tabla5,consult1, cons
     return new Promise((resolve, reject) => {
         const query =
          `SELECT    s.idTipoSolicitud, ts.descripcion AS TipoSolicitud,tm.idTMarcaciones,tm.descripcion as Marcación,s.Motivo, u.IdUsuarios, u.CIP,DATE_FORMAT(Fecha, '%Y%m%d') as Fecha,
-                    s.estadoSolicitudF AS idEstadoSolicitud, es.descripcion AS EstadoSolicitud, s.Updated_byF, uest.Nombres AS Modificador
+                    s.estadoSolicitudF AS idEstadoSolicitud, es.descripcion AS EstadoSolicitud, s.Updated_byF, CONCAT_WS(' ', uest.Nombres, uest.apellidos) AS Modificador
         FROM ?? AS s INNER JOIN ?? as u ON s.idUsuario = u.IdUsuarios
         LEFT JOIN ?? as tm ON s.idTMarcaciones = tm.idTMarcaciones
         INNER JOIN ?? as ts ON s.idTipoSolicitud = ts.idSolicitud
@@ -1350,7 +1350,7 @@ function queryReportRequestRRHH(tabla, tabla2, tabla3, tabla4, tabla5,consult1, 
     return new Promise((resolve, reject) => {
         const query =
          `SELECT    s.idTipoSolicitud, ts.descripcion AS TipoSolicitud,tm.idTMarcaciones,tm.descripcion as Marcación,s.Motivo, u.IdUsuarios, u.CIP,DATE_FORMAT(Fecha, '%Y%m%d') as Fecha,
-                    s.estadoSolicitudF AS idEstadoSolicitud, es.descripcion AS EstadoSolicitud, s.Updated_byF, uest.Nombres AS Modificador
+                    s.estadoSolicitudF AS idEstadoSolicitud, es.descripcion AS EstadoSolicitud, s.Updated_byF,  CONCAT_WS(' ', uest.Nombres, uest.apellidos) AS Modificador
         FROM ?? AS s INNER JOIN ?? as u ON s.idUsuario = u.IdUsuarios
         LEFT JOIN ?? as tm ON s.idTMarcaciones = tm.idTMarcaciones
         INNER JOIN ?? as ts ON s.idTipoSolicitud = ts.idSolicitud
@@ -1467,7 +1467,7 @@ function queryPermissionByDate(tabla, tabla2, consult, consult2) {
         WHERE idTipoSolicitud = 2
         AND estadoSolicitudF = 2
         AND FechaPermiso = ?
-        AND u.IdHorarios = ?
+        AND u.IdHorarios IN (?)
         `;
         const values = [tabla, tabla2, consult, consult2];
 
@@ -1489,7 +1489,7 @@ function queryVacationsByDate(tabla, tabla2, consult, consult2) {
             AND estadoSolicitudF = 2
             AND FechaDesde <= ?
             AND FechaHasta >= ?
-            AND u.IdHorarios = ? `;
+            AND u.IdHorarios IN (?) `;
         const values = [tabla, tabla2, consult, consult, consult2];
 
         conexion.query(query, values, (error, result) => {
@@ -1512,10 +1512,10 @@ function queryUserAlreadyMarkedToday(table, table2, consult, consult2, consult3,
             FROM ?? AS a INNER JOIN ?? AS us ON a.IdUsuarios = us.IdUsuarios
             WHERE Fecha = ?
             AND idTMarcacion = ?
-            AND us.IdHorarios = ?
+            AND us.IdHorarios IN (?)
         )
         AND u.IdUsuarios NOT IN (?)
-        AND u.IdHorarios = ?
+        AND u.IdHorarios IN (?)
         AND u.Activo = 1
         `;
         const values = [table, table2, table, consult, consult2, consult3, consult4, consult3];
@@ -1526,6 +1526,67 @@ function queryUserAlreadyMarkedToday(table, table2, consult, consult2, consult3,
             } else {
                 resolve(result);
             } */
+        });
+    });
+};
+
+/* 📌 Reporte horas extras nuevo */
+function queryReportOvertimeNew(table, table2, tabla3, tabla4, tabla5, table6, consult, consult2) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT  a.idTMarcacion,CIP,DATE_FORMAT(Fecha, '%d-%m-%Y') as Fecha, DATE_FORMAT(Hora,'%H:%i') AS Hora,
+                'HES' AS Cód_Horas, 'TGS' AS Cód_Empresa, 
+                u.IdHorarios,DATE_FORMAT(h_n.HoraInicio,'%H:%i') AS HoraInicio,DATE_FORMAT(h_n.HoraFin,'%H:%i') AS HoraFin, h_n.diaExcepcion, DATE_FORMAT(h_n.HoraInicio_Excepcion,'%H:%i') AS HoraInicio_Excepcion,DATE_FORMAT(h_n.HoraFin_Excepcion,'%H:%i') AS HoraFin_Excepcion ,
+                TIMEDIFF(Hora, h_n.HoraFin) AS DiferenciaTiempo
+        FROM ?? AS a INNER JOIN ?? as u ON a.IdUsuarios = u.IdUsuarios INNER JOIN ?? as tm ON a.idTMarcacion = tm.idTMarcaciones INNER JOIN 
+        (
+        SELECT 
+         h.IdHorarios, h.diaExcepcion,
+            MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 15 MINUTE)          END) AS HoraInicio, MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END) AS HoraFin,  exc.HoraInicio_Excepcion , exc.HoraFin_Excepcion 
+        FROM ?? AS h 
+        LEFT JOIN (SELECT ex.IdExcepcion,
+              MIN(CASE WHEN ex.IdTipoMarcacion = 1 AND ex.IdValidacion = 1 THEN DATE_ADD(ex.HoraInicio, INTERVAL 15 MINUTE)           END) AS HoraInicio_Excepcion,
+              MAX(CASE WHEN ex.IdTipoMarcacion = 4 AND ex.IdValidacion = 1 THEN ex.HoraInicio END) AS HoraFin_Excepcion
+          FROM ?? AS ex 
+          GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
+          INNER JOIN ?? AS d ON h.IdDescanso = d.IdDescansos
+          WHERE H.IdEstado = 1
+          GROUP BY h.IdHorarios, h.IdDescanso
+        ) AS h_n ON u.idhorarios = h_n.IdHorarios
+        WHERE a.Fecha BETWEEN ? AND ?
+        AND idTMarcacion IN (1,4)
+        AND a.idValidacion = 4
+        AND a.idValidacionSecond = 6
+        ORDER BY Fecha DESC, a.IdUsuarios, tm.descripcion
+        `;
+        const values = [table, table2, tabla3, tabla4, tabla5, table6,consult, consult2];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+            /* if (error) {
+                reject(error);
+            } else {
+                resolve(result);
+            } */
+        });
+    });
+};
+
+/* 📌 Chequear si el día es feriado */
+function queryCheckHoliday(tabla, consult1) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT EXISTS(
+            SELECT feriado  
+            FROM ??  
+            WHERE feriado = STR_TO_DATE(?, '%d-%m-%Y')
+            LIMIT  1
+          ) AS is_holiday
+        `;
+        const values = [tabla, consult1, ];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].is_holiday);
+
         });
     });
 };
@@ -1613,5 +1674,7 @@ module.exports = {
     queryScheduleByHour,
     queryPermissionByDate,
     queryVacationsByDate,
-    queryUserAlreadyMarkedToday 
+    queryUserAlreadyMarkedToday,
+    queryReportOvertimeNew,
+    queryCheckHoliday
 }

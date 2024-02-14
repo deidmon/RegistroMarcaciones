@@ -113,10 +113,10 @@ module.exports = function (dbInyectada) {
         const respuesta = await db.addJustification(tablePermissions, Permissions);
 
         if (respuesta) {
-            message = 'Permiso añadido con éxito';
+            message = 'Solicitud de permiso añadido con éxito';
             return { "messages": message };
         }
-        message = 'No se pudo añadir el permiso';
+        message = 'No se pudo añadir la solicitud de permiso';
         return { "messages": message };
 
     };
@@ -155,10 +155,10 @@ module.exports = function (dbInyectada) {
         const respuesta = await db.addJustification(tablePermissions, Vacations);
 
         if (respuesta) {
-            message = 'Vacaciones añadida con éxito';
+            message = 'Solicitud de vacaciones añadida con éxito';
             return { "messages": message };
         }
-        message = 'No se pudo hacer el registro de vacaciones';
+        message = 'No se registrar la solicitud de vacaciones';
         return { "messages": message };
 
     };

@@ -150,7 +150,7 @@ module.exports = function (dbInyectada) {
                             Fecha: date,
                             Hora: formattedTime,
                             idTMarcacion: body.idTypesMarking,
-                            idValidacion: 6,
+                            idValidacion: 4,
                             idValidacionSecond: 6,
                             Created_by: body.idUser,
                             Updated_at: '0000-00-00',
@@ -159,7 +159,7 @@ module.exports = function (dbInyectada) {
                         }
                         const respuesta = await db.add(tableAssist, assists);
                         /* const update = await db.update(tableUser, {tiempoPermiso : 0},body.idUser); */
-                        return { "idTipoValidacion": 6,"idMostrarForm": 0, "Registrado como": 'La asistencia ha sido registrada como: SOBRETIEMPO', "Detalle": `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
+                        return { "idTipoValidacion": 4,"idMostrarForm": 0, "Registrado como": 'La asistencia ha sido registrada como: SOBRETIEMPO', "Detalle": `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
                     }
                 }
                 const resultValidation = validateTime(formattedTime);
@@ -242,7 +242,7 @@ module.exports = function (dbInyectada) {
                     Fecha: date,
                     Hora: formattedTime,
                     idTMarcacion: body.idTypesMarking,
-                    idValidacion: 6,
+                    idValidacion: 4,
                     idValidacionSecond: 6,
                     Created_by: body.idUser,
                     Updated_at: '0000-00-00',
@@ -250,7 +250,7 @@ module.exports = function (dbInyectada) {
                     idHorario :idSchedule.IdHorarios
                 }
                 const respuesta = await db.add(tableAssist, assists);
-                return { "idTipoValidacion": 6,"idMostrarForm": 0, "Registrado como": 'La asistencia ha sido registrada como: SOBRETIEMPO.', "Detalle": `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
+                return { "idTipoValidacion": 4,"idMostrarForm": 0, "Registrado como": 'La asistencia ha sido registrada como: SOBRETIEMPO.', "Detalle": `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${startTimeAllowed} a ${endTimeAllowed}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
             }
         }
         const resultValidation = validateTime(formattedTime);

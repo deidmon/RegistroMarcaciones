@@ -12,6 +12,7 @@ const tableJustifications = 'justificaciones';
 const tableParameterization = 'parametrizacion'; 
 const tablePermissions = 'solicitudes';
 const tableExceptions = 'excepciones';
+const tableHoliday = 'feriados';
 const axios = require('axios');
 const nodemailer = require('nodemailer');
 const config = require('../../config');
@@ -24,16 +25,6 @@ const endpoint = 'https://fcm.googleapis.com/fcm/send';
 
 router.post('/latenessreport', sendGmail);
 errorMessage = "Algo salio mal, intente más tarde.";
-
-/* async function UsersUnmarked() {
-  try {
-    const usersUnmarked = await controller.usersUnmarked();
-    const tokensUsersUnmarked = await controller.tokenUsersUnmarked(usersUnmarked);
-    return tokensUsersUnmarked;
-  } catch (err) {
-    console.log(err);
-  }
-} */
 
 async function UsersUnmarked(usersUnmarked) {
   try {
@@ -97,12 +88,12 @@ async function startProgramming(idTypesMarking) {
       
      await Promise.all(IdScheduleByHour.map(async (row) => {
         try {
-          let listUsersUnregistered
+          let listUsersWithRequest
           const userWithPermision = await db.queryPermissionByDate(tablePermissions, tableUser, date, row);
           const userWithVacations = await db.queryVacationsByDate(tablePermissions, tableUser,date, row);
-          listUsersUnregistered = [...userWithPermision, ...userWithVacations];
-          console.log(listUsersUnregistered)
-          const usersUnregistered = await db.queryUserAlreadyMarkedToday(tableUser, tableAssist, date, idTypesMarking, row, listUsersUnregistered );
+          listUsersWithRequest = [...userWithPermision, ...userWithVacations];
+          /* console.log(listUsersWithRequest) */
+          const usersUnregistered = await db.queryUserAlreadyMarkedToday(tableUser, tableAssist, date, idTypesMarking, row, listUsersWithRequest );
           console.log(usersUnregistered)
           const message = await notificationUsersUnmarked(usersUnregistered); 
           console.log(`Ejecución programada a las ${cronExpression}: ${message} el ${date} - H${row}`);
@@ -124,6 +115,12 @@ async function startProgramming(idTypesMarking) {
   let month = initialDate.format('MM'); 
   let age = initialDate.format('YYYY');
   let date = `${age}-${month}-${day}`;
+  let date_year_format = `${day}-${month}-${age}`;
+  const is_holiday = await db.queryCheckHoliday( tableHoliday, date_year_format);
+  if (is_holiday ===1){
+    console.log('Hoy es feriado no habrá notificaciones')
+    return
+  }
   const dayOfWeekName = initialDate.format('dddd');
   const cronJob = await db.queryScheduleByCronjob(tableSchedule, tableDaysOff, tableExceptions, dayOfWeekName);
   /* const schedule = cronJob.map(row => row.IdHorarios);
@@ -167,8 +164,6 @@ function cronToTime(cron) {
   return formattedTime;
 }
 
-peru = cronToTime('30 00 * * *')
-console.log(peru)
 sendGMailPrueba = async () => {
 
   const config = {

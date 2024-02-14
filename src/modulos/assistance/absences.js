@@ -4,14 +4,14 @@ const tableAssist = 'asistencias';
 const tableUser = 'usuarios';
 const tableCronJob = 'horariocron';
 const tableSchedule = 'horarios';
-const tableDaysOff = 'descansos';
-const tableJustifications = 'justificaciones';
-const tableParameterization = 'parametrizacion'; 
+const tableDaysOff = 'descansos'; 
 const tablePermissions = 'solicitudes';
+const tableHoliday = 'feriados';
+const tableExceptions = 'excepciones';
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/Lima');
 
-async function registerAbsencesController(idTypesMarking, IdHorarios) {
+async function registerAbsencesController(idTypesMarking, usersUnregistered) {
 
   let initialDate =  moment();
   let day = initialDate.format('DD'); 
@@ -24,15 +24,7 @@ async function registerAbsencesController(idTypesMarking, IdHorarios) {
 
   const formattedTime = `${hours}:${minutes}`;
 
-  /* const idTypesMarking = idTypesMarking; */
-  const dayOfWeekName = initialDate.format('dddd'); 
-  const daysOff = await db.queryGetDaysOffBySchedule(tableDaysOff,tableSchedule, { IdHorarios: IdHorarios });
-  if (daysOff.includes(dayOfWeekName)) {
-    return 'Día de descanso'
-  }
   try {
-    const usersUnregistered = await db.recordFoulsCronjob(tableUser, tableAssist,{ IdHorarios: IdHorarios } ,{ idTMarcacion : idTypesMarking }, { IdHorarios: IdHorarios });
-    console.log(usersUnregistered)
 
     if (usersUnregistered && usersUnregistered.length > 0) {
       const promises = usersUnregistered.map(async (idUser) => {
@@ -42,6 +34,7 @@ async function registerAbsencesController(idTypesMarking, IdHorarios) {
           Fecha: date,
           idTMarcacion: idTypesMarking,
           idValidacion: 3,
+          idValidacionSecond: 3,
           Hora: '',
           Created_by: 0,
         };
@@ -57,6 +50,7 @@ async function registerAbsencesController(idTypesMarking, IdHorarios) {
       return 'Faltas registradas correctamente';
 
     } 
+
     return 'Todos los usuarios han registrado asistencia para hoy.';
 
   } catch (error) {
@@ -93,24 +87,44 @@ async function addJustifications(date, idUser, idTypeMark){
 
 
 async function startProgramming(idTypesMarking) {
-  function scheduleTask(cronExpression) {
+  function scheduleTask(cronExpression,schedule, date) {
     cron.schedule(cronExpression, async () => {
-      const IdHorariosList = await db.querylistSchedule(tableSchedule);
-      console.log(IdHorariosList)
-     /*  for (const IdHorarios of IdHorariosList) { */
-     await Promise.all(IdHorariosList.map(async (IdHorarios) => {
+      let idSchedules = schedule
         try {
-          const message = await registerAbsencesController(idTypesMarking,IdHorarios);
-          console.log(`Ejecución programada a las ${cronExpression}: ${message}`);
+          let listUsersWithRequest
+          const userWithPermision = await db.queryPermissionByDate(tablePermissions, tableUser, date, idSchedules);
+          const userWithVacations = await db.queryVacationsByDate(tablePermissions, tableUser,date, idSchedules);
+          listUsersWithRequest = [...userWithPermision, ...userWithVacations];
+          /* console.log(listUsersWithRequest) */
+          const usersUnregistered = await db.queryUserAlreadyMarkedToday(tableUser, tableAssist, date, idTypesMarking, idSchedules, listUsersWithRequest );
+          console.log(usersUnregistered)
+          const message = await registerAbsencesController(idTypesMarking, usersUnregistered); 
+          console.log(`Ejecución programada a las ${cronExpression}: ${message} el ${date}`);
         } catch (error) {
           console.error('Error en la ejecución programada:', error);
         }
-      /* } */
-     }))
+      
+     
     },
     );
   }
-  
+      
+  ///version 2
+  let initialDate = moment();
+  let day = initialDate.format('DD'); 
+  let month = initialDate.format('MM'); 
+  let age = initialDate.format('YYYY');
+  let date = `${age}-${month}-${day}`;
+  let date_year_format = `${day}-${month}-${age}`;
+  const is_holiday = await db.queryCheckHoliday( tableHoliday, date_year_format);
+  if (is_holiday ===1){
+    console.log('Hoy es feriado no se registra ausencias')
+    return
+  }
+  const dayOfWeekName = initialDate.format('dddd');
+  const scheduleByCronJob = await db.queryScheduleByCronjob(tableSchedule, tableDaysOff, tableExceptions, dayOfWeekName);
+  const schedule = scheduleByCronJob.map(row => row.IdHorarios);
+  /* console.log(schedule) */
   const cronJob = await db.cronjob(tableCronJob,idTypesMarking);
   const hourCronJob = cronJob.map((row) => {
           const hour = row.Horario; 
@@ -124,8 +138,9 @@ async function startProgramming(idTypesMarking) {
   console.log(hourCronJob);
   
   hourCronJob.forEach((cronExpression) => {
-  scheduleTask(cronExpression);
+  scheduleTask(cronExpression, schedule, date);
   });
 }
+
 startProgramming(1); 
 startProgramming(4); 
