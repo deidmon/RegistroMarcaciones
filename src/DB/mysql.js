@@ -1787,6 +1787,18 @@ function queryConsultRequest(tabla, consulta) {
     });
 };
 
+/* 📌 Query generica para consultar todos los datos de una tabla sin (where ni inner) */
+function querygenericToGetAll(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT * FROM ?? `;
+        const values = [tabla];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        })
+    });
+};
+
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -1881,6 +1893,7 @@ module.exports = {
     queryReportAudit,
     getRolesActives,
     queryRolFilter,
-    queryConsultRequest
+    queryConsultRequest,
+    querygenericToGetAll,
 
 }

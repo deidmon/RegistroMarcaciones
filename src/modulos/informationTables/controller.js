@@ -52,7 +52,7 @@ module.exports = function(dbInyectada){
 
     /* 📌 Obtener información de estados general*/
     async function allInformationOfStateGeneral(){
-        return db.allInformationOfOneTable(tableState);
+        return db.querygenericToGetAll(tableState);
     };
     
     /* 📌 Actualizar informacion de tipo de solicitudes */
