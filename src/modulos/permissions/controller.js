@@ -589,41 +589,44 @@ module.exports = function (dbInyectada) {
       tablePermissions,
       body.ids
     );
-    console.log(findOutIdsToModifyAssistance.length);
-    if (findOutIdsToModifyAssistance.length != 0) {
-        console.log("pasa por aqui");
-      for (let i = 0 ; i < findOutIdsToModifyAssistance.length; i++) {
-        console.log("hola ",findOutIdsToModifyAssistance[i].idUsuario);
-        const data = await db.queryConsultTable(
-          tableAssist,
-          { IdUsuarios: findOutIdsToModifyAssistance[i].idUsuario },
-          { Fecha: findOutIdsToModifyAssistance[i].Fecha },
-          { IdTMarcacion: findOutIdsToModifyAssistance[i].idTMarcaciones }
-        );
-            console.log("aqui");
-        if (!data || data.length === 0) {
-          message = "No existe marcación a actualizar";
-          return { messages: message };
+    if(body.estadoSolicitudF == 2){
+        if (findOutIdsToModifyAssistance.length != 0) {
+            console.log("pasa por aqui");
+          for (let i = 0 ; i < findOutIdsToModifyAssistance.length; i++) {
+            console.log("hola ",findOutIdsToModifyAssistance[i].idUsuario);
+            const data = await db.queryConsultTable(
+              tableAssist,
+              { IdUsuarios: findOutIdsToModifyAssistance[i].idUsuario },
+              { Fecha: findOutIdsToModifyAssistance[i].Fecha },
+              { IdTMarcacion: findOutIdsToModifyAssistance[i].idTMarcaciones }
+            );
+                console.log("aqui");
+            if (!data || data.length === 0) {
+              message = "No existe marcación a actualizar";
+              return { messages: message };
+            }
+           
+            console.log("soy la i: ", i);
+            const idMark = data[0].IdAsistencias;
+    
+            console.log("fecha")
+            console.log("fecha",date)
+            const toUpdateInAssistance = {
+              idValidacion: 4,
+              Updated_at: date,
+              Updated_by: body.idUser,
+            };
+    
+            const respuesta = await db.queryUpdateAssists(
+              tableAssist,
+              toUpdateInAssistance,
+              idMark
+            );
+          }
         }
-       
-        console.log("soy la i: ", i);
-        const idMark = data[0].IdAsistencias;
-
-        console.log("fecha")
-        console.log("fecha",date)
-        const toUpdateInAssistance = {
-          idValidacion: 4,
-          Updated_at: date,
-          Updated_by: body.idUser,
-        };
-
-        const respuesta = await db.queryUpdateAssists(
-          tableAssist,
-          toUpdateInAssistance,
-          idMark
-        );
-      }
     }
+    
+
     console.log("antes de actualizar solicitudes");
     const updatigRequests = await db.queryManagementOfRequests(
       tablePermissions,

@@ -1179,20 +1179,40 @@ function queryAllRequestOfUserAsignedToLeader(idWorkers, filterName, filterCIP, 
         t.descripcion AS descripcionTipoSolicitud, e.descripcion AS descripcionEstadoSolicitud, tipo.descripcion AS descripcionTipoMarcacion,
         u.Nombres AS NombreActualizadoPorF, u.Apellidos AS ApellidosActualizadoPorF,  userf.Nombres AS NombreActualizadoPorS,
         userf.Apellidos AS ApellidosActualizadoPorS, users.Nombres AS nombreTrabajador,
-        users.Apellidos AS ApellidosTrabajador, users.DNI, asist.Hora
-        FROM solicitudes as s 
+        users.Apellidos AS ApellidosTrabajador, users.DNI, asist.Hora, asist.idHorario, DATE_FORMAT(h_n.HoraInicio,'%H:%i') AS HoraInicio,
+        DATE_FORMAT(h_n.HoraFin,'%H:%i') AS HoraFin, h_n.diaExcepcion, h_n.Día, DATE_FORMAT(h_n.HoraInicio_Excepcion,'%H:%i') AS HoraInicio_Excepcion,
+        DATE_FORMAT(h_n.HoraFin_Excepcion,'%H:%i') AS HoraFin_Excepcion
+        FROM solicitudes as s
         LEFT JOIN tiposolicitudes AS t ON t.idSolicitud = s.idTipoSolicitud
         LEFT JOIN estadosolicitudes AS e ON e.idEstadoSolicitud = s.estadoSolicitudF
         LEFT JOIN tipomarcaciones AS tipo ON tipo.idTMarcaciones = s.idTMarcaciones
         LEFT JOIN usuarios AS u ON u.IdUsuarios = s.Updated_byF
         LEFT JOIN usuarios AS userf ON userf.IdUsuarios = s.Updated_byS
         LEFT JOIN usuarios AS users ON users.IdUsuarios = s.idUsuario
-        LEFT JOIN asistencias AS asist ON asist.IdUsuarios = s.idUsuario AND asist.Fecha = s.Fecha AND asist.idTMarcacion = s.idTMarcaciones	
-        WHERE idUsuario IN(${idWorkers}) 
-        AND users.Nombres LIKE "%${filterName}%" AND users.CIP LIKE "%${filterCIP}%" AND users.DNI LIKE "%${filterDNI}%" 
-        AND idTipoSolicitud IN(${typeRequest}) 
+        LEFT JOIN asistencias AS asist ON asist.IdUsuarios = s.idUsuario AND asist.Fecha = s.Fecha AND asist.idTMarcacion = s.idTMarcaciones
+        LEFT JOIN
+        (
+        SELECT
+            h.IdHorarios, h.diaExcepcion,de.Día,
+            MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 15 MINUTE)END) AS HoraInicio,
+            MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END) AS HoraFin,  exc.HoraInicio_Excepcion , exc.HoraFin_Excepcion
+        FROM horarios AS h
+        LEFT JOIN descansos AS de ON h.diaExcepcion = de.IdDescansos
+        LEFT JOIN (
+            SELECT ex.IdExcepcion,
+              MIN(CASE WHEN ex.IdTipoMarcacion = 1 AND ex.IdValidacion = 1 THEN DATE_ADD(ex.HoraInicio, INTERVAL 15 MINUTE) END) AS HoraInicio_Excepcion,
+              MAX(CASE WHEN ex.IdTipoMarcacion = 4 AND ex.IdValidacion = 1 THEN ex.HoraInicio END) AS HoraFin_Excepcion
+            FROM excepciones AS ex
+            GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
+            INNER JOIN descansos AS d ON h.IdDescanso = d.IdDescansos
+            WHERE H.IdEstado = 1
+            GROUP BY h.IdHorarios, h.IdDescanso
+        ) AS h_n ON asist.idhorario = h_n.IdHorarios    
+        WHERE idUsuario IN(${idWorkers})
+        AND users.Nombres LIKE "%${filterName}%" AND users.CIP LIKE "%${filterCIP}%" AND users.DNI LIKE "%${filterDNI}%"
+        AND idTipoSolicitud IN(${typeRequest})
         AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})
-        ORDER BY idTipoSolicitud ASC 
+        ORDER BY idTipoSolicitud ASC
         LIMIT ? OFFSET ?`
         const values = [limit, ofset];
         conexion.query(query, values, (error, result) => {
