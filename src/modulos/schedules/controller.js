@@ -18,7 +18,7 @@ module.exports = function(dbInyectada){
         if (body.idHorario === -1) {
             body.idHorario = null;
         }
-        return db.queryAllSchedulesFilter(tableSchedule, tableRestDays, tableScheduleException, body.idStatus, tableStatus,body.idHorario);
+        return db.queryAllSchedulesFilter(tableSchedule, tableRestDays,tableStatus, tableScheduleException, body.idStatus,body.idHorario);
     };
 
     async function scheduleByUser(body){   

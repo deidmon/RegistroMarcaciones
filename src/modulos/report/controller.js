@@ -10,7 +10,9 @@ const tableExceptions = 'excepciones';
 const tableHoliday = 'feriados';
 const ExcelJS = require('exceljs');
 const stream = require('stream');
-
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/Lima');
+moment.locale('es'); 
 
 module.exports = function(dbInyectada){
     let db = dbInyectada;
@@ -178,13 +180,15 @@ module.exports = function(dbInyectada){
                     row.Tipo_Hora ='SIM'
                     row.Tipo_Hora1 ='SIM'
                 }
+                newdate = row.Fecha.split("-").reverse().join("-");
                 const fecha = new Date(row.Fecha); // obtener dia de la semana
                 const diaSemana = fecha.getDay() + 1;
+                const diaSemanaPersonalizado = (diaSemana ===  0) ?  7 : diaSemana;
                 let minutosHoraMarca = convertTimeStringToMinutes(row.Hora);
                 let minutosHoraAsignada;
                 let diferenciaMinutos;
                 
-                if (row.diaExcepcion === diaSemana) {
+                if (row.diaExcepcion === diaSemanaPersonalizado) {
                     minutosHoraAsignada = convertTimeStringToMinutes(row.idTMarcacion ===  1 ? row.HoraInicio_Excepcion : row.HoraFin_Excepcion);
                 } else {
                     minutosHoraAsignada = convertTimeStringToMinutes(row.idTMarcacion ===  1 ? row.HoraInicio : row.HoraFin);
@@ -203,6 +207,7 @@ module.exports = function(dbInyectada){
         
                 let horasDf = `${horasDiferencia}:${minutosDiferencia}`;
                 let horasDf2 = `${horasDiferencia < 10 ? `0${horasDiferencia}` : horasDiferencia}${minutosExtra*100}`;
+                row.Fecha = newdate
                 row.HorasExtra_HH_mm = horasDf;
                 row.CARGA = horasDf2;
 
@@ -218,17 +223,36 @@ module.exports = function(dbInyectada){
     }
 
     async function reportAudit(body) {
-        const dataUser = await db.queryReportAsistance( tableAssistance,tableUser, tableTypeMarking, body.FechaInicio, body.FechaFin);
+        const doubleBorderStyle = {
+            top: { style: 'double' },
+            left: { style: 'double' },
+            bottom: { style: 'double' },
+            right: { style: 'double' }
+          };
+          
+        const dataInformationUser = await db.userInformationForReport(tableUser, body.idUser);
+        const userCIP = dataInformationUser[0].CIP 
+        const userDNI = dataInformationUser[0].DNI 
+        const userNames = dataInformationUser[0].NombreCompleto
+        let initialDate = moment();
+        let date = initialDate.format('DD-MM-YYYY');
+        const dataUser = await db.queryReportAudit( tableAssistance,tableUser, tableSchedule,tableExceptions, body.FechaInicio, body.FechaFin, body.idUser);
+        /* countRows = dataUser.length +1 */
+        console.log(dataUser)
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Mi Hoja');
         // Crear una nueva fila con el título 
-        worksheet.mergeCells('A1:U1');
-        const titleCell = worksheet.getCell('A1');
-        titleCell.value = 'Planilla de asistencia';
+        worksheet.mergeCells('A1:V1');
+        /* const titleCell = worksheet.getCell('A1');
+        titleCell.value = 'Planilla de asistencia'; */
+        worksheet.getCell('A1').value = 'Planilla de asistencia:';
             // Aplicar estilo de alineación al centro tanto horizontal como verticalmente
-        titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
-        // Aplicar estilo de alineación al centro a toda la fila  1
+        /* titleCell.alignment = { vertical: 'middle', horizontal: 'center' }; */
+        // Aplicar estilo de alineación al centro a toda la fila  1,5,6
         worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+        worksheet.getRow(5).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        worksheet.getRow(6).alignment = { vertical: 'middle', horizontal: 'center' };
+
         worksheet.mergeCells('A2:B2');
         worksheet.getCell('A2').value = 'Compañía:';
         worksheet.mergeCells('C2:J2');
@@ -239,24 +263,23 @@ module.exports = function(dbInyectada){
         worksheet.getCell('M2').value = '20501827623';
         worksheet.mergeCells('S2:T2');
         worksheet.getCell('S2').value = 'Fecha emisión:';
-        worksheet.getCell('U2').value = '12/02/2024';
-
+        worksheet.getCell('U2').value = date;
         worksheet.mergeCells('A3:B3');
-        worksheet.getCell('A3').value = 'CIP:';
+        worksheet.getCell('A3').value = 'CIP';
         worksheet.mergeCells('C3:F3');
-        worksheet.getCell('C3').value = '';
+        worksheet.getCell('C3').value = userCIP;
         worksheet.getCell('G3').value = 'DNI:';
         worksheet.mergeCells('H3:J3');
-        worksheet.getCell('M3').value = '20527623';
+        worksheet.getCell('H3').value = userDNI;
         worksheet.mergeCells('K3:L3');
         worksheet.getCell('K3').value = 'Nombre:';
         worksheet.mergeCells('M3:U3');
-        worksheet.getCell('M3').value = 'Nombres Apellidos';
+        worksheet.getCell('M3').value = userNames;
 
         
         worksheet.getCell('A4').value = 'CCR:';
         worksheet.mergeCells('B4:G4');
-        worksheet.getCell('B3').value = '';
+        worksheet.getCell('B4').value = '';
         worksheet.mergeCells('H4:I4');
         worksheet.getCell('H4').value = 'Gerencia';
         worksheet.mergeCells('J4:O4');
@@ -264,9 +287,9 @@ module.exports = function(dbInyectada){
         worksheet.mergeCells('P4:Q4');
         worksheet.getCell('P4').value = 'Periodo desde';
         worksheet.mergeCells('R4:S4');
-        worksheet.getCell('R4').value = '01-02-2024';
+        worksheet.getCell('R4').value = body.FechaInicio;
         worksheet.getCell('T4').value = 'Hasta';
-        worksheet.getCell('U4').value = '29-02-2024';
+        worksheet.getCell('U4').value = body.FechaFin;
 
         worksheet.mergeCells('A5:A6');
         worksheet.getCell('A5').value = 'Fecha';
@@ -304,28 +327,114 @@ module.exports = function(dbInyectada){
         worksheet.getCell('N6').value = 'S.J.T';
         worksheet.getCell('O6').value = 'S.J.N.T';
         worksheet.getCell('P6').value = 'S.N.J';
+        
+        worksheet.columns = [
+           /*  { header: 'CIP', key: 'CIP', width: 10 }, */
+            { header: 'Fecha', key: 'Fecha', width: 10 },
+            { header: 'Entrada', key: 'Entrada', width: 10 },
+            { header: 'Salida', key: 'Salida', width: 10 },
+           /*  { header: 'IdHorarios', key: 'IdHorarios', width: 10 }, */
+            { header: 'HoraInicio', key: 'HoraInicio', width: 10 },
+            { header: 'Descanso_1', key: 'Descanso_1', width: 10 },
+            { header: 'Descanso_2', key: 'Descanso_2', width: 10 },
+            { header: 'HoraFin', key: 'HoraFin', width: 15 },
+            { header: 'Asignado', key: 'Asignado', width: 10 },
+            { header: 'Asist', key: 'Asist', width: 15 },
+            { header: 'Jornada', key: 'Jornada', width: 15 },
+            { header: 'Atraso', key: 'Atraso', width: 15 },
+            { header: 'Sobretiempo', key: 'Sobretiempo', width: 15 },
+            { header: 'Ausencia', key: 'Ausencia', width: 15 },
+            { header: 'SJT', key: 'SJT', width: 15 },
+            { header: 'SJNT', key: 'SJNT', width: 15 },
+            { header: 'SNJ', key: 'SNJ', width: 15 },
+            { header: 'Horas_Recargo', key: 'Horas_Recargo', width: 15 },
+            { header: 'Horas_extras_normal', key: 'Horas_extras_normal', width: 15 },
+            { header: 'Horas_extras_tipo2', key: 'Horas_extras_tipo2', width: 15 },
+            { header: 'Horas_Falta', key: 'Horas_Falta', width: 15,  },
+            { header: 'Tipo_evento', key: 'Tipo_evento', width: 15 },
+            { header: 'Planilla de asistencia', key: 'Planilla de asistencia', width: 15, hidden: true, },
 
+            /* { header: 'diaExcepcion', key: 'diaExcepcion', width: 25 },
+            { header: 'HoraInicio_Excepcion', key: 'HoraInicio_Excepcion', width: 10 },
+            { header: 'HoraFin_Excepcion:', key: 'HoraFin_Excepcion:', width: 10 }, */
+           ];
+           for (let row =  5; row <=  6; row++) {
+            for (let col =  1; col <=  21; col++) {
+              const cell = worksheet.getCell(row, col);
+              cell.border = doubleBorderStyle;
+            }
+          } 
+        for (const row of dataUser) {
+                newdate = row.Fecha.split("-").reverse().join("-");
+                row.Fecha = newdate;
+                const fecha = new Date(row.Fecha); // obtener dia de la semana
+                const diaSemana = fecha.getDay() + 1;
+                const diaSemanaPersonalizado = (diaSemana ===  0) ?  7 : diaSemana;
+                
+                if (row.diaExcepcion === diaSemanaPersonalizado) {
+                    row.HoraInicio = row.HoraInicio_Excepcion
+                    row.HoraFin = row.HoraFin_Excepcion
+                    
+                } 
+
+                row.Asignado = calcularDiferenciaHoras(row.Salida, row.Entrada);
+                row.Asist = calcularDiferenciaHoras(row.HoraFin, row.HoraInicio);
+                row.Jornada = row.Asist;
+                const moment = require('moment');
+
+                const hora1 = moment(row.Asignado, 'HH:mm');
+                const hora2 = moment(row.Asist, 'HH:mm');
+
+                if (hora1.isAfter(hora2)) {
+                    row.Atraso = calcularDiferenciaHoras(row.Asignado, row.Asist);
+                } else if (hora1.isBefore(hora2)) {
+                    row.Sobretiempo = calcularDiferenciaHoras( row.Asist, row.Asignado);
+                } else {
+                    console.log('Ambas horas son iguales');
+                }
+                if (row.validacionSalida === 4 && row.validacionSalidaSec === 6) {
+                    row.SJT = calcularDiferenciaHoras(row.HoraFin, row.Salida);
+                }
+                if (row.validacionSalida === 6 && row.validacionSalidaSec === 6) {
+                    row.SNJ = calcularDiferenciaHoras(row.HoraFin, row.Salida);
+                }
+
+                const is_holiday = await db.queryCheckHoliday( tableHoliday, row.Fecha);
+                /* console.log(is_holiday) */
+                if (is_holiday ===1){
+                    row.Tipo_evento ='J.FEST.E.'
+                    
+                } else{
+                    row.Tipo_evento ='J.NORMAL'
+                }
+                
+
+             worksheet.addRow(row);
+        };
+        /* worksheet.getCell(`B${countRows}`).value = {
+            formula: `SUM(B7:B${countRows -  1})`,
+            date1904: false // Esto es necesario para evitar un error mencionado en Source  0
+        }; */
         worksheet.eachRow({ includeEmpty: true }, function(row, rowNumber) {
             row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
                 cell.font = { size:  8 };
             });
         });
-        //////////////////////
-        dataUser.forEach(row => {
-        /* worksheet.addRow(row); */
-        });
-        /* await workbook.xlsx.writeFile('MiArchivo.xlsx'); */
+        
         const buffer = await workbook.xlsx.writeBuffer();
          return buffer; 
     };
-    function calcularDiferenciaHoras(hora1, hora2) {
-        const formato = 'HH:mm:ss';
-        const fecha1 = new Date(`1970-01-01 ${hora1}:00`);
-        const fecha2 = new Date(`1970-01-01 ${hora2}:00`);
-        const diferenciaEnMilisegundos =  fecha1.getTime() - fecha2.getTime();
-        const diferenciaEnHoras = diferenciaEnMilisegundos / (1000 *  60 *  60);
-        return diferenciaEnHoras;
-      }
+    function calcularDiferenciaHoras(horaInicio, horaFinal) {
+        const inicio = moment(horaInicio, 'HH:mm');
+        const final = moment(horaFinal, 'HH:mm');
+        const duracion = moment.duration(inicio.diff(final)).asMinutes();
+        const horas = Math.floor(duracion /  60);
+        const minutos = Math.round(duracion %  60);
+    
+        return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+    
+        
+    }
 
     return {
         

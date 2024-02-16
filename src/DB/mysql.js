@@ -497,7 +497,7 @@ function queryAllSchedules(tabla) {
 };
 
 /* 📌 Obtener todos los horarios incluyendo excepciones */
-function queryAllSchedulesFilter(tabla, tabla2, tabla3, consult, tabla4,consult2) {
+function queryAllSchedulesFilter(tabla, tabla2, tabla3,tabla4, consult, consult2) {
     return new Promise((resolve, reject) => {
         const query = `
         SELECT 
@@ -506,8 +506,9 @@ function queryAllSchedulesFilter(tabla, tabla2, tabla3, consult, tabla4,consult2
                 MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END) AS HoraFin,
                 h.IdDescanso,
                 GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día, 1) DESC SEPARATOR ', ') AS Descanso,
-                h.diaExcepcion AS IdDiaExcepcion, de.Día AS DiaExcepcion, h.IdExcepcion, exc.HoraInicio_Excepcion, exc.HoraFin_Excepcion, h.IdEstado
+                h.diaExcepcion AS IdDiaExcepcion, de.Día AS DiaExcepcion, h.IdExcepcion, exc.HoraInicio_Excepcion, exc.HoraFin_Excepcion, h.IdEstado, es.Descripcion
         FROM ?? AS h LEFT JOIN ?? AS de ON h.diaExcepcion = de.IdDescansos
+        INNER JOIN ?? AS es ON h.IdEstado = es.idEstado
         LEFT JOIN (SELECT 
             ex.IdExcepcion,
             MIN(CASE WHEN ex.IdTipoMarcacion = 1 AND ex.IdValidacion = 1 THEN DATE_ADD(ex.HoraInicio, INTERVAL 15 MINUTE) END) AS HoraInicio_Excepcion,
@@ -518,7 +519,7 @@ function queryAllSchedulesFilter(tabla, tabla2, tabla3, consult, tabla4,consult2
         WHERE  FIND_IN_SET(h.IdEstado, COALESCE(?, (SELECT GROUP_CONCAT(IdEstado) FROM ??))) > 0
         AND  FIND_IN_SET(h.IdHorarios, COALESCE(?, (SELECT GROUP_CONCAT(h.IdHorarios) FROM ??))) > 0
         GROUP BY h.IdHorarios, h.IdDescanso`;
-        const values = [tabla, tabla2, tabla3, tabla2, consult,tabla4, consult2, tabla];
+        const values = [tabla, tabla2, tabla3, tabla4, tabla2, consult, tabla3, consult2, tabla];
 
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result);
@@ -1339,7 +1340,7 @@ function queryReportRequest(tabla, tabla2, tabla3, tabla4, tabla5,consult1, cons
         WHERE s.estadoSolicitudF = 2
         AND FIND_IN_SET(s.idTipoSolicitud, COALESCE(?, (SELECT GROUP_CONCAT(idSolicitud) FROM ??))) > 0
         AND s.Fecha BETWEEN ? AND ?
-        AND idUsuario IN(${idWorkers}) 
+        AND s.idUsuario IN(${idWorkers}) 
         ORDER BY Fecha DESC, tm.descripcion`;
         const values = [tabla, tabla2, tabla3, tabla4, tabla5, tabla2, consult1, tabla4, consult2, consult3];
         conexion.query(query, values, (error, result) => {
@@ -1537,9 +1538,9 @@ function queryUserAlreadyMarkedToday(table, table2, consult, consult2, consult3,
 function queryReportOvertimeNew(table, table2, tabla3, tabla4, tabla5, table6, consult, consult2) {
     return new Promise((resolve, reject) => {
         const query = `
-        SELECT  a.idTMarcacion,CIP,DATE_FORMAT(Fecha, '%d-%m-%Y') as Fecha, DATE_FORMAT(Hora,'%H:%i') AS Hora,
+        SELECT  a.idTMarcacion,CIP,DATE_FORMAT(Fecha, '%Y-%m-%d') as Fecha, DATE_FORMAT(Hora,'%H:%i') AS Hora,
                 'HES' AS Cód_Horas, 'TGS' AS Cód_Empresa, 
-                u.IdHorarios,DATE_FORMAT(h_n.HoraInicio,'%H:%i') AS HoraInicio,DATE_FORMAT(h_n.HoraFin,'%H:%i') AS HoraFin, h_n.diaExcepcion, DATE_FORMAT(h_n.HoraInicio_Excepcion,'%H:%i') AS HoraInicio_Excepcion,DATE_FORMAT(h_n.HoraFin_Excepcion,'%H:%i') AS HoraFin_Excepcion ,
+                a.idhorario,DATE_FORMAT(h_n.HoraInicio,'%H:%i') AS HoraInicio,DATE_FORMAT(h_n.HoraFin,'%H:%i') AS HoraFin, h_n.diaExcepcion, DATE_FORMAT(h_n.HoraInicio_Excepcion,'%H:%i') AS HoraInicio_Excepcion,DATE_FORMAT(h_n.HoraFin_Excepcion,'%H:%i') AS HoraFin_Excepcion ,
                 TIMEDIFF(Hora, h_n.HoraFin) AS DiferenciaTiempo
         FROM ?? AS a INNER JOIN ?? as u ON a.IdUsuarios = u.IdUsuarios INNER JOIN ?? as tm ON a.idTMarcacion = tm.idTMarcaciones INNER JOIN 
         (
@@ -1555,7 +1556,7 @@ function queryReportOvertimeNew(table, table2, tabla3, tabla4, tabla5, table6, c
           INNER JOIN ?? AS d ON h.IdDescanso = d.IdDescansos
           WHERE H.IdEstado = 1
           GROUP BY h.IdHorarios, h.IdDescanso
-        ) AS h_n ON u.idhorarios = h_n.IdHorarios
+        ) AS h_n ON a.idhorario = h_n.IdHorarios
         WHERE a.Fecha BETWEEN ? AND ?
         AND idTMarcacion IN (1,4)
         AND a.idValidacion = 4
@@ -1656,6 +1657,65 @@ function queryGeneralFilter(table, idStates, name) {
         });
     });
 };
+function userInformationForReport(tabla,  id) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT IdUsuarios AS "idUser", u.CIP,u.DNI ,CONCAT(u.Nombres, ' ', u.Apellidos) AS NombreCompleto
+            FROM ?? u
+            WHERE idUsuarios = ?`;
+
+        const values = [tabla, id];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
+/* 📌 Reporte auditoria */
+function queryReportAudit(table, table2, table3, table4, consult, consult2, consult3) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT u.CIP,DATE_FORMAT(a.Fecha, '%Y-%m-%d') as Fecha,  DATE_FORMAT(a.hora,'%H:%i') AS HoraInicio,DATE_FORMAT(asis.hora,'%H:%i')  AS HoraFin ,
+        a.idhorario,DATE_FORMAT(h_n.HoraInicio,'%H:%i') AS Entrada,DATE_FORMAT(h_n.HoraFin,'%H:%i') AS Salida,
+               h_n.diaExcepcion, DATE_FORMAT(h_n.HoraInicio_Excepcion,'%H:%i') AS HoraInicio_Excepcion,             	
+               DATE_FORMAT(h_n.HoraFin_Excepcion,'%H:%i') AS HoraFin_Excepcion, a.idValidacion AS validacionEntrada, a.idValidacionSecond AS validacionEntradaSec, asis.idValidacion AS validacionSalida, asis.idValidacionSecond AS validacionSalidaSec
+        FROM ?? AS a INNER JOIN ?? as u ON a.IdUsuarios = u.IdUsuarios 
+        INNER JOIN ?? AS asis ON a.Fecha = asis.Fecha AND a.IdUsuarios = asis.IdUsuarios
+        INNER JOIN 
+                (
+                SELECT 
+                h.IdHorarios, h.diaExcepcion,
+                    MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 15 MINUTE) END) AS HoraInicio, 
+                    MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END) AS HoraFin, exc.HoraInicio_Excepcion, 
+                    exc.HoraFin_Excepcion 
+                FROM ?? AS h 
+                LEFT JOIN (
+                SELECT ex.IdExcepcion,
+                    MIN(CASE WHEN ex.IdTipoMarcacion = 1 AND ex.IdValidacion = 1 THEN DATE_ADD(ex.HoraInicio, INTERVAL 15 MINUTE) END) AS HoraInicio_Excepcion,
+                    MAX(CASE WHEN ex.IdTipoMarcacion = 4 AND ex.IdValidacion = 1 THEN ex.HoraInicio END) AS HoraFin_Excepcion
+                FROM ?? AS ex 
+                GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
+                INNER JOIN descansos AS d ON h.IdDescanso = d.IdDescansos
+                WHERE H.IdEstado = 1
+                GROUP BY h.IdHorarios, h.IdDescanso
+                ) AS h_n ON a.idhorario = h_n.IdHorarios
+        WHERE a.Fecha BETWEEN ? AND ?
+        AND a.idTMarcacion IN (1)
+        AND asis.idTMarcacion IN (4)
+        AND u.IdUsuarios = ?
+        ORDER BY a.Fecha 
+        `;
+        const values = [table, table2, table,table3, table4, consult, consult2, consult3];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+            /* if (error) {
+                reject(error);
+            } else {
+                resolve(result);
+            } */
+        });
+    });
+};
 
 module.exports = {
     allInformationOfOneTable,
@@ -1746,6 +1806,8 @@ module.exports = {
     queryGetLeaders,
     queryGetLeadersCounter,
     addNewRegister,
-    queryGeneralFilter
+    queryGeneralFilter,
+    userInformationForReport,
+    queryReportAudit
 
 }
