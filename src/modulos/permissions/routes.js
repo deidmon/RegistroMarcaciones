@@ -16,6 +16,7 @@ router.post('/getRequestOfWorkersAsignedToLeader', allRequestOfWorkersAsignedToL
 router.post('/getAllRequestOfAllWorkerstoRRHH', allRequestOfAllWorkerstoRRHH);
 router.put('/putManagementOfRequests', managementOfRequests);
 errorMessagePermissions = "Algo salio mal, intente más tarde."
+const pageSize = 7;
 
 async function addJustifications(req, res, next){
     try{
@@ -90,7 +91,6 @@ async function listPermissions(req, res, next) {
 
 async function getAllPermissions(req, res, next){
     try{
-        pageSize = 7;
         const Usersjustifications= await controller.getAllPermissions(req.body);
         const pageIndex = (req.body.page)
         const UsersjustificationsCounter= await controller.getPermissionsCounter(req.body);
@@ -114,7 +114,6 @@ async function getPermissionsCounterPending(req, res, next) {
 /* 📌 Obtener las solicitudes de cada trabajador */
 async function allRequestOfWorker(req, res, next){
     try{
-        pageSize = 7;
         const allRequestOfWorker = await controller.allRequestOfWorker(req.body);
         const pageIndex = (req.body.page)
         const allRequestOfWorkerCounter= await controller.allRequestOfWorkerCounter(req.body);
@@ -128,7 +127,6 @@ async function allRequestOfWorker(req, res, next){
 /* 📌 Todos los solicitudes de los trabajadores asignados a un lider*/
 async function allRequestOfWorkersAsignedToLeader(req, res, next){
     try{
-        pageSize = 7;
         const requestOfWorkersAsignedToLeader = await controller.allRequestOfWorkersAsignedToLeader(req.body);
         const pageIndex = (req.body.page)
         const allRequestOfUserAsignedToLeaderCounter = await controller.allRequestOfUserAsignedToLeaderCounter(req.body);
@@ -142,7 +140,6 @@ async function allRequestOfWorkersAsignedToLeader(req, res, next){
 /* 📌 Todos los solicitudes de todos los trabajadores para RRHH*/
 async function allRequestOfAllWorkerstoRRHH(req, res, next){
     try{
-        pageSize = 7;
         const requestOfAllWorkersAsignedToLeader = await controller.allRequestOfAllWorkersToRRHH(req.body);
         const pageIndex = (req.body.page);
         const allRequestOfAllUserToRRHHCounter = await controller.allRequestOfAllWorkersCounterToRRHH(req.body);

@@ -260,6 +260,55 @@ module.exports = function(dbInyectada){
         return response;
     };
 
+    /* 📌 Obtener roles activos */
+    async function getRolesActives() {
+        const roles = await db.getRolesActives(tableRole)
+        return roles;
+    };
+
+    /* 📌 Obtener todos los roles */
+    async function getAllRoles() {
+        const roles = await db.allInformationOfOneTable(tableRole);
+        return roles;
+    };
+
+    /* 📌 Roles filtro*/
+    async function getRolesFilter(body){
+        const idStates = 
+        [body.idStateEnabled, body.idStateDisabled];
+        console.log("279");
+        const  response = await db.queryRolFilter(tableRole, idStates, body.name);
+        console.log(response);
+        return response;
+    };
+
+    /* 📌 Actualizar rol*/
+    async function updateTableRol(body){
+        const toUpdate = {
+            Nombre: body.description
+        };
+
+        const idWhere = {
+            idRol: body.id
+        };
+
+        //1.Primero verificar el rol si es lider o rrhh
+        const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idUser);
+        const idRoles = whatRolHaveWorker.map(row => row.IdRol);
+        if (idRoles.includes(1)) {
+            message = 'No tienes permiso para actualizar';
+            return { "messages": message }
+        };
+
+        const response = await db.queryUpdateAnyTable(tableRole, toUpdate, idWhere);
+
+        if (response && response.changedRows > 0) {
+            return 'Modificado con éxito';
+        } else {
+            return 'No se realizó ninguna modificación';
+        }
+    };
+    
     return {
         allTypeMarking,
         allTypeValidation,
@@ -280,5 +329,9 @@ module.exports = function(dbInyectada){
         typesRequestFilter,
         getModailityOfWorkFilter,
         getStateRequestFilter,
+        getRolesActives,
+        getAllRoles,
+        getRolesFilter,
+        updateTableRol
     }
 }

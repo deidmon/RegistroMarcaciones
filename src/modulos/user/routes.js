@@ -19,6 +19,7 @@ router.put('/putUpdateRolOfWorkers', updateRolOfWorkers);
 
 
 errorMessageUser = "Algo salio mal, intente más tarde"
+pageSize = 15;
 
 async function consultUser(req, res, next) {
     try{
@@ -104,10 +105,9 @@ async function addTokensUser(req, res, next){
 
 async function getAllWorkers(req, res, next){
     try{
-        pageSize = 7;
-        console.log("Aqui llega");
-        const allWorkers= await controller.allWorkers(req.body);
-        console.log("Aqui llega2");
+  
+        const allWorkers = await controller.allWorkers(req.body);
+
         const pageIndex = (req.body.page)
         const workersCounter = await controller.getWorkersCounter(req.body);
         const pageCount = Math.ceil( workersCounter / pageSize);
@@ -116,16 +116,14 @@ async function getAllWorkers(req, res, next){
         response.error(req, res, false, errorMessage, 500);
     }
 };
+
 /* 📌 Obtener información de todos lideres*/
 async function getLeaders(req, res, next){
     try{
-        pageSize = 7;
-        console.log("Aqui llega");
+
         const allLeaders= await controller.getLeaders(req.body);
-        console.log("124"); 
         const pageIndex = (req.body.page)
         const leadersCounter = await controller.getLeadersCounter(req.body);
-        console.log("127");
         const pageCount = Math.ceil( leadersCounter / pageSize);
         response.successPager(req, res, allLeaders, 200, leadersCounter, pageCount, pageIndex, pageSize);
     }catch(err){

@@ -72,7 +72,7 @@ function allTypeMarking(tabla) {
 /* 📌 Todos los trabajadores */
 function queryAllWorkers(users, states, workModality, role, name, cip, dni, state1, state2, limit, ofset) {
     return new Promise((resolve, reject) => {
-        const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, u.Usuario, m.Descripcion as Modalidad, u.IdHorarios, 
+        const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, u.activo as idEstado, u.Usuario, u.DNI, u.IdRol, m.Descripcion as Modalidad, u.IdHorarios, 
         e.Descripcion as Estado, r.Nombre as Rol, a.idLider as idLeaderAsigned, l.Nombres as nameLeader, l.Apellidos as lastnameLeader
         from ?? as u 
         left join ?? as e ON u.Activo = e.IdEstado 
@@ -91,15 +91,19 @@ function queryAllWorkers(users, states, workModality, role, name, cip, dni, stat
     });
 };
 
+
 /* 📌 Todos los trabajadores asignados a un lider*/
 function queryAllWorkersByUser(users, states, workModality, role, name, cip, dni, state1, state2, limit, ofset, idWorkers) {
     return new Promise((resolve, reject) => {
-        const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, e.Descripcion as Estado, u.Usuario, r.Nombre as Rol, m.Descripcion as Modalidad, u.IdHorarios 
+        const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, u.activo as idEstado, u.Usuario, u.DNI, u.IdRol, m.Descripcion as Modalidad, u.IdHorarios, 
+        e.Descripcion as Estado, r.Nombre as Rol, a.idLider as idLeaderAsigned, l.Nombres as nameLeader, l.Apellidos as lastnameLeader
         from ?? as u 
-        inner join ?? as e ON u.Activo = e.IdEstado 
-        inner join ?? as m ON u.IdModalidad = m.IdModalidad 
-        inner join ?? as r ON u.IdRol = r.IdRol
-        WHERE u.Nombres LIKE "%${name}%" AND u.CIP LIKE "%${cip}%" AND u.DNI LIKE "%${dni}%" 
+        left join ?? as e ON u.Activo = e.IdEstado 
+        left join ?? as m ON u.IdModalidad = m.IdModalidad 
+        left join ?? as r ON u.IdRol = r.IdRol
+        left join asignacionpersonal as a ON u.IdUsuarios = a.idUsuario
+        left join usuarios AS l ON l.IdUsuarios = a.idLider
+        WHERE u.Nombres LIKE "%${name}%" AND u.CIP LIKE "%${cip}%" AND u.DNI LIKE "%${dni}%"
         AND u.Activo IN (?, ?) 
         AND u.IdUsuarios IN(${idWorkers})  
         ORDER BY IdUsuarios ASC 
@@ -1599,9 +1603,10 @@ function queryCheckHoliday(tabla, consult1) {
 /* 📌 Todos los lideres - Contador*/
 function queryGetLeaders(users, role, name, cip, dni, state1, state2, limit, ofset) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT u.IdUsuarios, u.Nombres, u.Apellidos, u.Usuario, u.idRol, r.Nombre AS roll
+        const query = `SELECT u.IdUsuarios, u.Nombres, u.Apellidos, u.activo as idEstado, u.Usuario, u.DNI, u.IdRol, r.Nombre AS Rol, e.Descripcion as Estado
         FROM ?? u
         LEFT JOIN ?? as r ON u.IdRol = r.IdRol
+        left join estados as e ON u.Activo = e.IdEstado
         WHERE u.IdRol IN (2,3) AND u.Nombres LIKE "%${name}%" AND u.CIP LIKE "%${cip}%" AND u.DNI LIKE "%${dni}%" AND u.Activo IN (${state1}, ${state2})        
         ORDER BY IdUsuarios ASC 
         LIMIT ? OFFSET ?
@@ -1717,6 +1722,40 @@ function queryReportAudit(table, table2, table3, table4, consult, consult2, cons
     });
 };
 
+/* 📌 Roles solo activos*/
+function getRolesActives(table) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT t.*, e.Descripcion AS descriptionState
+         from ?? t 
+         INNER JOIN estados e ON e.IdEstado = t.IdEstado
+         where t.idEstado = 1
+         `;
+        const values = [table];
+        conexion.query(query, values, (error, result) => {
+            console.log(error);
+            console.log(result);
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
+
+/* 📌 Filtro de roles*/
+function queryRolFilter(table, idStates, name) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT t.*, e.Descripcion AS descriptionState
+        FROM ?? t
+        INNER JOIN estados e ON e.IdEstado = t.IdEstado
+        WHERE t.IdEstado IN(?) AND t.Nombre LIKE "%${name}%"`;
+        const values = [table, idStates];
+        conexion.query(query, values, (error, result) => {
+            console.log(error);
+            console.log(result);
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -1808,6 +1847,8 @@ module.exports = {
     addNewRegister,
     queryGeneralFilter,
     userInformationForReport,
-    queryReportAudit
+    queryReportAudit,
+    getRolesActives,
+    queryRolFilter
 
 }

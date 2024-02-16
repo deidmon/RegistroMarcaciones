@@ -24,6 +24,10 @@ router.post('/getTypesValidationFilter', typesValidationFilter);
 router.post('/getTypesRequestFilter', typesRequestFilter);
 router.post('/getModailityOfWorkFilter', getModailityOfWorkFilter);
 router.post('/getStateRequestFilter', getStateRequestFilter);
+router.get('/getRolesActives', getRolesActives);
+router.get('/getAllRoles', getAllRoles);
+router.post('/getRolesFilter', getRolesFilter);
+router.put('/putUpdateTableRol', updateTableRol);
 
 
 const errorMessage = "Algo salio mal, intente más tarde."
@@ -243,5 +247,50 @@ async function getStateRequestFilter(req, res, next){
         response.error(req, res, false, errorMessage, 500);
     } 
 };
+
+/* 📌 Obtener rol solo activos */
+async function getRolesActives(req, res) {
+    try{
+        const responseInfo = await controller.getRolesActives();
+        response.success(req, res, responseInfo, "Con éxito", 200);
+    }catch{
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
+/* 📌 Obtener rol solo activos */
+async function getAllRoles(req, res) {
+    try{
+        const responseInfo = await controller.getAllRoles();
+        response.success(req, res, responseInfo, "Con éxito", 200);
+    }catch{
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
+/* 📌 Obtener rol solo activos */
+async function getRolesFilter(req, res) {
+    try{
+        const responseInfo = await controller.getRolesFilter(req.body);
+        response.success(req, res, responseInfo, "Con éxito", 200);
+    }catch{
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
+/* 📌 Actualizar rol*/
+async function updateTableRol(req, res, next) {
+    try{
+        const responseInfo = await controller.updateTableRol(req.body);
+        if(!responseInfo.messages){
+            response.success(req, res, responseInfo, "", 200);
+        }else{
+            response.error(req, res, false, responseInfo.messages, 403);
+        }
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
 
 module.exports = router;   

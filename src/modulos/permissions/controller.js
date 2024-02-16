@@ -12,6 +12,7 @@ const tableAssignmentStaff = 'asignacionpersonal';
 const tableLeader = 'lider';
 const tableDaysOff = 'descansos';
 const tableSchedule = 'horarios';
+const PageSiize = 15;
 
 module.exports = function (dbInyectada) {
     let db = dbInyectada;
@@ -293,7 +294,7 @@ module.exports = function (dbInyectada) {
         function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
             return offset = (numeroPagina - 1) * tamanoPagina
         }
-        PageSiize = 7;
+       
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
         return db.queryGetPermissions(tablePermissions, tableUser, tableTypeMark, tableStatePermissions, tableTypePermissions, tableAssignmentStaff, tableLeader, body.name, body.idUser, body.idStatusPermission, PageSiize, getOffset);
     };
@@ -325,7 +326,6 @@ module.exports = function (dbInyectada) {
 
     /* 📌 Todos los solicitudes de un trabajador*/
     async function allRequestOfWorker(body) {
-        PageSiize = 7;
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
         return db.queryAllRequestOfUser(body.idUser, body.typeRequest, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH, PageSiize, getOffset)
     };
@@ -345,7 +345,6 @@ module.exports = function (dbInyectada) {
 
     /* 📌 Todos los solicitudes de los trabajadores asignados a un lider*/
     async function allRequestOfWorkersAsignedToLeader(body) {
-        PageSiize = 7;
         var getIdsOfWorkers = await db.queryGetIdAsignedToLeader(body.idLeader);//Obtener los ids de trabajadores asignados al lider
         var listaDeIds = getIdsOfWorkers.map(function (rowDataPacket) {//Mapear los objetos RowDataPacket y pasarlos a una lista de  los                 
             return rowDataPacket.idUsuario;
@@ -380,7 +379,6 @@ module.exports = function (dbInyectada) {
 
     /* 📌 Todos los solicitudes de todos los trabajadores para RRHH*/
     async function allRequestOfAllWorkersToRRHH(body) {
-        PageSiize = 7;
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
         return db.queryAllRequestOfUserToRRHH(body.typeRequest, body.filterName, body.filterCIP, body.filterDNI, body.stateInProgress, body.stateApprovedByLeader, body.stateRejectedByLeader, body.stateInProgressRRHH, body.stateAprovedByRRHH, body.stateRejectedByRRHH, PageSiize, getOffset);
     };

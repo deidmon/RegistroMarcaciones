@@ -12,6 +12,7 @@ const tableModalityWork = 'modalidadtrabajo'
 const tableRol = 'rol'
 const tablePermissions = 'solicitudes';
 const bcrypt = require('bcrypt');
+const PageSiize = 15;
 
 module.exports = function (dbInjected) {
 
@@ -118,19 +119,17 @@ module.exports = function (dbInjected) {
     async function allWorkers(body) {
         function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
             return  offset = (numeroPagina - 1) * tamanoPagina
-          }
-        PageSiize = 7;
-        console.log("123");
+        };
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
-        console.log("125"); 
+
         //1.Primero verificar el rol si es lider o rrhh
         const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idUser);
         let IdRolUser = whatRolHaveWorker[0].IdRol
-        console.log("128");
+
         if(IdRolUser === 3){
-            return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name,body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset);
+            return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name, body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset);
         }
-        console.log(132);
+
         var getIdsOfWorkers = await db.queryGetIdAsignedToLeader(body.idUser);//Obtener los ids de trabajadores asignados al lider
         var listaDeIds = getIdsOfWorkers.map(function (rowDataPacket) {//Mapear los objetos RowDataPacket y pasarlos a una lista de  los                 
             return rowDataPacket.idUsuario;
@@ -174,8 +173,8 @@ module.exports = function (dbInjected) {
     async function getLeaders(body) {
         function obtenerDatosPaginados(numeroPagina, tamanoPagina) {
             return  offset = (numeroPagina - 1) * tamanoPagina
-          }
-        PageSiize = 7;
+        };
+
         console.log("178");
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
         return db.queryGetLeaders(tableUser, tableRol, body.name, body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset);
