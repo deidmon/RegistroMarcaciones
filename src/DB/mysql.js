@@ -1599,7 +1599,6 @@ function queryCheckHoliday(tabla, consult1) {
     });
 };
 
-
 /* 📌 Todos los lideres - Contador*/
 function queryGetLeaders(users, role, name, cip, dni, state1, state2, limit, ofset) {
     return new Promise((resolve, reject) => {
@@ -1662,6 +1661,7 @@ function queryGeneralFilter(table, idStates, name) {
         });
     });
 };
+
 function userInformationForReport(tabla,  id) {
     return new Promise((resolve, reject) => {
         const query = `SELECT IdUsuarios AS "idUser", u.CIP,u.DNI ,CONCAT(u.Nombres, ' ', u.Apellidos) AS NombreCompleto
@@ -1739,7 +1739,6 @@ function getRolesActives(table) {
     });
 };
 
-
 /* 📌 Filtro de roles*/
 function queryRolFilter(table, idStates, name) {
     return new Promise((resolve, reject) => {
@@ -1753,6 +1752,18 @@ function queryRolFilter(table, idStates, name) {
             console.log(result);
             return error ? reject(error) : resolve(result);
         });
+    });
+};
+
+/* 📌 Consultar en la tabla de solicitudes para obtener los ids donde se actualizara la tabla de asistencia */
+function queryConsultRequest(tabla, consulta) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT * FROM ?? WHERE id IN(${consulta}) AND idTipoSolicitud = 1`;
+        const values = [tabla];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        })
     });
 };
 
@@ -1849,6 +1860,7 @@ module.exports = {
     userInformationForReport,
     queryReportAudit,
     getRolesActives,
-    queryRolFilter
+    queryRolFilter,
+    queryConsultRequest
 
 }

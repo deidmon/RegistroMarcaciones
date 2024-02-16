@@ -156,7 +156,6 @@ async function managementOfRequests(req, res, next){
         if(!managementOfRequest.messages){
             response.success(req, res, managementOfRequest, "", 200);
         }else{
-            console.log("aqui");
             response.error(req, res, false, managementOfRequest.messages, 403);
         }
     }catch(err){
