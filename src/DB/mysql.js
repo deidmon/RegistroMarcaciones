@@ -1205,7 +1205,7 @@ function queryAllRequestOfUserAsignedToLeader(idWorkers, filterName, filterCIP, 
             FROM excepciones AS ex
             GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
             INNER JOIN descansos AS d ON h.IdDescanso = d.IdDescansos
-            WHERE H.IdEstado = 1
+            WHERE h.IdEstado = 1
             GROUP BY h.IdHorarios, h.IdDescanso
         ) AS h_n ON asist.idhorario = h_n.IdHorarios    
         WHERE idUsuario IN(${idWorkers})
@@ -1472,7 +1472,7 @@ function queryScheduleByHour(tabla, tabla2, tabla3,consult1, consult2) {
              FROM ?? AS ex 
              GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
              INNER JOIN descansos AS d ON h.IdDescanso = d.IdDescansos
-             WHERE H.IdEstado = 1
+             WHERE h.IdEstado = 1
              GROUP BY h.IdHorarios, h.IdDescanso
              HAVING GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día,  1) DESC SEPARATOR ', ')NOT LIKE '%${consult1}%' 
 
@@ -1578,7 +1578,7 @@ function queryReportOvertimeNew(table, table2, tabla3, tabla4, tabla5, table6, c
           FROM ?? AS ex 
           GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
           INNER JOIN ?? AS d ON h.IdDescanso = d.IdDescansos
-          WHERE H.IdEstado = 1
+          WHERE h.IdEstado = 1
           GROUP BY h.IdHorarios, h.IdDescanso
         ) AS h_n ON a.idhorario = h_n.IdHorarios
         WHERE a.Fecha BETWEEN ? AND ?
@@ -1721,7 +1721,7 @@ function queryReportAudit(table, table2, table3, table4, consult, consult2, cons
                 FROM ?? AS ex 
                 GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
                 INNER JOIN descansos AS d ON h.IdDescanso = d.IdDescansos
-                WHERE H.IdEstado = 1
+                WHERE h.IdEstado = 1
                 GROUP BY h.IdHorarios, h.IdDescanso
                 ) AS h_n ON a.idhorario = h_n.IdHorarios
         WHERE a.Fecha BETWEEN ? AND ?
