@@ -134,7 +134,7 @@ async function startProgramming(idTypesMarking) {
   let uniqueHourCronJob = [...new Set(horas)];
   const hourCronJob = uniqueHourCronJob.map((hour) => {
           const objetMoment = moment.tz(hour, 'HH:mm:ss','America/Lima');
-          const serverTime = objetMoment.tz('America/Lima'); //  'ZonaHorariaDelServidor' ------------------cambiar al servidor 'UTC'
+          const serverTime = objetMoment.tz('UTC'); //  'ZonaHorariaDelServidor' ------------------cambiar al servidor 'UTC'
           const minutes = serverTime.format('mm');
           const hours = serverTime.format('HH');
         
@@ -152,13 +152,13 @@ function cronToTime(cron) {
   const segments = cron.split(' ');
   let hours = parseInt(segments[1],  10); // Cambia 'const' por 'let'
   const minutes = parseInt(segments[0],  10);
-  /* // Restar   5 horas
+  // Restar   5 horas
   hours -=  5;
 
   // Si las horas son menores que   0, restarlas al día anterior
   if (hours <   0) {
     hours +=   24;
-  } */
+  }
   // Formatear en 'HH:mm'
   const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   return formattedTime;
