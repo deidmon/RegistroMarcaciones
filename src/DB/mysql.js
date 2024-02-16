@@ -1434,7 +1434,7 @@ function queryScheduleByCronjob(tabla, tabla2, tabla3,consult1) {
           FROM ?? AS ex 
           GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
           INNER JOIN descansos AS d ON h.IdDescanso = d.IdDescansos
-          WHERE H.IdEstado = 1
+          WHERE h.IdEstado = 1
           GROUP BY h.IdHorarios, h.IdDescanso
           HAVING GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día,  1) DESC SEPARATOR ', ')NOT LIKE '%${consult1}%' 
            `
