@@ -7,6 +7,7 @@ const tableModalityWork= 'modalidadtrabajo';
 const tableWorkers= 'usuarios'; 
 const tablePersonalAssigment= 'asignacionpersonal';  
 const tableRole= 'rol';
+const scheduleAssignment = 'asignacionhorarios';
 
 
 module.exports = function(dbInyectada){
@@ -308,6 +309,51 @@ module.exports = function(dbInyectada){
             return 'No se realizó ninguna modificación';
         }
     };
+
+    /* 📌 Asignación de horario para otra fecha */
+    async function addScheduleToAsignmentSchedules(body){
+
+        //1.Primero verificar el rol si es lider o rrhh
+        const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idAsignador);
+        const idRoles = whatRolHaveWorker.map(row => row.IdRol);
+        if (idRoles.includes(1)) {
+            message = 'No tienes permiso para actualizar';
+            return { "messages": message }
+        };
+        console.log("hola2");
+        const searchUser = {
+            idUsuario: body.idWorker
+        }
+        
+        const response = await db.queryGetWhere(scheduleAssignment, searchUser);
+        console.log("hola");
+        if(response.length >= 1){
+            //Actualizar
+            const toUpdate = {
+                fecha: body.fecha,
+                idUsuario: body.idWorker,
+                idHorarios: body.idHorarios,
+                idAsignador: body.idAsignador
+            }
+            const idWhere = {
+                id: response[0].id
+            }
+            console.log("aqui actualizando")
+            const responseOfUpdate = await db.queryUpdateAnyTable(scheduleAssignment, toUpdate, idWhere);
+            return "Asignado con éxito";
+        }
+        //Insertar
+        insertValues = {
+            fecha: body.fecha,
+            idUsuario: body.idWorker,
+            idHorarios: body.idHorarios,
+            idAsignador: body.idAsignador
+        }
+        console.log("aqui agregando")
+        const responseInfo = await  db.addNewRegister(scheduleAssignment, insertValues);
+        return "Asignado con éxito";
+    }
+    
     
     return {
         allTypeMarking,
@@ -332,6 +378,7 @@ module.exports = function(dbInyectada){
         getRolesActives,
         getAllRoles,
         getRolesFilter,
-        updateTableRol
+        updateTableRol,
+        addScheduleToAsignmentSchedules
     }
 }

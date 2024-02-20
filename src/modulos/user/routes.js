@@ -16,6 +16,7 @@ router.get('/getAllWorkersAmount', getAllWorkersAmount);
 router.put('/activateUsers', activateUsers);
 router.post('/getLeaders', getLeaders);
 router.put('/putUpdateRolOfWorkers', updateRolOfWorkers);
+router.put('/putupdatePassword', updatePasswordOfUser);
 
 
 errorMessageUser = "Algo salio mal, intente más tarde"
@@ -165,6 +166,20 @@ async function updateRolOfWorkers(req, res, next) {
         response.error(req, res,false,errorMessageUser, 500);
     }
 };
+
+async function updatePasswordOfUser(req, res, next) {
+    try{
+        const responseInfo = await controller.updatePasswordOfUser(req.body);
+        if(!responseInfo.messages){
+            response.success(req, res, responseInfo, "", 200);
+        }else{
+            response.error(req, res, false, responseInfo.messages, 200);
+        }
+    }catch(err){
+        response.error(req, res,false,errorMessageUser, 500);
+    }
+};
+
 
 
 module.exports = router;   

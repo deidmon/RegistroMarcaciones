@@ -73,13 +73,16 @@ function allTypeMarking(tabla) {
 function queryAllWorkers(users, states, workModality, role, name, cip, dni, state1, state2, limit, ofset) {
     return new Promise((resolve, reject) => {
         const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, u.activo as idEstado, u.Usuario, u.DNI, u.IdRol, m.Descripcion as Modalidad, u.IdHorarios, 
-        e.Descripcion as Estado, r.Nombre as Rol, a.idLider as idLeaderAsigned, l.Nombres as nameLeader, l.Apellidos as lastnameLeader
+        e.Descripcion as Estado, r.Nombre as Rol, a.idLider as idLeaderAsigned, l.Nombres as nameLeader, l.Apellidos as lastnameLeader,
+        asignacion.fecha, asignacion.idHorarios scheduleTobeAssigned, asignacion.idAsignador, userLast.Nombres nombresAsignador, userLast.Apellidos ApellidosAsignador
         from ?? as u 
         left join ?? as e ON u.Activo = e.IdEstado 
         left join ?? as m ON u.IdModalidad = m.IdModalidad 
         left join ?? as r ON u.IdRol = r.IdRol
         left join asignacionpersonal as a ON u.IdUsuarios = a.idUsuario
         left join usuarios AS l ON l.IdUsuarios = a.idLider
+        left join asignacionhorarios as asignacion ON asignacion.idUsuario = u.IdUsuarios
+        left join usuarios AS userLast ON userLast.IdUsuarios = asignacion.idUsuario
         WHERE u.Nombres LIKE "%${name}%" AND u.CIP LIKE "%${cip}%" AND u.DNI LIKE "%${dni}%" AND u.Activo IN (${state1}, ${state2})  
         ORDER BY IdUsuarios ASC 
         LIMIT ? OFFSET ?
@@ -96,13 +99,16 @@ function queryAllWorkers(users, states, workModality, role, name, cip, dni, stat
 function queryAllWorkersByUser(users, states, workModality, role, name, cip, dni, state1, state2, limit, ofset, idWorkers) {
     return new Promise((resolve, reject) => {
         const query = `Select u.IdUsuarios, u.Nombres, u.Apellidos, u.activo as idEstado, u.Usuario, u.DNI, u.IdRol, m.Descripcion as Modalidad, u.IdHorarios, 
-        e.Descripcion as Estado, r.Nombre as Rol, a.idLider as idLeaderAsigned, l.Nombres as nameLeader, l.Apellidos as lastnameLeader
+        e.Descripcion as Estado, r.Nombre as Rol, a.idLider as idLeaderAsigned, l.Nombres as nameLeader, l.Apellidos as lastnameLeader,
+        asignacion.fecha, asignacion.idHorarios scheduleTobeAssigned, asignacion.idAsignador, userLast.Nombres nombresAsignador, userLast.Apellidos ApellidosAsignador
         from ?? as u 
         left join ?? as e ON u.Activo = e.IdEstado 
         left join ?? as m ON u.IdModalidad = m.IdModalidad 
         left join ?? as r ON u.IdRol = r.IdRol
         left join asignacionpersonal as a ON u.IdUsuarios = a.idUsuario
         left join usuarios AS l ON l.IdUsuarios = a.idLider
+        left join asignacionhorarios as asignacion ON asignacion.idUsuario = u.IdUsuarios
+        left join usuarios AS userLast ON userLast.IdUsuarios = asignacion.idUsuario
         WHERE u.Nombres LIKE "%${name}%" AND u.CIP LIKE "%${cip}%" AND u.DNI LIKE "%${dni}%"
         AND u.Activo IN (?, ?) 
         AND u.IdUsuarios IN(${idWorkers})  
@@ -506,7 +512,7 @@ function queryAllSchedulesFilter(tabla, tabla2, tabla3,tabla4, consult, consult2
         const query = `
         SELECT 
                 h.IdHorarios,
-                MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 5 MINUTE) END) AS HoraInicio,
+                MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 15 MINUTE) END) AS HoraInicio,
                 MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END) AS HoraFin,
                 h.IdDescanso,
                 GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día, 1) DESC SEPARATOR ', ') AS Descanso,
@@ -1799,6 +1805,30 @@ function querygenericToGetAll(tabla) {
     });
 };
 
+/* 📌 Eliminar fila de una tabla */
+function querygenericToDeleteData(table, consult) {
+    return new Promise((resolve, reject) => {
+        const query = `DELETE FROM ?? WHERE ?`;
+        const values = [table, consult];
+        conexion.query(query, values, (error, result) => {
+            console.log(result);
+            return error ? reject(error) : resolve(result);
+        })
+    });
+};
+
+/* 📌 Query generica para consultar todos los datos de una tabla sin (where ni inner) */
+function queryGetWhere(table, consult) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT * FROM ?? WHERE ?`;
+        const values = [table, consult];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        })
+    });
+};
+
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -1895,5 +1925,7 @@ module.exports = {
     queryRolFilter,
     queryConsultRequest,
     querygenericToGetAll,
+    querygenericToDeleteData,
+    queryGetWhere
 
 }

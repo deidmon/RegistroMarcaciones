@@ -13,6 +13,7 @@ const tableRol = 'rol'
 const tablePermissions = 'solicitudes';
 const bcrypt = require('bcrypt');
 const PageSiize = 15;
+const minimumPasswordCharacters = 6;
 
 module.exports = function (dbInjected) {
 
@@ -328,6 +329,36 @@ module.exports = function (dbInjected) {
         }
     };
 
+    /* 📌 Actualizar contraseña */
+    async function updatePasswordOfUser(body) {
+        // Expresiones regulares para validar si la contraseña contiene al menos un número, un carácter y una mayúscula
+        const hasNumber = /\d/.test(body.password);
+        const hasCharacter = /[a-zA-Z]/.test(body.password);
+        const hasUppercase = /[A-Z]/.test(body.password);
+
+        if(body.password.length < minimumPasswordCharacters){
+            return { "messages": `La  contraseña debe tener como minimo ${minimumPasswordCharacters} caracteres` }
+        } else if (!hasNumber || !hasCharacter || !hasUppercase) {
+            return { "messages": "La contraseña debe contener al menos un número, un carácter y una mayúscula" };
+        }
+        let password = body.password;
+
+        if (body.password) {
+            password = await bcrypt.hash(body.password.toString(), 5)
+        }
+        const toUpdate = {
+            IdUsuarios: body.idUser,
+            Contraseña: password
+        };
+        const responseInfo = await db.update(tableUser, toUpdate);
+        if (responseInfo && responseInfo.changedRows > 0) {
+            return 'Contraseña modificada con éxito';
+        } else {
+            return 'Contraseña modificada con éxito';
+        }
+    };
+    
+
     return {
         allWorkers,
         getWorkersCounter,
@@ -342,6 +373,7 @@ module.exports = function (dbInjected) {
         activateUsers,
         getLeaders,
         getLeadersCounter,
-        updateRolOfWorkers
+        updateRolOfWorkers,
+        updatePasswordOfUser
     }
 }

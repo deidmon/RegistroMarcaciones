@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.post('/marking',/* seguridad(), */ addMarking);
 router.post('/update',seguridad(), update);
+router.post('/addMarkingVirtual',/* seguridad(), */ addMarkingVirtual);
 
 errorMessageAsistance = "Algo salio mal, intente más tarde."
 
@@ -39,4 +40,16 @@ async function update(req, res, next){
     }
 };
 
+async function addMarkingVirtual(req, res, next){
+    try{
+        const resultValidation  = await controller.addMarkingVirtual(req.body);
+        if(!resultValidation.messages){
+            response.success(req, res, resultValidation, "", 200);
+        }else{
+            response.error(req, res, false, resultValidation.messages, 200);
+        }
+    }catch(err){
+        response.error(req, res, false, errorMessageAsistance, 500);
+    }
+}
 module.exports = router;   

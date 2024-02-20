@@ -28,6 +28,8 @@ router.get('/getRolesActives', getRolesActives);
 router.get('/getAllRoles', getAllRoles);
 router.post('/getRolesFilter', getRolesFilter);
 router.put('/putUpdateTableRol', updateTableRol);
+router.put('/addScheduleToAsignmentSchedules', addScheduleToAsignmentSchedules);
+
 
 
 const errorMessage = "Algo salio mal, intente más tarde."
@@ -291,6 +293,21 @@ async function updateTableRol(req, res, next) {
         response.error(req, res, false, errorMessage, 500);
     }
 };
+
+/* 📌 Asignación de horario para otra fecha */
+async function addScheduleToAsignmentSchedules(req, res, next) {
+    try{
+        const responseInfo = await controller.addScheduleToAsignmentSchedules(req.body);
+        if(!responseInfo.messages){
+            response.success(req, res, responseInfo, "", 200);
+        }else{
+            response.error(req, res, false, responseInfo.messages, 403);
+        }
+    }catch(err){
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
 
 
 module.exports = router;   
