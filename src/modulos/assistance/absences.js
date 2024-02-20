@@ -11,7 +11,7 @@ const tableExceptions = 'excepciones';
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/Lima');
 
-async function registerAbsencesController(idTypesMarking, usersUnregistered) {
+async function registerAbsencesController(idTypesMarking, usersUnregistered, idSchedule) {
 
   let initialDate =  moment();
   let day = initialDate.format('DD'); 
@@ -37,6 +37,7 @@ async function registerAbsencesController(idTypesMarking, usersUnregistered) {
           idValidacionSecond: 3,
           Hora: '',
           Created_by: 0,
+          idHorario: idSchedule,
         };
 
         console.log('Registrando falta para el usuario Id:', idUser );
@@ -90,20 +91,22 @@ async function startProgramming(idTypesMarking) {
   function scheduleTask(cronExpression,schedule, date) {
     cron.schedule(cronExpression, async () => {
       let idSchedules = schedule
-        try {
-          let listUsersWithRequest
-          const userWithPermision = await db.queryPermissionByDate(tablePermissions, tableUser, date, idSchedules);
-          const userWithVacations = await db.queryVacationsByDate(tablePermissions, tableUser,date, idSchedules);
-          listUsersWithRequest = [...userWithPermision, ...userWithVacations];
-          /* console.log(listUsersWithRequest) */
-          const usersUnregistered = await db.queryUserAlreadyMarkedToday(tableUser, tableAssist, date, idTypesMarking, idSchedules, listUsersWithRequest );
-          console.log(usersUnregistered)
-          const message = await registerAbsencesController(idTypesMarking, usersUnregistered); 
-          console.log(`Ejecución programada a las ${cronExpression}: ${message} el ${date}`);
-        } catch (error) {
-          console.error('Error en la ejecución programada:', error);
-        }
-      
+        await Promise.all(idSchedules.map(async (row) => {
+          try {
+            let listUsersWithRequest
+            const userWithPermision = await db.queryPermissionByDate(tablePermissions, tableUser, date, row);
+            const userWithVacations = await db.queryVacationsByDate(tablePermissions, tableUser,date, row);
+            listUsersWithRequest = [...userWithPermision, ...userWithVacations];
+            /* console.log(listUsersWithRequest) */
+            const usersUnregistered = await db.queryUserAlreadyMarkedToday(tableUser, tableAssist, date, idTypesMarking, row, listUsersWithRequest );
+            console.log(usersUnregistered)
+            const message = await registerAbsencesController(idTypesMarking, usersUnregistered, row); 
+            console.log(`Ejecución programada a las ${cronExpression}: ${message} el ${date}`);
+          } catch (error) {
+            console.error('Error en la ejecución programada:', error);
+          }
+        
+       }))
      
     },
     );

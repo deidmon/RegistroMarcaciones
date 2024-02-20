@@ -229,6 +229,19 @@ module.exports = function(dbInyectada){
             bottom: { style: 'double' },
             right: { style: 'double' }
           };
+
+          const simpleBorderStyle = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+          
+          const borderStyleSum = {
+            top: { style: 'thin' },
+            bottom: { style: 'thin' },
+
+          };
           
         const dataInformationUser = await db.userInformationForReport(tableUser, body.idUser);
         const userCIP = dataInformationUser[0].CIP 
@@ -237,33 +250,26 @@ module.exports = function(dbInyectada){
         let initialDate = moment();
         let date = initialDate.format('DD-MM-YYYY');
         const dataUser = await db.queryReportAudit( tableAssistance,tableUser, tableSchedule,tableExceptions, body.FechaInicio, body.FechaFin, body.idUser);
-        /* countRows = dataUser.length +1 */
-        console.log(dataUser)
+        countRows = dataUser.length 
+        /* console.log(countRows) */
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Mi Hoja');
         // Crear una nueva fila con el título 
-        worksheet.mergeCells('A1:V1');
-        /* const titleCell = worksheet.getCell('A1');
-        titleCell.value = 'Planilla de asistencia'; */
-        worksheet.getCell('A1').value = 'Planilla de asistencia:';
-            // Aplicar estilo de alineación al centro tanto horizontal como verticalmente
-        /* titleCell.alignment = { vertical: 'middle', horizontal: 'center' }; */
-        // Aplicar estilo de alineación al centro a toda la fila  1,5,6
+        worksheet.mergeCells('A1:U1');
         worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
         worksheet.getRow(5).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
         worksheet.getRow(6).alignment = { vertical: 'middle', horizontal: 'center' };
-
         worksheet.mergeCells('A2:B2');
         worksheet.getCell('A2').value = 'Compañía:';
         worksheet.mergeCells('C2:J2');
         worksheet.getCell('C2').value = 'GESTION DE SERVICIOS COMPARTIDOS PERÚ SAC';
         worksheet.mergeCells('K2:L2');
         worksheet.getCell('K2').value = 'RUC:';
-        worksheet.mergeCells('M2:R2');
+        worksheet.mergeCells('M2:Q2');
         worksheet.getCell('M2').value = '20501827623';
-        worksheet.mergeCells('S2:T2');
-        worksheet.getCell('S2').value = 'Fecha emisión:';
-        worksheet.getCell('U2').value = date;
+        worksheet.mergeCells('R2:S2');
+        worksheet.getCell('R2').value = 'Fecha emisión:';
+        worksheet.getCell('T2').value = date;
         worksheet.mergeCells('A3:B3');
         worksheet.getCell('A3').value = 'CIP';
         worksheet.mergeCells('C3:F3');
@@ -273,23 +279,22 @@ module.exports = function(dbInyectada){
         worksheet.getCell('H3').value = userDNI;
         worksheet.mergeCells('K3:L3');
         worksheet.getCell('K3').value = 'Nombre:';
-        worksheet.mergeCells('M3:U3');
+        worksheet.mergeCells('M3:T3');
         worksheet.getCell('M3').value = userNames;
 
-        
         worksheet.getCell('A4').value = 'CCR:';
         worksheet.mergeCells('B4:G4');
         worksheet.getCell('B4').value = '';
         worksheet.mergeCells('H4:I4');
         worksheet.getCell('H4').value = 'Gerencia';
-        worksheet.mergeCells('J4:O4');
+        worksheet.mergeCells('J4:N4');
         worksheet.getCell('J4').value = '';
-        worksheet.mergeCells('P4:Q4');
-        worksheet.getCell('P4').value = 'Periodo desde';
-        worksheet.mergeCells('R4:S4');
-        worksheet.getCell('R4').value = body.FechaInicio;
-        worksheet.getCell('T4').value = 'Hasta';
-        worksheet.getCell('U4').value = body.FechaFin;
+        worksheet.mergeCells('O4:P4');
+        worksheet.getCell('O4').value = 'Periodo desde';
+        worksheet.mergeCells('Q4:R4');
+        worksheet.getCell('Q4').value = body.FechaInicio;
+        worksheet.getCell('S4').value = 'Hasta';
+        worksheet.getCell('T4').value = body.FechaFin;
 
         worksheet.mergeCells('A5:A6');
         worksheet.getCell('A5').value = 'Fecha';
@@ -299,18 +304,18 @@ module.exports = function(dbInyectada){
         worksheet.getCell('D5').value = 'JORNADA REAL';
         worksheet.mergeCells('H5:M5');
         worksheet.getCell('H5').value = 'HORAS';
-        worksheet.mergeCells('N5:P5');
+        worksheet.mergeCells('N5:O5');
         worksheet.getCell('N5').value = 'PERMISOS Y SALIDAS';
+        worksheet.mergeCells('P5:P6');
+        worksheet.getCell('P5').value = 'Horas Recargo nocturno';
         worksheet.mergeCells('Q5:Q6');
-        worksheet.getCell('Q5').value = 'Horas Recargo nocturno';
+        worksheet.getCell('Q5').value = 'Horas extras normal';
         worksheet.mergeCells('R5:R6');
-        worksheet.getCell('R5').value = 'Horas extras normal';
+        worksheet.getCell('R5').value = 'Horas extras tipo 2';
         worksheet.mergeCells('S5:S6');
-        worksheet.getCell('S5').value = 'Horas extras tipo 2';
+        worksheet.getCell('S5').value = 'Horas falta';
         worksheet.mergeCells('T5:T6');
-        worksheet.getCell('T5').value = 'Horas falta';
-        worksheet.mergeCells('U5:U6');
-        worksheet.getCell('U5').value = 'Tipo evento';
+        worksheet.getCell('T5').value = 'Tipo evento';
 
         worksheet.getCell('B6').value = 'Entrada';
         worksheet.getCell('C6').value = 'Salida';
@@ -321,59 +326,52 @@ module.exports = function(dbInyectada){
         worksheet.getCell('H6').value = 'Asignado';
         worksheet.getCell('I6').value = 'Asist.';
         worksheet.getCell('J6').value = 'Jornada';
-        worksheet.getCell('K6').value = 'Atraso';
+        worksheet.getCell('K6').value = 'Horas no laboradas';
         worksheet.getCell('L6').value = 'S. Temp.';
         worksheet.getCell('M6').value = 'Ausencia';
         worksheet.getCell('N6').value = 'S.J.T';
-        worksheet.getCell('O6').value = 'S.J.N.T';
-        worksheet.getCell('P6').value = 'S.N.J';
+        /* worksheet.getCell('O6').value = 'S.J.N.T'; */
+        worksheet.getCell('O6').value = 'S.N.J';
         
         worksheet.columns = [
            /*  { header: 'CIP', key: 'CIP', width: 10 }, */
             { header: 'Fecha', key: 'Fecha', width: 10 },
-            { header: 'Entrada', key: 'Entrada', width: 10 },
-            { header: 'Salida', key: 'Salida', width: 10 },
+            { header: 'Entrada', key: 'Entrada', width: 8 },
+            { header: 'Salida', key: 'Salida', width: 8 },
            /*  { header: 'IdHorarios', key: 'IdHorarios', width: 10 }, */
-            { header: 'HoraInicio', key: 'HoraInicio', width: 10 },
-            { header: 'Descanso_1', key: 'Descanso_1', width: 10 },
-            { header: 'Descanso_2', key: 'Descanso_2', width: 10 },
-            { header: 'HoraFin', key: 'HoraFin', width: 15 },
-            { header: 'Asignado', key: 'Asignado', width: 10 },
-            { header: 'Asist', key: 'Asist', width: 15 },
-            { header: 'Jornada', key: 'Jornada', width: 15 },
+            { header: 'HoraInicio', key: 'HoraInicio', width: 8 },
+            { header: 'Descanso_1', key: 'Descanso_1', width: 8 },
+            { header: 'Descanso_2', key: 'Descanso_2', width: 8 },
+            { header: 'HoraFin', key: 'HoraFin', width: 8 },
+            { header: 'Asignado', key: 'Asignado', width: 8 },
+            { header: 'Asist', key: 'Asist', width: 8 },
+            { header: 'Jornada', key: 'Jornada', width: 8 },
             { header: 'Atraso', key: 'Atraso', width: 15 },
-            { header: 'Sobretiempo', key: 'Sobretiempo', width: 15 },
-            { header: 'Ausencia', key: 'Ausencia', width: 15 },
-            { header: 'SJT', key: 'SJT', width: 15 },
-            { header: 'SJNT', key: 'SJNT', width: 15 },
-            { header: 'SNJ', key: 'SNJ', width: 15 },
-            { header: 'Horas_Recargo', key: 'Horas_Recargo', width: 15 },
-            { header: 'Horas_extras_normal', key: 'Horas_extras_normal', width: 15 },
-            { header: 'Horas_extras_tipo2', key: 'Horas_extras_tipo2', width: 15 },
-            { header: 'Horas_Falta', key: 'Horas_Falta', width: 15,  },
-            { header: 'Tipo_evento', key: 'Tipo_evento', width: 15 },
-            { header: 'Planilla de asistencia', key: 'Planilla de asistencia', width: 15, hidden: true, },
-
-            /* { header: 'diaExcepcion', key: 'diaExcepcion', width: 25 },
-            { header: 'HoraInicio_Excepcion', key: 'HoraInicio_Excepcion', width: 10 },
-            { header: 'HoraFin_Excepcion:', key: 'HoraFin_Excepcion:', width: 10 }, */
+            { header: 'Sobretiempo', key: 'Sobretiempo', width: 8 },
+            { header: 'Ausencia', key: 'Ausencia', width: 8 },
+            { header: 'SJT', key: 'SJT', width: 8 },
+            /* { header: 'SJNT', key: 'SJNT', width: 8 }, */
+            { header: 'SNJ', key: 'SNJ', width: 8 },
+            { header: 'Horas_Recargo', key: 'Horas_Recargo', width: 10 },
+            { header: 'Horas_extras_normal', key: 'Horas_extras_normal', width: 10 },
+            { header: 'Horas_extras_tipo2', key: 'Horas_extras_tipo2', width: 10 },
+            { header: 'Horas_Falta', key: 'Horas_Falta', width: 10,  },
+            { header: 'Tipo_evento', key: 'Tipo_evento', width: 10 },
+            { header: 'Planilla de asistencia', key: 'Planilla de asistencia', width: 15,hidden: true, },
            ];
-           for (let row =  5; row <=  6; row++) {
-            for (let col =  1; col <=  21; col++) {
-              const cell = worksheet.getCell(row, col);
-              cell.border = doubleBorderStyle;
-            }
-          } 
+           
+        let countAbsences = 0
+        /* let hoursHolidays = 0 */
         for (const row of dataUser) {
                 newdate = row.Fecha.split("-").reverse().join("-");
                 row.Fecha = newdate;
                 const fecha = new Date(row.Fecha); // obtener dia de la semana
-                const diaSemana = fecha.getDay() + 1;
+                const diaSemana = fecha.getDay() ;
                 const diaSemanaPersonalizado = (diaSemana ===  0) ?  7 : diaSemana;
                 
                 if (row.diaExcepcion === diaSemanaPersonalizado) {
-                    row.HoraInicio = row.HoraInicio_Excepcion
-                    row.HoraFin = row.HoraFin_Excepcion
+                    row.Entrada = row.HoraInicio_Excepcion
+                    row.Salida = row.HoraFin_Excepcion
                     
                 } 
 
@@ -384,43 +382,306 @@ module.exports = function(dbInyectada){
 
                 const hora1 = moment(row.Asignado, 'HH:mm');
                 const hora2 = moment(row.Asist, 'HH:mm');
-
-                if (hora1.isAfter(hora2)) {
-                    row.Atraso = calcularDiferenciaHoras(row.Asignado, row.Asist);
-                } else if (hora1.isBefore(hora2)) {
-                    row.Sobretiempo = calcularDiferenciaHoras( row.Asist, row.Asignado);
-                } else {
-                    console.log('Ambas horas son iguales');
+                const hora_simple = moment('02:00', 'HH:mm');
+                
+                let ausenciaAsignada = false;
+                if(row.HoraInicio === '00:00' && row.HoraFin === '00:00'){
+                    row.Ausencia = row.Asignado
+                    ausenciaAsignada = true; 
+                    countAbsences += 1;
                 }
+
+                if (!ausenciaAsignada && hora1.isAfter(hora2)) {
+                    row.Atraso = calcularDiferenciaHoras(row.Asignado, row.Asist);
+                } else if (!ausenciaAsignada && hora1.isBefore(hora2)) {
+                    row.Sobretiempo = calcularDiferenciaHoras( row.Asist, row.Asignado);
+                } else if (!ausenciaAsignada) {
+                    return '00:00';
+                }
+
                 if (row.validacionSalida === 4 && row.validacionSalidaSec === 6) {
                     row.SJT = calcularDiferenciaHoras(row.HoraFin, row.Salida);
+                    const horaSJT = moment(row.SJT, 'HH:mm');
+                    if(horaSJT.isAfter(hora_simple)){
+                        row.Horas_extras_normal = '02:00'
+                        row.Horas_extras_tipo2 = calcularDiferenciaHoras(row.SJT, hora_simple)
+                    }
                 }
                 if (row.validacionSalida === 6 && row.validacionSalidaSec === 6) {
                     row.SNJ = calcularDiferenciaHoras(row.HoraFin, row.Salida);
+                    // CONSULTAR ACTIVAR SI TAMBIÉN ES PARA SNJ O SÓLO PARA SJT
+                    /* const horaSNJ = moment(row.SNJ, 'HH:mm');
+                    if(horaSNJ.isAfter(hora_simple)){
+                        row.Horas_extras_normal = '02:00'
+                        row.Horas_extras_tipo2 = calcularDiferenciaHoras(row.SNJ, hora_simple)
+                    } */
                 }
+                
+                row.Horas_Falta = row.Atraso
 
                 const is_holiday = await db.queryCheckHoliday( tableHoliday, row.Fecha);
                 /* console.log(is_holiday) */
                 if (is_holiday ===1){
-                    row.Tipo_evento ='J.FEST.E.'
+                    row.Tipo_evento ='J.FEST.E.';
+                    hoursHolidays += row.Asist
                     
                 } else{
                     row.Tipo_evento ='J.NORMAL'
                 }
-                
 
              worksheet.addRow(row);
         };
-        /* worksheet.getCell(`B${countRows}`).value = {
-            formula: `SUM(B7:B${countRows -  1})`,
-            date1904: false // Esto es necesario para evitar un error mencionado en Source  0
-        }; */
+
+        // Función para convertir horas en formato 'HH:MM' a minutos
+        function convertirHorasAMinutos(hora) {
+            const partes = hora.split(':');
+            const horas = parseInt(partes[0],   10);
+            const minutos = parseInt(partes[1],   10);
+            return (horas *   60) + minutos;
+        }
+        
+        // Función para sumar horas en un rango de celdas
+        function sumarHoras(worksheet, column,rangoInicio, rangoFin) {
+            let totalMinutos =  0;
+            for (let i = rangoInicio; i <= rangoFin; i++) {
+            const valor = worksheet.getCell(`${column}${i}`).value;
+            if (valor) {
+                totalMinutos += convertirHorasAMinutos(valor);
+            }
+            }
+        
+            // Convertir total de minutos a formato 'HH:MM'
+            const horas = Math.floor(totalMinutos /   60);
+            const minutos = totalMinutos %   60;
+            return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}`;
+        }
+
+        const endRows = 7 + countRows;
+        /* console.log(endRows) */
+        const resultSum_H = sumarHoras(worksheet,'H' , 7, endRows);
+        const resultSum_I = sumarHoras(worksheet,'I' , 7, endRows);
+        const resultSum_J = sumarHoras(worksheet,'J' , 7, endRows);
+        const resultSum_K = sumarHoras(worksheet,'K' , 7, endRows);
+        const resultSum_L = sumarHoras(worksheet,'L' , 7, endRows);
+        const resultSum_M = sumarHoras(worksheet,'M' , 7, endRows);
+        const resultSum_N = sumarHoras(worksheet,'N' , 7, endRows);
+        const resultSum_O = sumarHoras(worksheet,'O' , 7, endRows);
+        const resultSum_Q = sumarHoras(worksheet,'Q' , 7, endRows);
+        const resultSum_R = sumarHoras(worksheet,'R' , 7, endRows);
+        const resultSum_S = sumarHoras(worksheet,'S' , 7, endRows);
+
+
+        worksheet.getCell('H40').value= resultSum_H
+        worksheet.getCell('I40').value= resultSum_I
+        worksheet.getCell('J40').value= resultSum_J
+        worksheet.getCell('K40').value= resultSum_K
+        worksheet.getCell('L40').value= resultSum_L;
+        worksheet.getCell('M40').value= resultSum_M;
+        worksheet.getCell('N40').value= resultSum_N;
+        worksheet.getCell('O40').value= resultSum_O;
+        
+
+        worksheet.mergeCells('A40:B40');
+        worksheet.getCell('A40').value = 'RESUMEN MENSUAL';
+        worksheet.mergeCells('A41:T41');
+        worksheet.getCell('A41').value = 'RESUMEN GENERAL';
+        worksheet.mergeCells('A42:E42');
+        worksheet.getCell('A42').value = 'TIEMPO NORMAL';
+        worksheet.mergeCells('F42:J42');
+        worksheet.getCell('F42').value = 'T.SALIDAS ESPECIALES';
+        worksheet.mergeCells('K42:O42');
+        worksheet.getCell('K42').value = 'CANTIDAD';
+        worksheet.mergeCells('P42:T42');
+        worksheet.getCell('P42').value = 'RESULTADO';
+
+        worksheet.mergeCells('A43:D43');
+        worksheet.getCell('A43').value = 'Asignado';
+        worksheet.getCell('E43').value = resultSum_H;
+        worksheet.mergeCells('F43:I43');
+        worksheet.getCell('F43').value = 'S.J.T';
+        worksheet.getCell('J43').value = resultSum_N;
+        worksheet.mergeCells('K43:N43');
+        worksheet.getCell('K43').value = 'N° atrasos';
+        worksheet.mergeCells('P43:S43');
+        worksheet.getCell('P43').value = 'Horas en días festivo';
+        /* worksheet.getCell('T43').value = hoursHolidays; */
+
+        worksheet.mergeCells('A44:D44');
+        worksheet.getCell('A44').value = 'Asistencia';
+        worksheet.getCell('E44').value = resultSum_I;
+        worksheet.mergeCells('F44:I44');
+        worksheet.getCell('F44').value = 'S.N.J';
+        worksheet.getCell('J44').value = resultSum_O;
+        worksheet.mergeCells('K44:N44');
+        worksheet.getCell('K44').value = 'Nº salidas temp.';
+        worksheet.mergeCells('P44:S44');
+        worksheet.getCell('P44').value = 'Horas en recargo nocturno';
+
+        worksheet.mergeCells('A45:D45');
+        worksheet.getCell('A45').value = 'Jornada';
+        worksheet.getCell('E45').value = resultSum_J;
+        worksheet.mergeCells('F45:I45');
+        worksheet.getCell('F45').value = 'Total Salidas a descontar';
+        worksheet.mergeCells('K45:N45');
+        worksheet.getCell('K45').value = 'Nº inasistencias';
+        
+        worksheet.getCell('O45').value = countAbsences;
+
+
+        worksheet.mergeCells('A46:D46');
+        worksheet.getCell('A46').value = 'Ausencia';
+        worksheet.getCell('E46').value = resultSum_M;
+        
+        worksheet.mergeCells('K46:N46');
+        worksheet.getCell('K46').value = 'Días c/licencia médica';
+        worksheet.mergeCells('F46:J46');
+        worksheet.mergeCells('P45:S45');
+        worksheet.getCell('P45').value = 'TOTAL HORAS EXTRAS NORMAL (25%)';
+        worksheet.getCell('T45').value = resultSum_Q;
+
+        worksheet.mergeCells('A47:D47');
+        worksheet.getCell('A47').value = 'Horas  no laboradas';
+        worksheet.getCell('E47').value = resultSum_K;
+        worksheet.mergeCells('F47:J47');
+        worksheet.mergeCells('K47:N47');
+        worksheet.getCell('K47').value = 'Nº ausencias parciales';
+        worksheet.mergeCells('A48:D48');
+        worksheet.getCell('A48').value = 'Salida Temprana';
+        worksheet.mergeCells('F48:O48');
+        worksheet.mergeCells('P46:S46');
+        worksheet.getCell('P46').value = 'TOTAL HORAS EXTRAS TIPO 2 (35%)';
+        worksheet.getCell('T46').value = resultSum_R;
+        worksheet.mergeCells('P47:S47');
+        worksheet.getCell('P47').value = 'TOTAL HORAS FALTA';
+        worksheet.getCell('T47').value = resultSum_S;
+        worksheet.mergeCells('A52:H52');
+        worksheet.getCell('A52').value = 'Empleado';
+
+        worksheet.mergeCells('N52:T52');
+        worksheet.getCell('N52').value = 'Empleador';
+
+        worksheet.mergeCells('A55:C55');
+        worksheet.getCell('A55').value = 'Definiciones:';
+
+        worksheet.mergeCells('D55:M55');
+        worksheet.getCell('D55').value = 'S.J.T: Tiempo de salida justificada contada como trabajo';
+        worksheet.mergeCells('N55:T55');
+        worksheet.getCell('N55').value = 'S.J.N.T: Tiempo de salida justificada contada como no trabajo';
+
+        worksheet.mergeCells('A56:C56');
+        worksheet.getCell('A56').value = 'Tipos de evento:';
+
+        worksheet.mergeCells('D56:M56');
+        worksheet.getCell('D56').value = 'S.N.J.: Tiempo de salida no justificada';
+        worksheet.mergeCells('N56:T56');
+        worksheet.getCell('N56').value = 'J.NORMAL: Horario asignado en turno normal';
+
+        worksheet.mergeCells('D57:M57');
+        worksheet.getCell('D57').value = 'J.F.H: Jornada fuera de horario asignado';
+        worksheet.mergeCells('N57:T57');
+        worksheet.getCell('N57').value = 'J.FLEX.: Horario asignado en turno flexible';
+
+        worksheet.mergeCells('D58:M58');
+        worksheet.getCell('D58').value = 'S.EXT.: Salida extraordinaria dentro de jornada';
+        worksheet.mergeCells('N58:T58');
+        worksheet.getCell('N58').value = 'S.T.H.: Salida especial contada como trabajo sólo en horario, con horario asignado';
+
+        worksheet.mergeCells('D59:M59');
+        worksheet.getCell('D59').value = 'S.T.: Salida especial contada como trabajado, con horario asignado';
+        worksheet.mergeCells('N59:T59');
+        worksheet.getCell('N59').value = 'S.N.T.: Salida especial contada como no trabajo, con horario asignado';
+
+        worksheet.mergeCells('D60:M60');
+        worksheet.getCell('D60').value = 'S.T.F.H.: Salida especial contada como trabajada, fuera de horario asignado';
+        worksheet.mergeCells('N60:T60');
+        worksheet.getCell('N60').value = 'S.T.H. [V]: Salida especial trabajada en horario, contada como vacaciones';
+
+        worksheet.mergeCells('D61:H61');
+        worksheet.getCell('D61').value = 'LIC.MED.: Día con licencia médica asignada';
+        worksheet.mergeCells('I61:O61');
+        worksheet.getCell('I61').value = 'LIBRE: Día sin horario, marcaciones o salidas especiales asignadas';
+        worksheet.mergeCells('P61:T61');
+        worksheet.getCell('P61').value = 'J.FEST.E.: Jornada en día festivo';
+
+        worksheet.getCell('A62').value = 'Nota:';
+        worksheet.mergeCells('B62:T62');
+        worksheet.getCell('B62').value = 
+        `
+        - Azul: marcación automática generada por el sistema (sólo para efectos del correcto cálculo para beneficio del trabajador).
+        - Verde: marcacion creada manualmente (por un administrador del sistema).
+        - El tiempo de ausencia en días de inasistencia no se contabiliza como horas falta.
+        - La jornada de trabajo nocturna se extenderá desde las 22:00 hasta las 06:00 hrs, donde los minutos trabajados dentro del intervalo previamente mencionado serán contados como horas en recargo nocturno.
+        - Las horas extras normales se calculan con respecto a los horarios (u horas de trabajo) asignados semanalmente. Las horas extras de tipo 2 corresponden al tiempo que supere las 2 primeras horas extras en día normal de trabajo.
+        Puede modificar las configuraciones desde Relojcontrol.com.
+        `
+        ;
+
+        /* worksheet.getRow(52).font  = {bold: true } */
+        worksheet.getRow(51).height = 90;
+        worksheet.getRow(52).height = 30;
+        worksheet.getRow(62).height = 80;
+        worksheet.getRow(42).alignment = { vertical: 'middle', horizontal: 'center' };
+        worksheet.getRow(52).alignment = { vertical: 'middle', horizontal: 'center' };
+        worksheet.getRow(62).alignment = { vertical: 'middle', wrapText: true };
+        worksheet.getCell('A41').alignment = { vertical: 'middle', horizontal: 'center' };
+        worksheet.getCell('A41').border = simpleBorderStyle;
+        worksheet.getCell('A48').border = simpleBorderStyle;
+        worksheet.getCell('E48').border = simpleBorderStyle;
+        worksheet.getCell('A52').border = { top: { style: 'thin' }, };
+        worksheet.getCell('N52').border = { top: { style: 'thin' }, };
+
         worksheet.eachRow({ includeEmpty: true }, function(row, rowNumber) {
             row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
                 cell.font = { size:  8 };
             });
         });
+        worksheet.getCell('A1').font = {size:  8, bold: true };
+        worksheet.getCell('A41').font = {size:  8, bold: true };
+        worksheet.getCell('P45').font = {size:  8, bold: true };
+        worksheet.getCell('P46').font = {size:  8, bold: true };
+        worksheet.getCell('P47').font = {size:  8, bold: true };
+        worksheet.getCell('A52').font = {size:  8, bold: true };
+        worksheet.getCell('N52').font = {size:  8, bold: true };
+
+        for (let row =  5; row <=  6; row++) {
+            for (let col =  1; col <=  20; col++) {
+              const cell = worksheet.getCell(row, col);
+              cell.font = {size:  8, bold: true };
+              cell.border = doubleBorderStyle;
+            }
+          } 
+        for (let row = 42; row <=  47; row++) {
+            for (let col =  1; col <=  20; col++) {
+              const cell = worksheet.getCell(row, col);
+              cell.border = simpleBorderStyle;
+            }
+          } 
         
+          // Poner color gris a las celdas
+          for (let row = 40; row <=  40; row++) {
+            for (let col =  1; col <=  20; col++) {
+              const cell = worksheet.getCell(row, col);
+              cell.font = {size:  8, bold: true };
+              cell.border = borderStyleSum;
+              cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFD3D3D3' } // Gris
+              };
+            }
+          } 
+          
+          for (let row = 42; row <=  42; row++) {
+            for (let col =  1; col <=  20; col++) {
+              const cell = worksheet.getCell(row, col);
+              cell.font = {size:  8, bold: true };
+              cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFD3D3D3' } // Gris
+              };
+            }
+          } 
         const buffer = await workbook.xlsx.writeBuffer();
          return buffer; 
     };
@@ -433,7 +694,6 @@ module.exports = function(dbInyectada){
     
         return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
     
-        
     }
 
     return {
