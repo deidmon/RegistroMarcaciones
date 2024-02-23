@@ -1865,7 +1865,17 @@ function queryGetNameTypeMark(consult) {
     });
 };
 
-
+function queryScheduleCronActive(table) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT hc.idTMarcacion	 
+        FROM ?? hc
+        WHERE hc.IdEstado = 1`;
+        const values = [table];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result.map((row) => row.idTMarcacion	));
+        });
+    });
+};
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -1965,6 +1975,7 @@ module.exports = {
     querygenericToDeleteData,
     queryGetWhere,
     queryGetTimeBreak,
-    queryGetNameTypeMark
+    queryGetNameTypeMark,
+    queryScheduleCronActive
 
 }

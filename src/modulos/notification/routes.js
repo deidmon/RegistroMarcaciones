@@ -70,8 +70,9 @@ async function notificationUsersUnmarked(usersUnmarked) {
 }
 
 async function startProgramming(idTypesMarking) {
+  let task;
   function scheduleTask(cronExpression,dayOfWeekName, date) {
-    cron.schedule(cronExpression, async () => {
+    task = cron.schedule(cronExpression, async () => {
       let time = cronToTime(cronExpression);
       let IdHorariosList
       let IdScheduleByHour
@@ -94,14 +95,14 @@ async function startProgramming(idTypesMarking) {
           listUsersWithRequest = [...userWithPermision, ...userWithVacations];
           /* console.log(listUsersWithRequest) */
           const usersUnregistered = await db.queryUserAlreadyMarkedToday(tableUser, tableAssist, date, idTypesMarking, row, listUsersWithRequest );
-          console.log(usersUnregistered)
           const message = await notificationUsersUnmarked(usersUnregistered); 
-          console.log(`Ejecución programada a las ${cronExpression}: ${message} el ${date} - H${row}`);
+          console.log(`Ejecución programada a las ${cronExpression}: ${message} - Día: ${date} - horario: H${row} - usuarios notificados: [${usersUnregistered}]`);
         } catch (error) {
           console.error('Error en la ejecución programada:', error);
         }
       
      }))
+     task.stop();
     },
     );
   }
@@ -137,7 +138,13 @@ async function startProgramming(idTypesMarking) {
           const serverTime = objetMoment.tz('UTC'); //  'ZonaHorariaDelServidor' ------------------cambiar al servidor 'UTC'
           const minutes = serverTime.format('mm');
           const hours = serverTime.format('HH');
-        
+          /* // Obtén el día del mes (1-31)
+          const day = serverTime.format('DD');
+          // Obtén el mes (1-12)
+          const month = serverTime.format('MM');
+          // Obtén el día de la semana (0-6, donde  0 es domingo y  6 es sábado)
+          const dayOfWeek = serverTime.format('d');
+          const year = serverTime.format('YYYY'); */
           return `${minutes} ${hours} * * *`;
         });
   console.log(hourCronJob);
@@ -240,10 +247,34 @@ async function addPermissions(req, res, next) {
 };
 // sendGMailPrueba();
 // sendGmail(); 
+async function startProgrammingNotifications() {
+  function scheduleTask(cronExpression,) {
+    cron.schedule(cronExpression, async () => {
+      startProgramming(1);
+      startProgramming(4);
+    },
+    );
+  }
 
+  //CAMBIAR LA HORA A LA QUE SE EJECUTARA '01::00:00'
+  let uniqueHourCronJob = ['01:00:00']; //Cronjob inicial para tomar las horas de notificaciones
+  const hourCronJob = uniqueHourCronJob.map((hour) => {
+          const objetMoment = moment.tz(hour, 'HH:mm:ss','America/Lima');
+          /* console.log(objetMoment) */
+          const serverTime = objetMoment.tz('UTC'); //  'ZonaHorariaDelServidor'
+          const minutes = serverTime.format('mm');
+          const hours = serverTime.format('HH');
+        
+          return `${minutes} ${hours} * * *`;
+        });
+  console.log(hourCronJob);
+  hourCronJob.forEach((cronExpression) => {
+    scheduleTask(cronExpression);
+    }
+
+  );
+}
 module.exports = router;
-startProgramming(1); 
-startProgramming(4); 
 
-
+startProgrammingNotifications()
 
