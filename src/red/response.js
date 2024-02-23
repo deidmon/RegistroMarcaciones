@@ -7,6 +7,16 @@ exports.success = function(req, res, message = '', status_message, status = 200)
         data: message
     });
 }
+exports.failure = function(req, res, message = '', status_message, status = 400){
+
+    res.status(status).send({
+        success: false,
+        status_code: status,
+        status_message: status_message || 'Sin éxito',
+        data: message
+    });
+}
+
 exports.error = function(req, res, errorValue ,status_message, status = 200){
 
     res.status(status).send({

@@ -108,7 +108,7 @@ function queryAllWorkersByUser(users, states, workModality, role, name, cip, dni
         left join asignacionpersonal as a ON u.IdUsuarios = a.idUsuario
         left join usuarios AS l ON l.IdUsuarios = a.idLider
         left join asignacionhorarios as asignacion ON asignacion.idUsuario = u.IdUsuarios
-        left join usuarios AS userLast ON userLast.IdUsuarios = asignacion.idUsuario
+        left join usuarios AS userLast ON userLast.IdUsuarios = asignacion.idAsignador
         WHERE u.Nombres LIKE "%${name}%" AND u.CIP LIKE "%${cip}%" AND u.DNI LIKE "%${dni}%"
         AND u.Activo IN (?, ?) 
         AND u.IdUsuarios IN(${idWorkers})  
@@ -596,7 +596,10 @@ function queryScheduleNotification(tabla) {
 /* 📌 Información del usuario */
 function userInformation(tabla, tabla2, id) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT IdUsuarios AS "idUser", Nombres AS "names", Apellidos AS "lastNames", Activo AS "status", Usuario AS "user", IdRol AS 'idRole', IdDirec AS "idPrimaryAddress", d1.Direccion AS "primaryAddress", IdDirecSecu AS "idSecondaryAddress", d2.Direccion AS "secondaryAddress"
+        const query = `SELECT IdUsuarios AS "idUser", Nombres AS "names", Apellidos AS "lastNames", 
+        Activo AS "status", Usuario AS "user", IdRol AS 'idRole', IdDirec AS "idPrimaryAddress", 
+        d1.Direccion AS "primaryAddress", IdDirecSecu AS "idSecondaryAddress", 
+        d2.Direccion AS "secondaryAddress", email
             FROM ?? u 
             INNER JOIN ?? d1 ON u.IdDirec = d1.IdDireccion 
             INNER JOIN ?? d2 ON u.IdDirecSecu = d2.IdDireccion 
@@ -677,6 +680,7 @@ function queryUpdateAssists(tabla, consulta, IdAsistencias) {
 function update(tabla, consulta) {
     return new Promise((resolve, reject) => {
         conexion.query(`UPDATE ${tabla} SET ? WHERE IdUsuarios = ?`, [consulta, consulta.IdUsuarios], (error, result) => {
+            console.log(result);
             return error ? reject(error) : resolve(result);
         })
     });
@@ -1044,9 +1048,9 @@ function tokenUsersUnmarked(tabla, IdUsuarios) {
 /* 📌 Obtener la tabla de horarios */
 function getTableParametrization(tabla, tabla2, IdHorario, idTipoMarcaciones) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT * FROM ?? AS h INNER JOIN  ?? AS t ON h.
-        IdTipoMarcacion = t.idTMarcaciones WHERE ? AND h.IdTipoMarcacion = ? `;
-
+        const query = `SELECT * FROM ?? AS h 
+        INNER JOIN  ?? AS t ON h.IdTipoMarcacion = t.idTMarcaciones 
+        WHERE ? AND h.IdTipoMarcacion = ? `;
         const values = [tabla, tabla2, IdHorario, idTipoMarcaciones];
         conexion.query(query, values, (error, results) => {
             return error ? reject(error) : resolve(results);
@@ -1829,6 +1833,39 @@ function queryGetWhere(table, consult) {
     });
 };
 
+/* 📌 Query para saber si tiene o no horario de refrigerio y cuanto tiempo tiene*/
+function queryGetTimeBreak(consult) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT h.idHorarios, r.id, r.tiempo, hr.horainicio, hr.horafin
+        FROM horarios h
+        INNER JOIN refrigerio r ON h.idRefrigerio = r.id
+        LEFT JOIN horariorefrigerio hr ON hr.id = r.idHorarioRefrigerio
+        WHERE idHorarios = ${consult}
+        `;
+        const values = [];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        })
+    });
+};
+
+/* 📌 Query para obtener nombre de tipo de marcación */
+function queryGetNameTypeMark(consult) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT descripcion
+        FROM tipomarcaciones
+        WHERE idTMarcaciones = ?
+        `;
+        const values = [consult];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0] || []);
+
+        })
+    });
+};
+
+
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -1926,6 +1963,8 @@ module.exports = {
     queryConsultRequest,
     querygenericToGetAll,
     querygenericToDeleteData,
-    queryGetWhere
+    queryGetWhere,
+    queryGetTimeBreak,
+    queryGetNameTypeMark
 
 }

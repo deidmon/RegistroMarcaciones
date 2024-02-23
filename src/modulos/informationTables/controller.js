@@ -229,7 +229,7 @@ module.exports = function(dbInyectada){
         return response;
     };
 
-    /* 📌 Obtener los tipos de marcación filtro*/
+    /* 📌 Obtener los tipos de validaciones filtro*/
     async function typesValidationFilter(body){
         const idStates = 
         [body.idStateEnabled, body.idStateDisabled];

@@ -7,8 +7,10 @@ const tableAddress = 'direcciones';
 const tableDaysOff = 'descansos';
 const tablePermissions = 'solicitudes';
 const tableExceptions = 'excepciones';
+const tabletypeValidation = 'validacion';
 const radiusMeters = 50;
-
+const typeRegisterStartBreak = 2; //El inicio de refrigerio es tipo de marcación 2
+const typeRegisterEndBreak = 3; //El fin de refrigerio es tipo de marcación 3
 moment.tz.setDefault('America/Lima');
 moment.locale('es'); 
 
@@ -311,11 +313,16 @@ module.exports = function (dbInyectada) {
         let hour = initialDate.format('HH');
         let minutes = initialDate.format('mm');
         let date = `${age}-${month}-${day}`;
-        const formattedTime = /* "07:02" */ `${hour}:${minutes}`;
+        const formattedTime = "10:02" /* `${hour}:${minutes}` */;
         var dateToMark = new Date(date);
-
         const dayOfWeekName = initialDate.format('dddd');  
-
+        let showForm = 0 //Movi showform aqui
+        let getTypesValidation = await allTypeValidation();
+        console.log(getTypesValidation);
+        let idvalidation = 1;
+        let descriptionValidation = '';//movi descriptionValidation
+        
+       
         /* 📌 Verificar si es día libre */ 
         const daysOff = await db.queryGetDaysOff(tableDaysOff,tableSchedule, tableUser, { IdUsuarios: body.idUser });
         if (daysOff.includes(dayOfWeekName)) {
@@ -341,22 +348,82 @@ module.exports = function (dbInyectada) {
 
         const idSchedule = await db.queryGetIdSchedule(tableUser, { IdUsuarios: body.idUser });//Obtener horario
         const exceptionDay = await db.queryGetExceptionDays(tableDaysOff,tableSchedule, tableUser, { IdUsuarios: body.idUser });//Obtener horario del dia diferente
-        const IdExcepcion = await db.queryGetIdException(tableSchedule, {IdHorarios :idSchedule.IdHorarios })
+        const IdExcepcion = await db.queryGetIdException(tableSchedule, {IdHorarios :idSchedule.IdHorarios })//obtener el dia con horario diferente
+        
+        //SOLO PARA INICIO DE REFRIGERIO
+        /* 📌 comprueba si es tipo 2 para marcar inicio de refrigerio */
+        if(body.idTypesMarking == typeRegisterStartBreak ){
+            
+            const timeBreak = await db.queryGetTimeBreak(idSchedule.IdHorarios);//Obtener tiempo de break
+            
+            if(timeBreak && timeBreak.length > 0){//Si es mayor a cero significa que tiene habilitado break y va a poder registrarlo
+                const timeInHoursFormat = await parseHourToMinutes(formattedTime);//Convertir el tiempo en minutos
+                const timeInHoursStartBreak = await parseHourToMinutes(timeBreak[0].horainicio);//Convertir el tiempo en minutos
+                const timeInHoursEndBreak = await parseHourToMinutes(timeBreak[0].horafin);//Convertir el tiempo de fin de regrigerio en minutos
+
+                const typeMarkDescription = await db.queryGetNameTypeMark(body.idTypesMarking);
+
+                if(timeInHoursFormat < timeInHoursStartBreak){//Para cuando intente registrar antes de la hora asignado 
+                    message = `El horario asignado para registrar ${typeMarkDescription.descripcion} es de ${timeBreak[0].horainicio} hasta ${timeBreak[0].horafin}`
+                    return { "messages": message }
+                }
+                if(timeInHoursFormat > timeInHoursEndBreak ){//Si se paso de las horas establecidas para el break, entonces mostrara alerta de justificación
+                    idvalidation = 2;
+                    showForm = 1;
+                    descriptionValidation = getTypesValidation[1].descripcion;
+                }else{
+                    descriptionValidation = getTypesValidation[0].descripcion;
+                }
+                
+                const assists = {
+                    /* IdAsistencias: body.id, */
+                    IdUsuarios: body.idUser,
+                    Direccion: body.address,
+                    Fecha: date,
+                    Hora: formattedTime,
+                    idTMarcacion: body.idTypesMarking,
+                    idValidacion: idvalidation,
+                    idValidacionSecond: idvalidation,
+                    Created_by: body.idUser,
+                    Updated_at: '0000-00-00',
+                    Updated_by: 0,
+                    idHorario : idSchedule.IdHorarios
+                }
+                await db.add(tableAssist, assists);
+                if(idvalidation == 2){
+                    return { "idTipoValidacion": idvalidation,"idMostrarForm": showForm, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}.`, "Detalle": `Ya que el horario para ${typeMarkDescription.descripcion.toUpperCase()} es de '${timeBreak[0].horainicio} a ${timeBreak[0].horafin}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
+                }
+                return { "idTipoValidacion": idvalidation, "idMostrarForm": showForm, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}`, "Detalle": `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!` }
+            }
+            message = `No dispones de tiempo para descanso.`
+            return { "messages": message }
+            
+        }
+        //SOLO PARA FIN DE REFRIGERIO
+        //typeRegisterEndBreak
+        
+
+
         let parametrization;
         if (exceptionDay.includes(dayOfWeekName)){
              parametrization = await db.getTableParametrization(tableExceptions, tableTypeMarking, {IdExcepcion : IdExcepcion.IdExcepcion}, body.idTypesMarking);
         }else {
             parametrization = await db.getTableParametrization(tableSchedule, tableTypeMarking, {IdHorarios : idSchedule.IdHorarios}, body.idTypesMarking);
         }
+        /* console.log("hola ",parametrizacion); */
+        console.log("aqui estoy2");
         
-        const timePermission = await db.queryCheckTimePermission(tablePermissions, 4, body.idUser, date)
+        const timePermission = await db.queryCheckTimePermission(tablePermissions, 4, body.idUser, date)//Cuanto tiempo de permiso tiene en su entrada
         const startTimeAllowed = parametrization[0].HoraInicio;        
         const [hourStartTimeAllowed, minutesHourStartTimeAllowed] = startTimeAllowed.split(':');
         const startTimeAllowedInMinutes = parseInt(hourStartTimeAllowed) * 60 + parseInt(minutesHourStartTimeAllowed);
-        const entryOneHourAfter = parseInt(hourStartTimeAllowed) * 60 + parseInt(minutesHourStartTimeAllowed) + 75;
-        const entryThirtyMinutesBefore = parseInt(hourStartTimeAllowed) * 60 + parseInt(minutesHourStartTimeAllowed) - 15;
-        const entryMinutesBefore = parseInt(hourStartTimeAllowed) * 60 + parseInt(minutesHourStartTimeAllowed) + 15 - timePermission*60;
-        const hourInMinutesNow = parseInt(hour) * 60 + parseInt(minutes);
+
+        const entryOneHourAfter = parseInt(hourStartTimeAllowed) * 60 + parseInt(minutesHourStartTimeAllowed) + 75; //Para que aparezca la notificación cuando ingresan una hora despues
+        const entryThirtyMinutesBefore = parseInt(hourStartTimeAllowed) * 60 + parseInt(minutesHourStartTimeAllowed) - 15; // 
+
+        const entryMinutesBefore = parseInt(hourStartTimeAllowed) * 60 + parseInt(minutesHourStartTimeAllowed) + 15 - timePermission*60;//si tiene permiso restarle a su hora de ingreso normal
+
+        const hourInMinutesNow = parseInt(hour) * 60 + parseInt(minutes);//hora actual del servidor
         const endTimeAllowed = /* parametrization[parametrization.length - 1].HoraFin;  */ parametrization[0].HoraFin;
         const descrptionTypeMarking = parametrization[0].descripcion;
         
@@ -379,8 +446,9 @@ module.exports = function (dbInyectada) {
                 return 5
             }
             return 0;
-        }
+        };
 
+        
         /* 📌 Verificar usuario es correcto */ 
         const data = await db.query(tableUser, { IdUsuarios: body.idUser });
         if (!data) {
@@ -388,15 +456,15 @@ module.exports = function (dbInyectada) {
             return { "messages": message }
         }
 
-        /* 📌 Descripción de resultados */ 
+        /* 📌 Descripción de resultados */
         const resultDescriptions = {
             0: `Lo sentimos, no se pudo registrar su asistencia, ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de: ${startTimeAllowed} a ${endTimeAllowed}`,
             1: 'Conforme',
             2: 'Tardanza',
-            3: 'Salida',
+            3: 'Falta',
             5: 'Fuera de horario',
             6: 'Sobretiempo'
-           };
+        };
         
         /* 📌 Verificar que primero ingrese la entrada antes de poder registrar salida */ 
         let alreadyMarkedEntry = false;   
@@ -416,7 +484,8 @@ module.exports = function (dbInyectada) {
         let alreadyMarked = false;
         if (userAlreadyMarked.length > 0) {
             alreadyMarked = true
-        } 
+        }
+
         if (alreadyMarked) {
             message = `Usted ya ha registrado su ${descrptionTypeMarking.toUpperCase()} hoy.`
             return { "messages": message }
@@ -445,14 +514,17 @@ module.exports = function (dbInyectada) {
             }
         }
         const resultValidation = validateTime(formattedTime);
-        let descriptionValidation = '';
-          
+        //movi descriptionValidation = '';
+        
+        /* 📌 Cuando intenta marcar antes de su hora de inicio */
         if (resultValidation === 0) {
             return { "messages": resultDescriptions[resultValidation] }
         } else {
             descriptionValidation = resultDescriptions[resultValidation];
         }
         
+        console.log("agregando valores");
+        /* 📌 Se asignan los campos a guardar en la tabla asistencias */
         const assists = {
             /* IdAsistencias: body.id, */
             IdUsuarios: body.idUser,
@@ -469,7 +541,7 @@ module.exports = function (dbInyectada) {
         }
         const respuesta = await db.add(tableAssist, assists);
 
-        let showForm = 0
+        //Movi showform aqui
         if (resultValidation !== 1 && body.idTypesMarking === 4){
             showForm = 1
         }
@@ -514,6 +586,17 @@ module.exports = function (dbInyectada) {
 
     };
     
+    /* 📌 Pasar horas a minutos */
+    async function parseHourToMinutes(hourToParse){
+        const [parseHour, parseMinutes] = hourToParse.split(':');
+        return hourInMinutesParse = parseInt(parseHour) * 60 + parseInt(parseMinutes);
+    };
+
+    /* 📌 Obtener información de tipos de validación(solo activos)*/
+    async function allTypeValidation(){
+        return db.allInformationOfOneTable(tabletypeValidation);
+    };
+
     return {
         addMarking,
         addMarkingVirtual,

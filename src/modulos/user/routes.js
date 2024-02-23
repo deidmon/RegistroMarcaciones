@@ -173,10 +173,10 @@ async function updatePasswordOfUser(req, res, next) {
         if(!responseInfo.messages){
             response.success(req, res, responseInfo, "", 200);
         }else{
-            response.error(req, res, false, responseInfo.messages, 200);
+            response.failure(req, res, responseInfo.messages, '' , 200);
         }
     }catch(err){
-        response.error(req, res,false,errorMessageUser, 500);
+        response.error(req, res,false, errorMessageUser, 500);
     }
 };
 
