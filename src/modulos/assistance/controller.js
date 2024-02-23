@@ -313,7 +313,7 @@ module.exports = function (dbInyectada) {
         let hour = initialDate.format('HH');
         let minutes = initialDate.format('mm');
         let date = `${age}-${month}-${day}`;
-        const formattedTime = "10:02" /* `${hour}:${minutes}` */;
+        const formattedTime = /* "10:02" */ `${hour}:${minutes}`;
         var dateToMark = new Date(date);
         const dayOfWeekName = initialDate.format('dddd');  
         let showForm = 0 //Movi showform aqui
@@ -321,8 +321,6 @@ module.exports = function (dbInyectada) {
         console.log(getTypesValidation);
         let idvalidation = 1;
         let descriptionValidation = '';//movi descriptionValidation
-        
-       
         /* 📌 Verificar si es día libre */ 
         const daysOff = await db.queryGetDaysOff(tableDaysOff,tableSchedule, tableUser, { IdUsuarios: body.idUser });
         if (daysOff.includes(dayOfWeekName)) {
@@ -349,60 +347,103 @@ module.exports = function (dbInyectada) {
         const idSchedule = await db.queryGetIdSchedule(tableUser, { IdUsuarios: body.idUser });//Obtener horario
         const exceptionDay = await db.queryGetExceptionDays(tableDaysOff,tableSchedule, tableUser, { IdUsuarios: body.idUser });//Obtener horario del dia diferente
         const IdExcepcion = await db.queryGetIdException(tableSchedule, {IdHorarios :idSchedule.IdHorarios })//obtener el dia con horario diferente
-        
-        //SOLO PARA INICIO DE REFRIGERIO
-        /* 📌 comprueba si es tipo 2 para marcar inicio de refrigerio */
-        if(body.idTypesMarking == typeRegisterStartBreak ){
-            
+
+        /* 📌 Comprueba si inicio o fin de refrigerio - 2 o 3 */
+        if(body.idTypesMarking == typeRegisterStartBreak || body.idTypesMarking == typeRegisterEndBreak ){
+
             const timeBreak = await db.queryGetTimeBreak(idSchedule.IdHorarios);//Obtener tiempo de break
-            
-            if(timeBreak && timeBreak.length > 0){//Si es mayor a cero significa que tiene habilitado break y va a poder registrarlo
-                const timeInHoursFormat = await parseHourToMinutes(formattedTime);//Convertir el tiempo en minutos
-                const timeInHoursStartBreak = await parseHourToMinutes(timeBreak[0].horainicio);//Convertir el tiempo en minutos
-                const timeInHoursEndBreak = await parseHourToMinutes(timeBreak[0].horafin);//Convertir el tiempo de fin de regrigerio en minutos
+            const timeInHoursFormat = await parseHourToMinutes(formattedTime);//Convertir el tiempo en minutos
+            const timeInHoursStartBreak = await parseHourToMinutes(timeBreak[0].horainicio);//Convertir el tiempo de inicio de refrigerio en minutos
+            const timeInHoursEndBreak = await parseHourToMinutes(timeBreak[0].horafin);//Convertir el tiempo de fin de regrigerio en minutos
+            const typeMarkDescription = await db.queryGetNameTypeMark(body.idTypesMarking); //Obtenemos el nombre de tipo de marcación
 
-                const typeMarkDescription = await db.queryGetNameTypeMark(body.idTypesMarking);
+            //SOLO PARA INICIO DE REFRIGERIO
+            if(body.idTypesMarking == typeRegisterStartBreak ){
 
-                if(timeInHoursFormat < timeInHoursStartBreak){//Para cuando intente registrar antes de la hora asignado 
-                    message = `El horario asignado para registrar ${typeMarkDescription.descripcion} es de ${timeBreak[0].horainicio} hasta ${timeBreak[0].horafin}`
-                    return { "messages": message }
-                }
-                if(timeInHoursFormat > timeInHoursEndBreak ){//Si se paso de las horas establecidas para el break, entonces mostrara alerta de justificación
-                    idvalidation = 2;
-                    showForm = 1;
-                    descriptionValidation = getTypesValidation[1].descripcion;
-                }else{
-                    descriptionValidation = getTypesValidation[0].descripcion;
-                }
-                
-                const assists = {
-                    /* IdAsistencias: body.id, */
-                    IdUsuarios: body.idUser,
-                    Direccion: body.address,
-                    Fecha: date,
-                    Hora: formattedTime,
-                    idTMarcacion: body.idTypesMarking,
-                    idValidacion: idvalidation,
-                    idValidacionSecond: idvalidation,
-                    Created_by: body.idUser,
-                    Updated_at: '0000-00-00',
-                    Updated_by: 0,
-                    idHorario : idSchedule.IdHorarios
-                }
-                await db.add(tableAssist, assists);
-                if(idvalidation == 2){
-                    return { "idTipoValidacion": idvalidation,"idMostrarForm": showForm, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}.`, "Detalle": `Ya que el horario para ${typeMarkDescription.descripcion.toUpperCase()} es de '${timeBreak[0].horainicio} a ${timeBreak[0].horafin}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
-                }
-                return { "idTipoValidacion": idvalidation, "idMostrarForm": showForm, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}`, "Detalle": `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!` }
+                if(timeBreak && timeBreak.length > 0){//Si es mayor a cero significa que tiene habilitado break y va a poder registrarlo
+    
+                    if(timeInHoursFormat < timeInHoursStartBreak){//Para cuando intente registrar antes de la hora asignado 
+                        message = `El horario asignado para registrar ${typeMarkDescription.descripcion} es de ${timeBreak[0].horainicio} hasta ${timeBreak[0].horafin}`
+                        return { "messages": message }
+                    }
+                    if(timeInHoursFormat > timeInHoursEndBreak ){//Si se paso de las horas establecidas para el break, entonces mostrara alerta de justificación
+                        idvalidation = 2;//2 es tardanza
+                        showForm = 1;
+                        descriptionValidation = getTypesValidation[1].descripcion;
+                    }else{
+                        descriptionValidation = getTypesValidation[0].descripcion;
+                    }
+                    
+                    const assists = {
+                        /* IdAsistencias: body.id, */
+                        IdUsuarios: body.idUser,
+                        Direccion: body.address,
+                        Fecha: date,
+                        Hora: formattedTime,
+                        idTMarcacion: body.idTypesMarking,
+                        idValidacion: idvalidation,
+                        idValidacionSecond: idvalidation,
+                        Created_by: body.idUser,
+                        Updated_at: '0000-00-00',
+                        Updated_by: 0,
+                        idHorario : idSchedule.IdHorarios
+                    }
+                    await db.add(tableAssist, assists);
+                    if(idvalidation == 2){
+                        return { "idTipoValidacion": idvalidation,"idMostrarForm": showForm, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}.`, "Detalle": `Ya que el horario para ${typeMarkDescription.descripcion.toUpperCase()} es de '${timeBreak[0].horainicio} a ${timeBreak[0].horafin}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
+                    }
+                    return { "idTipoValidacion": idvalidation, "idMostrarForm": showForm, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}`, "Detalle": `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!` }
+                }  
             }
+    
+            //SOLO PARA FIN DE REFRIGERIO        
+            if(body.idTypesMarking == typeRegisterEndBreak ){
+                
+                if(timeBreak && timeBreak.length > 0){//Si es mayor a cero significa que tiene habilitado break y va a poder registrarlo
+                    
+                    
+                    
+    
+                    if(timeInHoursFormat < timeInHoursStartBreak){//Para cuando intente registrar antes de la hora asignado 
+                        message = `El horario asignado para registrar ${typeMarkDescription.descripcion} es de ${timeBreak[0].horainicio} hasta ${timeBreak[0].horafin}`
+                        return { "messages": message }
+                    }
+                    if(timeInHoursFormat > timeInHoursEndBreak ){//Si se paso de las horas establecidas para el break, entonces mostrara alerta de justificación
+                        idvalidation = 2;
+                        showForm = 1;
+                        descriptionValidation = getTypesValidation[1].descripcion;
+                    }else{
+                        descriptionValidation = getTypesValidation[0].descripcion;
+                    }
+                    
+                    const assists = {
+                        /* IdAsistencias: body.id, */
+                        IdUsuarios: body.idUser,
+                        Direccion: body.address,
+                        Fecha: date,
+                        Hora: formattedTime,
+                        idTMarcacion: body.idTypesMarking,
+                        idValidacion: idvalidation,
+                        idValidacionSecond: idvalidation,
+                        Created_by: body.idUser,
+                        Updated_at: '0000-00-00',
+                        Updated_by: 0,
+                        idHorario : idSchedule.IdHorarios
+                    }
+                    await db.add(tableAssist, assists);
+                    if(idvalidation == 2){
+                        return { "idTipoValidacion": idvalidation,"idMostrarForm": showForm, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}.`, "Detalle": `Ya que el horario para ${typeMarkDescription.descripcion.toUpperCase()} es de '${timeBreak[0].horainicio} a ${timeBreak[0].horafin}'. De tener algún inconveniente comuníquese con el área de RRHH.` }
+                    }
+                    return { "idTipoValidacion": idvalidation, "idMostrarForm": showForm, "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}`, "Detalle": `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!` }
+                }
+                message = `No dispones de tiempo para descanso.`
+                return { "messages": message }
+            }   
+
             message = `No dispones de tiempo para descanso.`
             return { "messages": message }
-            
         }
-        //SOLO PARA FIN DE REFRIGERIO
-        //typeRegisterEndBreak
         
-
 
         let parametrization;
         if (exceptionDay.includes(dayOfWeekName)){
@@ -410,7 +451,7 @@ module.exports = function (dbInyectada) {
         }else {
             parametrization = await db.getTableParametrization(tableSchedule, tableTypeMarking, {IdHorarios : idSchedule.IdHorarios}, body.idTypesMarking);
         }
-        /* console.log("hola ",parametrizacion); */
+
         console.log("aqui estoy2");
         
         const timePermission = await db.queryCheckTimePermission(tablePermissions, 4, body.idUser, date)//Cuanto tiempo de permiso tiene en su entrada
