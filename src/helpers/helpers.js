@@ -17,7 +17,7 @@ async function getDateToday(pInitialDate) {
 async function getTimeNow(pInitialDate) {
   let hour = pInitialDate.format("HH");
   let minutes = pInitialDate.format("mm");
-  return hourAndMinutes = "09:32"; /* `${hour}:${minutes}`; */
+  return hourAndMinutes = /* "09:32"; */ `${hour}:${minutes}`;
 }
 
 /* 📌 Obtener el día */
