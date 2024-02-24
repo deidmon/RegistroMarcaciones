@@ -1841,6 +1841,7 @@ function queryGetTimeBreak(consult) {
         INNER JOIN refrigerio r ON h.idRefrigerio = r.id
         LEFT JOIN horariorefrigerio hr ON hr.id = r.idHorarioRefrigerio
         WHERE idHorarios = ${consult}
+        GROUP BY idHorarios
         `;
         const values = [];
         conexion.query(query, values, (error, result) => {
@@ -1876,6 +1877,20 @@ function queryScheduleCronActive(table) {
         });
     });
 };
+
+/* 📌 Query obtener tipos de validación ordenados por su id */
+function queryGetTypesValidation() {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT * 
+        FROM validacion
+        ORDER BY idValidacion`;
+        const values = [];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -1976,6 +1991,7 @@ module.exports = {
     queryGetWhere,
     queryGetTimeBreak,
     queryGetNameTypeMark,
-    queryScheduleCronActive
+    queryScheduleCronActive,
+    queryGetTypesValidation
 
 }
