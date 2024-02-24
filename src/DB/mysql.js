@@ -1711,11 +1711,15 @@ function queryReportAudit(table, table2, table3, table4, consult, consult2, cons
     return new Promise((resolve, reject) => {
         const query = `
         SELECT u.CIP,DATE_FORMAT(a.Fecha, '%Y-%m-%d') as Fecha,  DATE_FORMAT(a.hora,'%H:%i') AS HoraInicio,DATE_FORMAT(asis.hora,'%H:%i')  AS HoraFin ,
+        DATE_FORMAT(asis2.hora,'%H:%i')  AS HoraInicioRefrigerio , DATE_FORMAT(asis3.hora,'%H:%i')  AS HoraFinRefrigerio,
         a.idhorario,DATE_FORMAT(h_n.HoraInicio,'%H:%i') AS Entrada,DATE_FORMAT(h_n.HoraFin,'%H:%i') AS Salida,
                h_n.diaExcepcion, DATE_FORMAT(h_n.HoraInicio_Excepcion,'%H:%i') AS HoraInicio_Excepcion,             	
-               DATE_FORMAT(h_n.HoraFin_Excepcion,'%H:%i') AS HoraFin_Excepcion, a.idValidacion AS validacionEntrada, a.idValidacionSecond AS validacionEntradaSec, asis.idValidacion AS validacionSalida, asis.idValidacionSecond AS validacionSalidaSec
+               DATE_FORMAT(h_n.HoraFin_Excepcion,'%H:%i') AS HoraFin_Excepcion, a.idValidacion AS validacionEntrada, a.idValidacionSecond AS validacionEntradaSec, asis.idValidacion AS validacionSalida, asis.idValidacionSecond AS validacionSalidaSec,
+               asis2.idValidacion AS validacionInicioRefrigerio, asis2.idValidacionSecond AS validacionInicioRefrigerioSec, asis3.idValidacion AS validacionFinRefrigerio, asis3.idValidacionSecond AS validacionFinRefrigerioSec
         FROM ?? AS a INNER JOIN ?? as u ON a.IdUsuarios = u.IdUsuarios 
         INNER JOIN ?? AS asis ON a.Fecha = asis.Fecha AND a.IdUsuarios = asis.IdUsuarios
+        INNER JOIN ?? AS asis2 ON a.Fecha = asis2.Fecha AND a.IdUsuarios = asis2.IdUsuarios
+        INNER JOIN ?? AS asis3 ON a.Fecha = asis3.Fecha AND a.IdUsuarios = asis3.IdUsuarios
         INNER JOIN 
                 (
                 SELECT 
@@ -1737,10 +1741,12 @@ function queryReportAudit(table, table2, table3, table4, consult, consult2, cons
         WHERE a.Fecha BETWEEN ? AND ?
         AND a.idTMarcacion IN (1)
         AND asis.idTMarcacion IN (4)
+        AND asis2.idTMarcacion IN (2)
+        AND asis3.idTMarcacion IN (3)
         AND u.IdUsuarios = ?
         ORDER BY a.Fecha 
         `;
-        const values = [table, table2, table,table3, table4, consult, consult2, consult3];
+        const values = [table, table2, table,table,table,table3, table4, consult, consult2, consult3];
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result);
             /* if (error) {

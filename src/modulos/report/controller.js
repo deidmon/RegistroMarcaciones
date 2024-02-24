@@ -11,6 +11,7 @@ const tableHoliday = 'feriados';
 const ExcelJS = require('exceljs');
 const stream = require('stream');
 const moment = require('moment-timezone');
+const { Console } = require('console');
 moment.tz.setDefault('America/Lima');
 moment.locale('es'); 
 
@@ -340,8 +341,8 @@ module.exports = function(dbInyectada){
             { header: 'Salida', key: 'Salida', width: 8 },
            /*  { header: 'IdHorarios', key: 'IdHorarios', width: 10 }, */
             { header: 'HoraInicio', key: 'HoraInicio', width: 8 },
-            { header: 'Descanso_1', key: 'Descanso_1', width: 8 },
-            { header: 'Descanso_2', key: 'Descanso_2', width: 8 },
+            { header: 'HoraInicioRefrigerio', key: 'HoraInicioRefrigerio', width: 8 },
+            { header: 'HoraFinRefrigerio', key: 'HoraFinRefrigerio', width: 8 },
             { header: 'HoraFin', key: 'HoraFin', width: 8 },
             { header: 'Asignado', key: 'Asignado', width: 8 },
             { header: 'Asist', key: 'Asist', width: 8 },
@@ -361,7 +362,11 @@ module.exports = function(dbInyectada){
            ];
            
         let countAbsences = 0
-        /* let hoursHolidays = 0 */
+        let sumAsistSeconds =  0;
+        let countEarlyExit =  0;
+        let sumEarlyExitSeconds =  0;
+        /* let prueba = calcularDiferenciaHoras('08:00', '-09:00');
+        console.log(prueba) */
         for (const row of dataUser) {
                 newdate = row.Fecha.split("-").reverse().join("-");
                 row.Fecha = newdate;
@@ -373,13 +378,29 @@ module.exports = function(dbInyectada){
                     row.Entrada = row.HoraInicio_Excepcion
                     row.Salida = row.HoraFin_Excepcion
                     
+                }
+                
+                const horaFinAsist = moment(row.HoraFin, 'HH:mm');
+                const horaFinAsig = moment(row.Salida, 'HH:mm');
+                if(row.HoraFin !== '00:00' && horaFinAsist.isBefore( horaFinAsig)){
+                    countEarlyExit += 1
+                    let hourEarlyExit = calcularDiferenciaHoras(horaFinAsig,horaFinAsist)
+                    sumEarlyExitSeconds += convertirHoraASegundos(hourEarlyExit);
                 } 
+                let AsignadoSinRefrigerio = calcularDiferenciaHoras(row.Salida, row.Entrada);
+                let RefrigerioAsignado = '01:00';
+                row.Asignado = calcularDiferenciaHoras(AsignadoSinRefrigerio, RefrigerioAsignado);
 
-                row.Asignado = calcularDiferenciaHoras(row.Salida, row.Entrada);
-                row.Asist = calcularDiferenciaHoras(row.HoraFin, row.HoraInicio);
+                if(row.HoraFin === '00:00' && row.HoraFinRefrigerio === '00:00'){
+                    row.Asist =    calcularDiferenciaHoras(row.HoraInicioRefrigerio, row.HoraInicio)
+                } else {
+                    let AsistidoSinRefrigerio = calcularDiferenciaHoras(row.HoraFin, row.HoraInicio);
+                    let RefrigerioReal = calcularDiferenciaHoras(row.HoraFinRefrigerio, row.HoraInicioRefrigerio );
+                    row.Asist = calcularDiferenciaHoras(AsistidoSinRefrigerio, RefrigerioReal);
+                }
+                
                 row.Jornada = row.Asist;
-                const moment = require('moment');
-
+                /* const moment = require('moment'); */
                 const hora1 = moment(row.Asignado, 'HH:mm');
                 const hora2 = moment(row.Asist, 'HH:mm');
                 const hora_simple = moment('02:00', 'HH:mm');
@@ -423,7 +444,7 @@ module.exports = function(dbInyectada){
                 /* console.log(is_holiday) */
                 if (is_holiday ===1){
                     row.Tipo_evento ='J.FEST.E.';
-                    hoursHolidays += row.Asist
+                    sumAsistSeconds += convertirHoraASegundos(row.Asist);
                     
                 } else{
                     row.Tipo_evento ='J.NORMAL'
@@ -431,7 +452,22 @@ module.exports = function(dbInyectada){
 
              worksheet.addRow(row);
         };
+        //Total horas en días festivos
+        const totalAsist = convertirSegundosAHora(sumAsistSeconds);
+        //Total horas en de salidas temprana
+        const totalHourEarlyExit = convertirSegundosAHora(sumEarlyExitSeconds);
+        // Función para convertir 'HH:MM' a segundos
+        function convertirHoraASegundos(hora) {
+            const [horas, minutos] = hora.split(':').map(Number);
+            return horas *  3600 + minutos *  60;
+        }
 
+        // Función para convertir segundos a 'HH:MM'
+        function convertirSegundosAHora(segundos) {
+            const horas = Math.floor(segundos /  3600);
+            const minutos = Math.floor((segundos %  3600) /  60);
+            return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}`;
+}
         // Función para convertir horas en formato 'HH:MM' a minutos
         function convertirHorasAMinutos(hora) {
             const partes = hora.split(':');
@@ -504,7 +540,7 @@ module.exports = function(dbInyectada){
         worksheet.getCell('K43').value = 'N° atrasos';
         worksheet.mergeCells('P43:S43');
         worksheet.getCell('P43').value = 'Horas en días festivo';
-        /* worksheet.getCell('T43').value = hoursHolidays; */
+        worksheet.getCell('T43').value = totalAsist;
 
         worksheet.mergeCells('A44:D44');
         worksheet.getCell('A44').value = 'Asistencia';
@@ -514,6 +550,7 @@ module.exports = function(dbInyectada){
         worksheet.getCell('J44').value = resultSum_O;
         worksheet.mergeCells('K44:N44');
         worksheet.getCell('K44').value = 'Nº salidas temp.';
+        worksheet.getCell('O44').value = countEarlyExit;
         worksheet.mergeCells('P44:S44');
         worksheet.getCell('P44').value = 'Horas en recargo nocturno';
 
@@ -532,9 +569,9 @@ module.exports = function(dbInyectada){
         worksheet.getCell('A46').value = 'Ausencia';
         worksheet.getCell('E46').value = resultSum_M;
         
-        worksheet.mergeCells('K46:N46');
-        worksheet.getCell('K46').value = 'Días c/licencia médica';
-        worksheet.mergeCells('F46:J46');
+       /*  worksheet.mergeCells('K46:O46'); */
+       /*  worksheet.getCell('K46').value = 'Días c/licencia médica'; */
+        worksheet.mergeCells('F46:O46');
         worksheet.mergeCells('P45:S45');
         worksheet.getCell('P45').value = 'TOTAL HORAS EXTRAS NORMAL (25%)';
         worksheet.getCell('T45').value = resultSum_Q;
@@ -542,11 +579,12 @@ module.exports = function(dbInyectada){
         worksheet.mergeCells('A47:D47');
         worksheet.getCell('A47').value = 'Horas  no laboradas';
         worksheet.getCell('E47').value = resultSum_K;
-        worksheet.mergeCells('F47:J47');
-        worksheet.mergeCells('K47:N47');
-        worksheet.getCell('K47').value = 'Nº ausencias parciales';
+        worksheet.mergeCells('F47:O47');
+        /* worksheet.mergeCells('K47:O47'); */
+       /*  worksheet.getCell('K47').value = 'Nº ausencias parciales'; */
         worksheet.mergeCells('A48:D48');
         worksheet.getCell('A48').value = 'Salida Temprana';
+        worksheet.getCell('E48').value = totalHourEarlyExit;
         worksheet.mergeCells('F48:O48');
         worksheet.mergeCells('P46:S46');
         worksheet.getCell('P46').value = 'TOTAL HORAS EXTRAS TIPO 2 (35%)';
@@ -688,11 +726,17 @@ module.exports = function(dbInyectada){
     function calcularDiferenciaHoras(horaInicio, horaFinal) {
         const inicio = moment(horaInicio, 'HH:mm');
         const final = moment(horaFinal, 'HH:mm');
-        const duracion = moment.duration(inicio.diff(final)).asMinutes();
-        const horas = Math.floor(duracion /  60);
-        const minutos = Math.round(duracion %  60);
-    
-        return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+        let duracion = moment.duration(inicio.diff(final)).asMinutes();
+        let horas = Math.floor(duracion /  60);
+        let minutos = Math.round(duracion %  60);
+        if (inicio.isBefore(final)) {
+            duracion = moment.duration(final.diff(inicio)).asMinutes();
+            horas = Math.floor(duracion /  60);
+            minutos = Math.round(duracion %  60);
+        }
+        // Ajuste para asegurar que el signo se aplique correctamente
+        const signo = inicio.isBefore(final) ? '-' : '';
+        return `${signo}${String(Math.abs(horas)).padStart(2, '0')}:${String(Math.abs(minutos)).padStart(2, '0')}`;
     
     }
 
