@@ -17,7 +17,7 @@ async function getDateToday(pInitialDate) {
 async function getTimeNow(pInitialDate) {
   let hour = pInitialDate.format("HH");
   let minutes = pInitialDate.format("mm");
-  return hourAndMinutes = /* "09:32"; */ `${hour}:${minutes}`;
+  return hourAndMinutes = /* "07:46" */ `${hour}:${minutes}`;
 }
 
 /* 📌 Obtener el día */
@@ -25,9 +25,18 @@ async function getJustDay(pInitialDate) {
   return (dayOfWeekName = pInitialDate.format("dddd"));
 }
 
+/* 📌 Pasar minutos a horas */
+async function parseMinutesToHour(minutesToParse) {
+  const hours = Math.floor(minutesToParse / 60);
+  const minutes = minutesToParse % 60;
+  return `${hours}:${minutes.toString().padStart(2, '0')}`;
+}
+
 module.exports = {
   parseHourToMinutes,
   getDateToday,
   getTimeNow,
   getJustDay,
+  parseMinutesToHour,
+
 };

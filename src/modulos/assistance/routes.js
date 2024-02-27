@@ -51,5 +51,6 @@ async function addMarkingVirtual(req, res, next){
     }catch(err){
         response.error(req, res, false, errorMessageAsistance, 500);
     }
-}
+};
+
 module.exports = router;   
