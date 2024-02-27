@@ -8,6 +8,7 @@ const tableTypeRequest = 'tiposolicitudes';
 const tableStateRequest = 'estadosolicitudes';
 const tableExceptions = 'excepciones';
 const tableHoliday = 'feriados';
+const tableLunch = 'refrigerio';
 const ExcelJS = require('exceljs');
 const stream = require('stream');
 const moment = require('moment-timezone');
@@ -250,9 +251,9 @@ module.exports = function(dbInyectada){
         const userNames = dataInformationUser[0].NombreCompleto
         let initialDate = moment();
         let date = initialDate.format('DD-MM-YYYY');
-        const dataUser = await db.queryReportAudit( tableAssistance,tableUser, tableSchedule,tableExceptions, body.FechaInicio, body.FechaFin, body.idUser);
+        const dataUser = await db.queryReportAudit( tableAssistance,tableUser, tableSchedule, tableLunch,tableExceptions, body.FechaInicio, body.FechaFin, body.idUser);
         countRows = dataUser.length 
-        /* console.log(countRows) */
+        /* console.log(dataUser) */
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Mi Hoja');
         // Crear una nueva fila con el título 
@@ -359,6 +360,7 @@ module.exports = function(dbInyectada){
             { header: 'Horas_Falta', key: 'Horas_Falta', width: 10,  },
             { header: 'Tipo_evento', key: 'Tipo_evento', width: 10 },
             { header: 'Planilla de asistencia', key: 'Planilla de asistencia', width: 15,hidden: true, },
+            /* { header: 'HoraRefrigerio', key: 'HoraRefrigerio', width: 15 }, */
            ];
            
         let countAbsences = 0
@@ -388,7 +390,13 @@ module.exports = function(dbInyectada){
                     sumEarlyExitSeconds += convertirHoraASegundos(hourEarlyExit);
                 } 
                 let AsignadoSinRefrigerio = calcularDiferenciaHoras(row.Salida, row.Entrada);
-                let RefrigerioAsignado = '01:00';
+                /* let RefrigerioAsignado = '01:00'; */
+                let RefrigerioAsignado
+                if (row.HoraRefrigerio === null){
+                    RefrigerioAsignado = '00:00'
+                } else {
+                    RefrigerioAsignado = convertirMinutosAHoras(row.HoraRefrigerio);
+                }
                 row.Asignado = calcularDiferenciaHoras(AsignadoSinRefrigerio, RefrigerioAsignado);
 
                 if(row.HoraFin === '00:00' && row.HoraFinRefrigerio === '00:00'){
@@ -614,36 +622,36 @@ module.exports = function(dbInyectada){
         worksheet.mergeCells('N56:T56');
         worksheet.getCell('N56').value = 'J.NORMAL: Horario asignado en turno normal';
 
-        worksheet.mergeCells('D57:M57');
-        worksheet.getCell('D57').value = 'J.F.H: Jornada fuera de horario asignado';
-        worksheet.mergeCells('N57:T57');
-        worksheet.getCell('N57').value = 'J.FLEX.: Horario asignado en turno flexible';
+        /* worksheet.mergeCells('D57:M57'); */
+        /* worksheet.getCell('D57').value = 'J.F.H: Jornada fuera de horario asignado'; */
+        /* worksheet.mergeCells('N57:T57'); */
+        /* worksheet.getCell('N57').value = 'J.FLEX.: Horario asignado en turno flexible'; */
 
-        worksheet.mergeCells('D58:M58');
-        worksheet.getCell('D58').value = 'S.EXT.: Salida extraordinaria dentro de jornada';
-        worksheet.mergeCells('N58:T58');
-        worksheet.getCell('N58').value = 'S.T.H.: Salida especial contada como trabajo sólo en horario, con horario asignado';
+        /* worksheet.mergeCells('D58:M58'); */
+        /* worksheet.getCell('D58').value = 'S.EXT.: Salida extraordinaria dentro de jornada'; */
+        /* worksheet.mergeCells('N58:T58'); */
+        /*  worksheet.getCell('N58').value = 'S.T.H.: Salida especial contada como trabajo sólo en horario, con horario asignado'; */
 
         worksheet.mergeCells('D59:M59');
-        worksheet.getCell('D59').value = 'S.T.: Salida especial contada como trabajado, con horario asignado';
+        /* worksheet.getCell('D59').value = 'S.T.: Salida especial contada como trabajado, con horario asignado'; */
         worksheet.mergeCells('N59:T59');
-        worksheet.getCell('N59').value = 'S.N.T.: Salida especial contada como no trabajo, con horario asignado';
+        /* worksheet.getCell('N59').value = 'S.N.T.: Salida especial contada como no trabajo, con horario asignado'; */
 
         worksheet.mergeCells('D60:M60');
-        worksheet.getCell('D60').value = 'S.T.F.H.: Salida especial contada como trabajada, fuera de horario asignado';
+        /* worksheet.getCell('D60').value = 'S.T.F.H.: Salida especial contada como trabajada, fuera de horario asignado'; */
         worksheet.mergeCells('N60:T60');
-        worksheet.getCell('N60').value = 'S.T.H. [V]: Salida especial trabajada en horario, contada como vacaciones';
+        /* worksheet.getCell('N60').value = 'S.T.H. [V]: Salida especial trabajada en horario, contada como vacaciones'; */
 
-        worksheet.mergeCells('D61:H61');
-        worksheet.getCell('D61').value = 'LIC.MED.: Día con licencia médica asignada';
-        worksheet.mergeCells('I61:O61');
-        worksheet.getCell('I61').value = 'LIBRE: Día sin horario, marcaciones o salidas especiales asignadas';
-        worksheet.mergeCells('P61:T61');
-        worksheet.getCell('P61').value = 'J.FEST.E.: Jornada en día festivo';
+        worksheet.mergeCells('D57:H57');
+        worksheet.getCell('D57').value = 'LIC.MED.: Día con licencia médica asignada';
+        worksheet.mergeCells('I57:O57');
+        worksheet.getCell('I57').value = 'LIBRE: Día sin horario, marcaciones o salidas especiales asignadas';
+        worksheet.mergeCells('P57:T57');
+        worksheet.getCell('P57').value = 'J.FEST.E.: Jornada en día festivo';
 
-        worksheet.getCell('A62').value = 'Nota:';
-        worksheet.mergeCells('B62:T62');
-        worksheet.getCell('B62').value = 
+        worksheet.getCell('A58').value = 'Nota:';
+        worksheet.mergeCells('B58:T58');
+        worksheet.getCell('B58').value = 
         `
         - Azul: marcación automática generada por el sistema (sólo para efectos del correcto cálculo para beneficio del trabajador).
         - Verde: marcacion creada manualmente (por un administrador del sistema).
@@ -657,10 +665,10 @@ module.exports = function(dbInyectada){
         /* worksheet.getRow(52).font  = {bold: true } */
         worksheet.getRow(51).height = 90;
         worksheet.getRow(52).height = 30;
-        worksheet.getRow(62).height = 80;
+        worksheet.getRow(58).height = 80;
         worksheet.getRow(42).alignment = { vertical: 'middle', horizontal: 'center' };
         worksheet.getRow(52).alignment = { vertical: 'middle', horizontal: 'center' };
-        worksheet.getRow(62).alignment = { vertical: 'middle', wrapText: true };
+        worksheet.getRow(58).alignment = { vertical: 'middle', wrapText: true };
         worksheet.getCell('A41').alignment = { vertical: 'middle', horizontal: 'center' };
         worksheet.getCell('A41').border = simpleBorderStyle;
         worksheet.getCell('A48').border = simpleBorderStyle;
@@ -738,6 +746,11 @@ module.exports = function(dbInyectada){
         const signo = inicio.isBefore(final) ? '-' : '';
         return `${signo}${String(Math.abs(horas)).padStart(2, '0')}:${String(Math.abs(minutos)).padStart(2, '0')}`;
     
+    }
+    function convertirMinutosAHoras(minutos) {
+        let horas = Math.floor(minutos /  60);
+        let minutosRestantes = minutos %  60;
+        return `${horas.toString().padStart(2, '0')}:${minutosRestantes.toString().padStart(2, '0')}`;
     }
 
     return {
