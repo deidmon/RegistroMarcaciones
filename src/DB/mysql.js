@@ -1127,7 +1127,11 @@ function queryCheckPermissionAllDay(table, user, date) {
 /* 📌 Verificar vacaciones */
 function queryCheckVacation(table, consult) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT FechaDesde, FechaHasta, COUNT(*) as count FROM ?? WHERE IdUsuario = ? AND idTipoSolicitud = 3 AND estadoSolicitudF = 2`;
+        const query = `SELECT FechaDesde, FechaHasta 
+        FROM ?? 
+        WHERE IdUsuario = ? 
+        AND idTipoSolicitud = 3 
+        AND estadoSolicitudF = 2`;
         const values = [table, consult];
 
         conexion.query(query, values, (error, result) => {

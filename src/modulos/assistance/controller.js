@@ -7,10 +7,7 @@ const tableAddress = "direcciones";
 const tableDaysOff = "descansos";
 const tablePermissions = "solicitudes";
 const tableExceptions = "excepciones";
-const tabletypeValidation = "validacion";
 const radiusMeters = 50;
-const typeRegisterStartBreak = 2; //El inicio de refrigerio es tipo de marcación 2
-const typeRegisterEndBreak = 3; //El fin de refrigerio es tipo de marcación 3
 moment.tz.setDefault("America/Lima");
 moment.locale("es");
 const helpers = require("../../helpers/helpers");
@@ -80,8 +77,8 @@ module.exports = function (dbInyectada) {
       
       /* 📌 Comprueba si inicio o fin de refrigerio - 2 o 3 */
       if (
-        body.idTypesMarking == typeRegisterStartBreak ||
-        body.idTypesMarking == typeRegisterEndBreak
+        body.idTypesMarking == constant.typeRegisterStartBreak ||
+        body.idTypesMarking == constant.typeRegisterEndBreak
       ) {
         const timeBreak = await db.queryGetTimeBreak(idSchedule.IdHorarios); //Obtener tiempo de break
         const timeInHoursFormat = await helpers.parseHourToMinutes(
@@ -287,7 +284,7 @@ module.exports = function (dbInyectada) {
     }
     message = `El rango para registrar su asistencia es de ${radiusMeters} metros. Por favor, verifique que se encuentra dentro de ese rango.`;
     return { messages: message };
-  }
+  };
 
   //////////////////////////////////////////////////////////////
   /* 📌 Para registrar asistencia a los que tienen modalidad presencial o virtual*/
@@ -302,7 +299,6 @@ module.exports = function (dbInyectada) {
     let initialDate = moment();
     const dayOfWeekName = await helpers.getJustDay(initialDate);
     let date = await helpers.getDateToday(initialDate);
-    console.log(date);
     var dateToMark = new Date(date);
 
     let typesMarkings = await db.allInformationOfOneTable(tableTypeMarking);
@@ -422,7 +418,7 @@ module.exports = function (dbInyectada) {
       return await addMarkingOnSite(body);
     }
     return await addMarkingVirtual(body);
-  }
+  };
 
   /* 📌 Para registrar asistencia desde la web ya que, la ubicación falla mucho  */
   async function addMarkingVirtual(body) {
@@ -432,7 +428,7 @@ module.exports = function (dbInyectada) {
     const formattedTime = await helpers.getTimeNow(initialDate);
     const dayOfWeekName = await helpers.getJustDay(initialDate);
     const hourInMinutesNow = await helpers.parseHourToMinutes(formattedTime); //Obtener la hora en minutos
-
+    var dateToMark = new Date(date);
     let showForm = 0; //Movi showform aqui
     let getTypesValidation = await db.queryGetTypesValidation();
 
@@ -444,7 +440,99 @@ module.exports = function (dbInyectada) {
 
     /* let idvalidation = 1; */
     let descriptionValidation = ""; //movi descriptionValidation
+    
+    ///////VERFICACIONES
+    /* 📌 Verificar si ya registro su entrada, break, fin break o salida del día */
+    let userAlreadyMarked = false;
+    userAlreadyMarked = await checkIfAlreadyRegister(
+      body.idTypesMarking,
+      body.idUser,
+      date,
+      tableAssist
+    );
+    if (userAlreadyMarked) {
+      message = `Usted ya ha registrado su ${descrptionTypeMarking.toUpperCase()} hoy.`;
+      return { messages: message };
+    }
 
+    /* 📌 Verificar que primero ingrese entrada, antes de poder registrar break */
+    let alreadyMarkedEntry = false; //aun no marca
+    alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
+      body.idTypesMarking,
+      2,
+      body.idUser,
+      date,
+      tableAssist,
+      1
+    );
+    if (alreadyMarkedEntry) {
+      message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
+        body.idTypesMarking - 2
+      ].descripcion.toUpperCase()} primero.`;
+      return { messages: message };
+    }
+
+    /* 📌 Verificar que primero ingrese break, antes de poder registrar fin break */
+    alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
+      body.idTypesMarking,
+      3,
+      body.idUser,
+      date,
+      tableAssist,
+      2
+    );
+    if (alreadyMarkedEntry) {
+      message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
+        body.idTypesMarking - 2
+      ].descripcion.toUpperCase()} primero.`;
+      return { messages: message };
+    }
+
+    /* 📌 Verificar que primero ingrese fin break, antes de poder registrar salida */
+    alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
+      body.idTypesMarking,
+      4,
+      body.idUser,
+      date,
+      tableAssist,
+      3
+    );
+    if (alreadyMarkedEntry) {
+      message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
+        body.idTypesMarking - 2
+      ].descripcion.toUpperCase()} primero.`;
+      return { messages: message };
+    }
+
+    /* 📌 Verificar si es su día de descanso */
+    const daysOff = await db.queryGetDaysOff(
+      tableDaysOff,
+      tableSchedule,
+      tableUser,
+      { IdUsuarios: body.idUser }
+    );
+    if (daysOff.includes(dayOfWeekName)) {
+      message = `Hoy ${dayOfWeekName.toUpperCase()} es su día no laborable.`;
+      return { messages: message };
+    }
+
+    /* 📌 Verificar si esta de vacaciones */
+    var haveVacation = await db.queryCheckVacation(
+      tablePermissions,
+      body.idUser
+    );
+    console.log(haveVacation);
+    if (haveVacation.length > 0) {
+      console.log("pasa por vacaciones");
+      if (
+        dateToMark >= haveVacation[0].FechaDesde &&
+        dateToMark <= haveVacation[0].FechaHasta
+      ) {
+        message = `Está de vacaciones, disfrútelas al máximo`;
+        return { messages: message };
+      }
+    }
+    ///FIN VERIFICACIONES
     console.log("ingresamos a modo virtual2");
 
     const idSchedule = await db.queryGetIdSchedule(tableUser, {
@@ -454,8 +542,8 @@ module.exports = function (dbInyectada) {
     console.log("y aqui hola");
     /* 📌 Comprueba si inicio o fin de refrigerio - 2 o 3 */
     if (
-      body.idTypesMarking == typeRegisterStartBreak ||
-      body.idTypesMarking == typeRegisterEndBreak
+      body.idTypesMarking == constant.typeRegisterStartBreak ||
+      body.idTypesMarking == constant.typeRegisterEndBreak
     ) {
       const timeBreak = await db.queryGetTimeBreak(idSchedule.IdHorarios); //Obtener tiempo de break
       const timeInHoursFormat = await helpers.parseHourToMinutes(formattedTime); //Convertir el tiempo en minutos
@@ -626,7 +714,7 @@ module.exports = function (dbInyectada) {
       "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
       Detalle: `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!`,
     };
-  }
+  };
 
   /* 📌 Validar (Conforme, tardanza, fuera de horario, sobretiempo) */
   async function validateTime(
@@ -654,7 +742,7 @@ module.exports = function (dbInyectada) {
       return 5; //fuera de horario
     }
     return 0;
-  }
+  };
 
   /* 📌 Para registrar inicio o fin de break*/
   async function registerBreak(
@@ -838,7 +926,7 @@ module.exports = function (dbInyectada) {
     }
     message = `No dispones de tiempo para descanso.`;
     return { messages: message };
-  }
+  };
 
   /* 📌 Función para comprobar si ya registro el registro previo para que pueda registrar el siguiente  */
   async function checkIfAlreadyRegisterPrevious(
@@ -862,7 +950,7 @@ module.exports = function (dbInyectada) {
       }
     }
     return false;
-  }
+  };
 
   /* 📌 Función para comprobar que no registre doble el mismo tipo  */
   async function checkIfAlreadyRegister(
@@ -882,7 +970,7 @@ module.exports = function (dbInyectada) {
     } else {
       return false;
     }
-  }
+  };
 
   /* 📌 Actualizar  */
   async function update(body) {
@@ -913,7 +1001,7 @@ module.exports = function (dbInyectada) {
     }
     message = "No tienes permiso para modificar.";
     return { messages: message };
-  }
+  };
 
   return {
     addMarking,
