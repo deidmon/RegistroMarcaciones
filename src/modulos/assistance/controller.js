@@ -1,17 +1,9 @@
 const moment = require("moment-timezone");
-const tableAssist = "asistencias";
-const tableUser = "usuarios";
-const tableSchedule = "horarios";
-const tableTypeMarking = "tipomarcaciones";
-const tableAddress = "direcciones";
-const tableDaysOff = "descansos";
-const tablePermissions = "solicitudes";
-const tableExceptions = "excepciones";
-const radiusMeters = 50;
 moment.tz.setDefault("America/Lima");
 moment.locale("es");
 const helpers = require("../../helpers/helpers");
 const constant = require("../../helpers/constants");
+
 module.exports = function (dbInyectada) {
   let message = "";
 
@@ -21,66 +13,191 @@ module.exports = function (dbInyectada) {
     db = require("../../DB/mysql");
   }
 
-  /* 📌 Añadir registro de asistencia */
+  /* 📌 Añadir registro de asistencia presencial*/
   async function addMarkingOnSite(body) {
-    console.log("aqui en presencial0");
-    //Aqui es presencial
+
+    let initialDate = moment();     
+    let date = await helpers.getDateToday(initialDate);
+    const formattedTime = await helpers.getTimeNow(initialDate);
+    const hourInMinutesNow = await helpers.parseHourToMinutes(formattedTime); //Obtener la hora en minutos
+    var dateToMark = new Date(date);
+
+    const idSchedule = await db.queryGetIdSchedule(constant.tableUser, {
+      IdUsuarios: body.idUser,
+    }); //Obtener id de horario
+
+    const timeBreak = await db.queryGetTimeBreak(idSchedule.IdHorarios); //Obtener tiempo de break
+
+    let typesMarkings = await db.allInformationOfOneTable(constant.tableTypeMarking);
+    //Descripción de tipo de marcación (entrada, almuerzo, fin almuerzo, salida)
+
+    const descrptionTypeMarking =
+      typesMarkings[body.idTypesMarking - 1].descripcion; //-1 porque los indices empiezan desde cero
+
+    /* let descriptionValidation = ""; //movi descriptionValidation */
+
+    /* 📌 Verificar si ya registro su entrada, break, fin break o salida del día */
+    let userAlreadyMarked = false;
+    userAlreadyMarked = await checkIfAlreadyRegister(
+      body.idTypesMarking,
+      body.idUser,
+      date,
+      constant.tableAssist
+    );
+    if (userAlreadyMarked) {
+      message = `Usted ya ha registrado su ${descrptionTypeMarking.toUpperCase()} hoy.`;
+      return { messages: message };
+    }
+
+    /* 📌 Verificar que primero ingrese entrada, antes de poder registrar break */
+    let alreadyMarkedEntry = false; //aun no marca
+    alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
+      body.idTypesMarking,
+      2,
+      body.idUser,
+      date,
+      constant.tableAssist,
+      1
+    );
+    if (alreadyMarkedEntry) {
+      message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
+        body.idTypesMarking - 2
+      ].descripcion.toUpperCase()} primero.`;
+      return { messages: message };
+    }
+
+    /* 📌 Verificar que primero ingrese break, antes de poder registrar fin break */
+    alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
+      body.idTypesMarking,
+      3,
+      body.idUser,
+      date,
+      constant.tableAssist,
+      2
+    );
+    if (alreadyMarkedEntry) {
+      message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
+        body.idTypesMarking - 2
+      ].descripcion.toUpperCase()} primero.`;
+      return { messages: message };
+    }
+    if (pTimeBreak && pTimeBreak.length > 0) {
+      /* 📌 Verificar que primero ingrese fin break, antes de poder registrar salida */
+      alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
+        body.idTypesMarking,
+        4,
+        body.idUser,
+        date,
+        constant.tableAssist,
+        3
+      );
+      if (alreadyMarkedEntry) {
+        message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
+          body.idTypesMarking - 2
+        ].descripcion.toUpperCase()} primero.`;
+        return { messages: message };
+      }
+    }else{
+      /* 📌 Verificar que primero ingrese entrada, antes de poder registrar salida */
+      alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
+        body.idTypesMarking,
+        4,
+        body.idUser,
+        date,
+        constant.tableAssist,
+        1
+      );
+      if (alreadyMarkedEntry) {
+        message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
+          body.idTypesMarking - 2
+        ].descripcion.toUpperCase()} primero.`;
+        return { messages: message };
+      }
+    }
+    
+
+    /* 📌 Verificar si es su día de descanso */
+    const daysOff = await db.queryGetDaysOff(
+      constant.tableDaysOff,
+      constant.tableSchedule,
+      constant.tableUser,
+      { IdUsuarios: body.idUser }
+    );
+    if (daysOff.includes(dayOfWeekName)) {
+      message = `Hoy ${dayOfWeekName.toUpperCase()} es su día no laborable.`;
+      return { messages: message };
+    }
+    console.log("message   dasdhaofhlsdjflkjaslkfjkadjlsklfjsdf");
+
+    /* 📌 Verificar si esta de vacaciones */
+    var haveVacation = await db.queryCheckVacation(
+      constant.tablePermissions,
+      body.idUser
+    );
+    if (haveVacation.length > 0) {
+      if (
+        dateToMark >= haveVacation[0].FechaDesde &&
+        dateToMark <= haveVacation[0].FechaHasta
+      ) {
+        message = `Está de vacaciones, disfrútelas al máximo`;
+        return { messages: message };
+      }
+    }
+
+    /* 📌 Verificar si trabajador tiene permiso todo el día */
+    const havePermissionAllDay = await db.queryCheckPermissionAllDay(
+      constant.tablePermissions,
+      body.idUser,
+      date
+    );
+    if (havePermissionAllDay) {
+      message = `Día libre, aprovéchalo`;
+      return { messages: message };
+    }
+
     const locations = await db.compareLocation(
-      tableUser,
-      tableAddress,
+      constant.tableUser,
+      constant.tableAddress,
       body.idUser,
       body.latitude,
       body.latitude,
       body.longitude,
-      radiusMeters,
+      constant.radiusMeters,
       body.idUser,
       body.latitude,
       body.latitude,
       body.longitude,
-      radiusMeters
+      constant.radiusMeters
     );
 
     if (locations.length > 0) {
-      let initialDate = moment();
-      let day = initialDate.format("DD");
-      let month = initialDate.format("MM");
-      let age = initialDate.format("YYYY");
-      let hour = initialDate.format("HH");
-      let minutes = initialDate.format("mm");
-      let date = `${age}-${month}-${day}`;
-      const formattedTime = await helpers.getTimeNow(initialDate);
-      const hourInMinutesNow = await helpers.parseHourToMinutes(formattedTime); //Obtener la hora en minutos
-      console.log(formattedTime, 'formattedTime');
-      const dayOfWeekName = initialDate.format("dddd");
+      
+      const dayOfWeekName = await helpers.getJustDay(initialDate);
       const firstLocationResult = locations[0];
       const nameAddress = firstLocationResult.Direccion;
 
-      let typesMarkings = await db.allInformationOfOneTable(tableTypeMarking);
+      let typesMarkings = await db.allInformationOfOneTable(constant.tableTypeMarking);
       //Descripción de tipo de marcación (entrada, almuerzo, fin almuerzo, salida)
 
-      let getTypesValidation = await db.queryGetTypesValidation();
-
-      const idSchedule = await db.queryGetIdSchedule(tableUser, {
-        IdUsuarios: body.idUser,
-      }); //Obtener horario
+      let getTypesValidation = await db.queryGetTypesValidation();//Tipos de validación
 
       const exceptionDay = await db.queryGetExceptionDays(
-        tableDaysOff,
-        tableSchedule,
-        tableUser,
+        constant.tableDaysOff,
+        constant.tableSchedule,
+        constant.tableUser,
         { IdUsuarios: body.idUser }
       ); //Obtener horario del dia diferente
 
-      const IdExcepcion = await db.queryGetIdException(tableSchedule, {
+      const IdExcepcion = await db.queryGetIdException(constant.tableSchedule, {
         IdHorarios: idSchedule.IdHorarios,
-      });
+      });//Obtener id de horario de día diferente
       
       /* 📌 Comprueba si inicio o fin de refrigerio - 2 o 3 */
       if (
         body.idTypesMarking == constant.typeRegisterStartBreak ||
         body.idTypesMarking == constant.typeRegisterEndBreak
       ) {
-        const timeBreak = await db.queryGetTimeBreak(idSchedule.IdHorarios); //Obtener tiempo de break
+        
         const timeInHoursFormat = await helpers.parseHourToMinutes(
           formattedTime
         ); //Convertir el tiempo en minutos
@@ -103,71 +220,52 @@ module.exports = function (dbInyectada) {
       let parametrization;
       if (exceptionDay.includes(dayOfWeekName)) {
         parametrization = await db.getTableParametrization(
-          tableExceptions,
-          tableTypeMarking,
+          constant.tableExceptions,
+          constant.tableTypeMarking,
           { IdExcepcion: IdExcepcion.IdExcepcion },
           body.idTypesMarking
         );
       } else {
         parametrization = await db.getTableParametrization(
-          tableSchedule,
-          tableTypeMarking,
+          constant.tableSchedule,
+          constant.tableTypeMarking,
           { IdHorarios: idSchedule.IdHorarios },
           body.idTypesMarking
         );
       }
 
       const timePermission = await db.queryCheckTimePermission(
-        tablePermissions,
+        constant.tablePermissions,
         4,
         body.idUser,
         date
       );
       console.log(timePermission,'timePermission');
-      const startTimeAllowed = parametrization[0].HoraInicio;
+      const startTimeAllowed = parametrization[0].HoraInicio; //Hora de inicio de jornada
+      
+      const endTimeAllowed = parametrization[0].HoraFin; //Hora de fin de jornada
 
-      const [hourStartTimeAllowed, minutesHourStartTimeAllowed] =
-        startTimeAllowed.split(":");
+      const startTimeAllowedInMinutes = await helpers.parseHourToMinutes(startTimeAllowed);
+      
+      //Para que aparezca la notificación cuando ingresan una hora despues
+      //75 porque es 60 min mas 15 que se da de tolerancia
+      const entryOneHourAfter = startTimeAllowedInMinutes + 75;
+      
+      //Cuando ingresen 30 minutos antes sera sobretiempo, menos 15 porque ya tiene 15 de tolerancia que harian 30 min
+      const entryThirtyMinutesBefore = startTimeAllowedInMinutes - 15;
 
-      const startTimeAllowedInMinutes =
-        parseInt(hourStartTimeAllowed) * 60 +
-        parseInt(minutesHourStartTimeAllowed);
+      //si tiene permiso restarle a su hora de ingreso normal
+      //15 min mas porque ya estan como proroga
+      const entryMinutesBefore = startTimeAllowedInMinutes + 15 - timePermission * 60;
 
-      const entryOneHourAfter =
-        parseInt(hourStartTimeAllowed) * 60 +
-        parseInt(minutesHourStartTimeAllowed) +
-        75;
-
-      const entryThirtyMinutesBefore =
-        parseInt(hourStartTimeAllowed) * 60 +
-        parseInt(minutesHourStartTimeAllowed) -
-        15;
-
-      const entryMinutesBefore =
-        parseInt(hourStartTimeAllowed) * 60 +
-        parseInt(minutesHourStartTimeAllowed) +
-        15 -
-        timePermission * 60;
-      /* const hourInMinutesNow = parseInt(hour) * 60 + parseInt(minutes); */
-
-      const endTimeAllowed =
-        /* parametrization[parametrization.length - 1].HoraFin;  */ parametrization[0]
-          .HoraFin;
       const descrptionTypeMarking = parametrization[0].descripcion;
     
       /* 📌 Verificar si tiene permiso por parte del lider */
       if (timePermission > 0 && body.idTypesMarking === 1) {
-        console.log("dentro de permiso de liderrrrrrrrrrrrr ");
-        console.log(entryMinutesBefore,'entryMinutesBefore');
-        console.log(hourInMinutesNow,'hourInMinutesNow');
-        console.log(entryThirtyMinutesBefore,'entryThirtyMinutesBefore');
         if (
           entryMinutesBefore <= hourInMinutesNow &&
           hourInMinutesNow < entryThirtyMinutesBefore
         ) {
-          console.log("dentro de permiso de lider ");
-          console.log(body.idUser);
-          console.log(nameAddress);
           const assists = {
             /* IdAsistencias: body.id, */
             IdUsuarios: body.idUser,
@@ -183,8 +281,8 @@ module.exports = function (dbInyectada) {
             idHorario: idSchedule.IdHorarios,
           };
           console.log(assists, 'assists');
-          const respuesta = await db.add(tableAssist, assists);
-          /* const update = await db.update(tableUser, {tiempoPermiso : 0},body.idUser); */
+          const respuesta = await db.add(constant.tableAssist, assists);
+          /* const update = await db.update(constant.tableUser, {tiempoPermiso : 0},body.idUser); */
           return {
             idTipoValidacion: 4,
             idMostrarForm: 0,
@@ -194,7 +292,7 @@ module.exports = function (dbInyectada) {
           };
         }
       }
-      console.log("fuera de permiso de lider ");
+      
       /* 📌 Validar (Conforme, tardanza, fuera de horario, sobretiempo) */
       function validateTime(formattedTime) {
         const [hour, minutes] = formattedTime.split(":");
@@ -265,7 +363,7 @@ module.exports = function (dbInyectada) {
       if (hourInMinutesNow > entryOneHourAfter && body.idTypesMarking === 1) {
         showForm = 1;
       }
-      const respuesta = await db.add(tableAssist, assists);
+      const respuesta = await db.add(constant.tableAssist, assists);
 
       if (resultValidation !== 1) {
         return {
@@ -282,136 +380,22 @@ module.exports = function (dbInyectada) {
         Detalle: `Hora de registro: ${formattedTime}. ¡gracias por su puntualidad!`,
       };
     }
-    message = `El rango para registrar su asistencia es de ${radiusMeters} metros. Por favor, verifique que se encuentra dentro de ese rango.`;
+    message = `El rango para registrar su asistencia es de ${constant.radiusMeters} metros. Por favor, verifique que se encuentra dentro de ese rango.`;
     return { messages: message };
   };
 
   //////////////////////////////////////////////////////////////
-  /* 📌 Para registrar asistencia a los que tienen modalidad presencial o virtual*/
+  /* 📌 Para registrar asistencia modalidad presencial o virtual*/
   async function addMarking(body) {
     /* 📌 Verificar usuario es correcto */
-    const data = await db.query(tableUser, { IdUsuarios: body.idUser });
+    const data = await db.query(constant.tableUser, { IdUsuarios: body.idUser });
     if (!data) {
       message = "Usuario incorrecto";
       return { messages: message };
     }
-
-    let initialDate = moment();
-    const dayOfWeekName = await helpers.getJustDay(initialDate);
-    let date = await helpers.getDateToday(initialDate);
-    var dateToMark = new Date(date);
-
-    let typesMarkings = await db.allInformationOfOneTable(tableTypeMarking);
-    //Descripción de tipo de marcación (entrada, almuerzo, fin almuerzo, salida)
-
-    const descrptionTypeMarking =
-      typesMarkings[body.idTypesMarking - 1].descripcion; //-1 porque los indices empiezan desde cero
-
-    /* let descriptionValidation = ""; //movi descriptionValidation */
-
-    /* 📌 Verificar si ya registro su entrada, break, fin break o salida del día */
-    let userAlreadyMarked = false;
-    userAlreadyMarked = await checkIfAlreadyRegister(
-      body.idTypesMarking,
-      body.idUser,
-      date,
-      tableAssist
-    );
-    if (userAlreadyMarked) {
-      message = `Usted ya ha registrado su ${descrptionTypeMarking.toUpperCase()} hoy.`;
-      return { messages: message };
-    }
-
-    /* 📌 Verificar que primero ingrese entrada, antes de poder registrar break */
-    let alreadyMarkedEntry = false; //aun no marca
-    alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
-      body.idTypesMarking,
-      2,
-      body.idUser,
-      date,
-      tableAssist,
-      1
-    );
-    if (alreadyMarkedEntry) {
-      message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
-        body.idTypesMarking - 2
-      ].descripcion.toUpperCase()} primero.`;
-      return { messages: message };
-    }
-
-    /* 📌 Verificar que primero ingrese break, antes de poder registrar fin break */
-    alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
-      body.idTypesMarking,
-      3,
-      body.idUser,
-      date,
-      tableAssist,
-      2
-    );
-    if (alreadyMarkedEntry) {
-      message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
-        body.idTypesMarking - 2
-      ].descripcion.toUpperCase()} primero.`;
-      return { messages: message };
-    }
-
-    /* 📌 Verificar que primero ingrese fin break, antes de poder registrar salida */
-    alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
-      body.idTypesMarking,
-      4,
-      body.idUser,
-      date,
-      tableAssist,
-      3
-    );
-    if (alreadyMarkedEntry) {
-      message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
-        body.idTypesMarking - 2
-      ].descripcion.toUpperCase()} primero.`;
-      return { messages: message };
-    }
-
-    /* 📌 Verificar si es su día de descanso */
-    const daysOff = await db.queryGetDaysOff(
-      tableDaysOff,
-      tableSchedule,
-      tableUser,
-      { IdUsuarios: body.idUser }
-    );
-    if (daysOff.includes(dayOfWeekName)) {
-      message = `Hoy ${dayOfWeekName.toUpperCase()} es su día no laborable.`;
-      return { messages: message };
-    }
-    console.log("message   dasdhaofhlsdjflkjaslkfjkadjlsklfjsdf");
-
-    /* 📌 Verificar si esta de vacaciones */
-    var haveVacation = await db.queryCheckVacation(
-      tablePermissions,
-      body.idUser
-    );
-    if (haveVacation.length > 0) {
-      if (
-        dateToMark >= haveVacation[0].FechaDesde &&
-        dateToMark <= haveVacation[0].FechaHasta
-      ) {
-        message = `Está de vacaciones, disfrútelas al máximo`;
-        return { messages: message };
-      }
-    }
-
-    /* 📌 Verificar si trabajador tiene permiso todo el día */
-    const havePermissionAllDay = await db.queryCheckPermissionAllDay(
-      tablePermissions,
-      body.idUser,
-      date
-    );
-    if (havePermissionAllDay) {
-      message = `Día libre, aprovéchalo`;
-      return { messages: message };
-    }
-
+    
     /* 📌 Verificar si es presencial o virtual */
-    const workModality = await db.queryModalityValidation(tableUser, {
+    const workModality = await db.queryModalityValidation(constant.tableUser, {
       IdUsuarios: body.idUser,
     });
     if (!workModality) {
@@ -432,8 +416,12 @@ module.exports = function (dbInyectada) {
     let showForm = 0; //Movi showform aqui
     let getTypesValidation = await db.queryGetTypesValidation();
 
-    let typesMarkings = await db.allInformationOfOneTable(tableTypeMarking);
+    let typesMarkings = await db.allInformationOfOneTable(constant.tableTypeMarking);
     //Descripción de tipo de marcación (entrada, almuerzo, fin almuerzo, salida)
+    const idSchedule = await db.queryGetIdSchedule(constant.tableUser, {
+      IdUsuarios: body.idUser,
+    }); //Obtener Id del horario
+    const timeBreak = await db.queryGetTimeBreak(idSchedule.IdHorarios); //Obtener tiempo de break
 
     const descrptionTypeMarking =
       typesMarkings[body.idTypesMarking - 1].descripcion; //-1 porque los indices empiezan desde cero
@@ -448,7 +436,7 @@ module.exports = function (dbInyectada) {
       body.idTypesMarking,
       body.idUser,
       date,
-      tableAssist
+      constant.tableAssist
     );
     if (userAlreadyMarked) {
       message = `Usted ya ha registrado su ${descrptionTypeMarking.toUpperCase()} hoy.`;
@@ -462,7 +450,7 @@ module.exports = function (dbInyectada) {
       2,
       body.idUser,
       date,
-      tableAssist,
+      constant.tableAssist,
       1
     );
     if (alreadyMarkedEntry) {
@@ -478,7 +466,7 @@ module.exports = function (dbInyectada) {
       3,
       body.idUser,
       date,
-      tableAssist,
+      constant.tableAssist,
       2
     );
     if (alreadyMarkedEntry) {
@@ -488,42 +476,59 @@ module.exports = function (dbInyectada) {
       return { messages: message };
     }
 
-    /* 📌 Verificar que primero ingrese fin break, antes de poder registrar salida */
-    alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
-      body.idTypesMarking,
-      4,
-      body.idUser,
-      date,
-      tableAssist,
-      3
-    );
-    if (alreadyMarkedEntry) {
-      message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
-        body.idTypesMarking - 2
-      ].descripcion.toUpperCase()} primero.`;
-      return { messages: message };
+    if (timeBreak && timeBreak.length > 0) {
+      /* 📌 Verificar que primero ingrese fin break, antes de poder registrar salida */
+      alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
+        body.idTypesMarking,
+        4,
+        body.idUser,
+        date,
+        constant.tableAssist,
+        3
+      );
+      if (alreadyMarkedEntry) {
+        message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
+          body.idTypesMarking - 2
+        ].descripcion.toUpperCase()} primero.`;
+        return { messages: message };
+      }
+    }else{
+      /* 📌 Verificar que primero ingrese entrada, antes de poder registrar salida */
+      alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
+        body.idTypesMarking,
+        4,
+        body.idUser,
+        date,
+        constant.tableAssist,
+        1
+      );
+      if (alreadyMarkedEntry) {
+        message = `Para marcar su ${descrptionTypeMarking.toUpperCase()} usted debe registrar su ${typesMarkings[
+          body.idTypesMarking - 4
+        ].descripcion.toUpperCase()} primero.`;
+        return { messages: message };
+      }
     }
 
     /* 📌 Verificar si es su día de descanso */
     const daysOff = await db.queryGetDaysOff(
-      tableDaysOff,
-      tableSchedule,
-      tableUser,
+      constant.tableDaysOff,
+      constant.tableSchedule,
+      constant.tableUser,
       { IdUsuarios: body.idUser }
     );
     if (daysOff.includes(dayOfWeekName)) {
       message = `Hoy ${dayOfWeekName.toUpperCase()} es su día no laborable.`;
       return { messages: message };
     }
+    console.log("message   dasdhaofhlsdjflkjaslkfjkadjlsklfjsdf");
 
     /* 📌 Verificar si esta de vacaciones */
     var haveVacation = await db.queryCheckVacation(
-      tablePermissions,
+      constant.tablePermissions,
       body.idUser
     );
-    console.log(haveVacation);
     if (haveVacation.length > 0) {
-      console.log("pasa por vacaciones");
       if (
         dateToMark >= haveVacation[0].FechaDesde &&
         dateToMark <= haveVacation[0].FechaHasta
@@ -532,20 +537,29 @@ module.exports = function (dbInyectada) {
         return { messages: message };
       }
     }
+
+    /* 📌 Verificar si trabajador tiene permiso todo el día */
+    const havePermissionAllDay = await db.queryCheckPermissionAllDay(
+      constant.tablePermissions,
+      body.idUser,
+      date
+    );
+    if (havePermissionAllDay) {
+      message = `Día libre, aprovéchalo`;
+      return { messages: message };
+    }
     ///FIN VERIFICACIONES
+
     console.log("ingresamos a modo virtual2");
 
-    const idSchedule = await db.queryGetIdSchedule(tableUser, {
-      IdUsuarios: body.idUser,
-    }); //Obtener Id del horario
-
+    
     console.log("y aqui hola");
     /* 📌 Comprueba si inicio o fin de refrigerio - 2 o 3 */
     if (
       body.idTypesMarking == constant.typeRegisterStartBreak ||
       body.idTypesMarking == constant.typeRegisterEndBreak
     ) {
-      const timeBreak = await db.queryGetTimeBreak(idSchedule.IdHorarios); //Obtener tiempo de break
+      
       const timeInHoursFormat = await helpers.parseHourToMinutes(formattedTime); //Convertir el tiempo en minutos
       const typeMarkDescription = await db.queryGetNameTypeMark(
         body.idTypesMarking
@@ -564,13 +578,13 @@ module.exports = function (dbInyectada) {
     }
 
     const exceptionDay = await db.queryGetExceptionDays(
-      tableDaysOff,
-      tableSchedule,
-      tableUser,
+      constant.tableDaysOff,
+      constant.tableSchedule,
+      constant.tableUser,
       { IdUsuarios: body.idUser }
     ); //Obtener día con horario del día diferente
 
-    const IdExcepcion = await db.queryGetIdException(tableSchedule, {
+    const IdExcepcion = await db.queryGetIdException(constant.tableSchedule, {
       IdHorarios: idSchedule.IdHorarios,
     }); //obtener id del horario diferente
 
@@ -578,16 +592,16 @@ module.exports = function (dbInyectada) {
     if (exceptionDay.includes(dayOfWeekName)) {
       //Si coincide el dia de hoy con el día de excepción entonces obtenemos el horario de la tabla excepci´n
       parametrization = await db.getTableParametrization(
-        tableExceptions,
-        tableTypeMarking,
+        constant.tableExceptions,
+        constant.tableTypeMarking,
         { IdExcepcion: IdExcepcion.IdExcepcion },
         body.idTypesMarking
       );
     } else {
       //Sino del horario normal
       parametrization = await db.getTableParametrization(
-        tableSchedule,
-        tableTypeMarking,
+        constant.tableSchedule,
+        constant.tableTypeMarking,
         { IdHorarios: idSchedule.IdHorarios },
         body.idTypesMarking
       );
@@ -596,11 +610,11 @@ module.exports = function (dbInyectada) {
     const startTimeAllowed = parametrization[0].HoraInicio; //Hora de inicio de jornada
     const startTimeAllowedInMinutes = await helpers.parseHourToMinutes(
       startTimeAllowed
-    ); //Hora fin de jornada
+    );
     const endTimeAllowed = parametrization[0].HoraFin; //Hora de fin de jornada
     
     const timePermission = await db.queryCheckTimePermission(
-      tablePermissions,
+      constant.tablePermissions,
       4,
       body.idUser,
       date
@@ -608,22 +622,18 @@ module.exports = function (dbInyectada) {
 
     //Para que aparezca la notificación cuando ingresan una hora despues
     //75 porque es 60 min mas 15 que se da de tolerancia
-    const entryOneHourAfter = startTimeAllowedInMinutes + 75; //
+    const entryOneHourAfter = startTimeAllowedInMinutes + 75;
 
     //Cuando ingresen 30 minutos antes sera sobretiempo, menos 15 porque ya tiene 15 de tolerancia que harian 30 min
     const entryThirtyMinutesBefore = startTimeAllowedInMinutes - 15;
 
     //si tiene permiso restarle a su hora de ingreso normal
     //15 min mas porque ya estan como proroga
-    const entryMinutesBefore =
-      startTimeAllowedInMinutes + 15 - timePermission * 60;
+    const entryMinutesBefore = startTimeAllowedInMinutes + 15 - timePermission * 60;
 
     /* 📌 Verificar si tiene permiso por parte del lider */
     if (timePermission > 0 && body.idTypesMarking === 1) {
-      console.log("dentro de permiso de liderrrrrrrrrrrrr ");
-        console.log(entryMinutesBefore,'entryMinutesBefore');
-        console.log(hourInMinutesNow,'hourInMinutesNow');
-        console.log(entryThirtyMinutesBefore,'entryThirtyMinutesBefore');
+
       if (
         entryMinutesBefore <= hourInMinutesNow &&
         hourInMinutesNow < entryThirtyMinutesBefore
@@ -642,7 +652,7 @@ module.exports = function (dbInyectada) {
           Updated_by: 0,
           idHorario: idSchedule.IdHorarios,
         };
-        const respuesta = await db.add(tableAssist, assists);
+        const respuesta = await db.add(constant.tableAssist, assists);
         return {
           idTipoValidacion: 4,
           idMostrarForm: 0,
@@ -690,7 +700,7 @@ module.exports = function (dbInyectada) {
       idHorario: idSchedule.IdHorarios,
     };
 
-    const respuesta = await db.add(tableAssist, assists);
+    const respuesta = await db.add(constant.tableAssist, assists);
 
     //Movi showform aqui
     if (resultValidation !== 1 && body.idTypesMarking === 4) {
@@ -799,7 +809,7 @@ module.exports = function (dbInyectada) {
           idHorario: pIdSchedule.IdHorarios,
         };
         console.log("por registrarrrrrrrrrrrrrrrrrrr2");
-        await db.add(tableAssist, assists);
+        await db.add(constant.tableAssist, assists);
         console.log("por registrarrrrrrrrrrrrrrrrrrr3");
         if (idvalidation == 2) {
           return {
@@ -893,7 +903,7 @@ module.exports = function (dbInyectada) {
           Updated_by: 0,
           idHorario: pIdSchedule.IdHorarios,
         };
-        await db.add(tableAssist, assists);
+        await db.add(constant.tableAssist, assists);
         console.log("Agrego correctamente", assists);
         if (idvalidation == 2) {
           if (timeLateAfterMark == 1) {
@@ -993,7 +1003,7 @@ module.exports = function (dbInyectada) {
 
     if (body.IdRol == 1) {
       const response = await db.queryUpdateAssists(
-        tableAssist,
+        constant.tableAssist,
         modificationMarking,
         marking
       );

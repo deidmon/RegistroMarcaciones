@@ -3,12 +3,11 @@ const response = require('../../red/response');
 const controller = require('./index');
 const seguridad = require('./security');
 const router = express.Router();
+const constant = require("../../helpers/constants");
 
 router.post('/marking',/* seguridad(), */ addMarking);
 router.post('/update',seguridad(), update);
 router.post('/addMarkingVirtual',/* seguridad(), */ addMarkingVirtual);
-
-errorMessageAsistance = "Algo salio mal, intente más tarde."
 
 async function addMarking(req, res, next){
     try{
@@ -19,7 +18,7 @@ async function addMarking(req, res, next){
             response.error(req, res, false, resultValidation.messages, 200);
         }
     }catch(err){
-        response.error(req, res, false, errorMessageAsistance, 500);
+        response.error(req, res, false, constant.errorMessageAsistance, 500);
     }
 }; 
 
@@ -36,7 +35,7 @@ async function update(req, res, next){
         } 
     }catch(err){
         /* next(err); */
-        response.error(req, res,false,errorMessage, 500);
+        response.error(req, res,false,  constant.errorMessageAsistance, 500);
     }
 };
 
@@ -49,7 +48,7 @@ async function addMarkingVirtual(req, res, next){
             response.error(req, res, false, resultValidation.messages, 200);
         }
     }catch(err){
-        response.error(req, res, false, errorMessageAsistance, 500);
+        response.error(req, res, false, constant.errorMessageAsistance, 500);
     }
 };
 
