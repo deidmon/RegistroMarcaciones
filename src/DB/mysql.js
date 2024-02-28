@@ -514,10 +514,12 @@ function queryAllSchedulesFilter(tabla, tabla2, tabla3,tabla4, consult, consult2
                 h.IdHorarios,
                 MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 15 MINUTE) END) AS HoraInicio,
                 MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END) AS HoraFin,
-                h.IdDescanso,
+                h.idRefrigerio, r.tiempo AS HoraRefrigerio, hr.horainicio AS HoraInicioRefrigerio, hr.horafin AS HoraFinRefrigerio, h.IdDescanso,
                 GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día, 1) DESC SEPARATOR ', ') AS Descanso,
                 h.diaExcepcion AS IdDiaExcepcion, de.Día AS DiaExcepcion, h.IdExcepcion, exc.HoraInicio_Excepcion, exc.HoraFin_Excepcion, h.IdEstado, es.Descripcion
         FROM ?? AS h LEFT JOIN ?? AS de ON h.diaExcepcion = de.IdDescansos
+        LEFT JOIN refrigerio AS r ON h.idRefrigerio = r.id
+        LEFT JOIN horariorefrigerio AS hr ON r.idHorarioRefrigerio = hr.id
         INNER JOIN ?? AS es ON h.IdEstado = es.idEstado
         LEFT JOIN (SELECT 
             ex.IdExcepcion,
