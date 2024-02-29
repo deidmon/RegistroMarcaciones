@@ -1903,6 +1903,18 @@ function queryGetTypesValidation() {
         });
     });
 };
+/* 📌 Chequear si el horario tiene refrigerio*/
+function queryCheckBreak(tabla, consult1) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT IFNULL((SELECT idRefrigerio FROM  ?? WHERE IdHorarios = ?  LIMIT 1), 0) AS checkRefigerio`;
+        const values = [tabla, consult1];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].checkRefigerio);
+
+        });
+    });
+};
 
 module.exports = {
     allInformationOfOneTable,
@@ -2005,6 +2017,7 @@ module.exports = {
     queryGetTimeBreak,
     queryGetNameTypeMark,
     queryScheduleCronActive,
-    queryGetTypesValidation
+    queryGetTypesValidation,
+    queryCheckBreak
 
 }
