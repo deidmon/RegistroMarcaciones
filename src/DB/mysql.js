@@ -1917,6 +1917,31 @@ function queryCheckBreak(tabla, consult1) {
     });
 };
 
+/* 📌 encontrar el ultimo id de refrigerio o horariorefrigerio */
+function queryLastId(tabla) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT id FROM ?? GROUP BY id ORDER BY id DESC LIMIT 1`;
+        const values = [tabla];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].id);
+        });
+    });
+};
+
+/* 📌 Para añadir un nuevo registro */
+function addNewRegisterGeneric(tabla, data) {
+    return new Promise((resolve, reject) => {
+
+        const insertQuery = `INSERT INTO ?? SET ?`;
+        const values = [tabla, data];
+
+        conexion.query(insertQuery, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        });
+    });
+};
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -2019,6 +2044,8 @@ module.exports = {
     queryGetNameTypeMark,
     queryScheduleCronActive,
     queryGetTypesValidation,
-    queryCheckBreak
+    queryCheckBreak,
+    queryLastId,
+    addNewRegisterGeneric,
 
 }
