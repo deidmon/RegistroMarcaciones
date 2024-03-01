@@ -742,10 +742,10 @@ function queryGetJustificationsCounter(table1, table2, name, state1, state2, sta
         const values = [table1, table2, state1, state2, state3];
         conexion.query(query, values, (error, result) => {
             if (error) {
-                console.log(error);
+                /* console.log(error); */
                 return reject(error);
             }
-            console.log(result);
+            /* console.log(result); */
             return resolve(result);
         });
     });
@@ -760,10 +760,10 @@ function queryGetJustificationsCounterPending(table1, state1) {
         const values = [table1, state1];
         conexion.query(query, values, (error, result) => {
             if (error) {
-                console.log(error);
+                /* console.log(error); */
                 return reject(error);
             }
-            console.log(result);
+            /* console.log(result); */
             return resolve(result);
         });
     });
@@ -1776,8 +1776,8 @@ function getRolesActives(table) {
          `;
         const values = [table];
         conexion.query(query, values, (error, result) => {
-            console.log(error);
-            console.log(result);
+            /* console.log(error);
+            console.log(result); */
             return error ? reject(error) : resolve(result);
         });
     });
@@ -1829,7 +1829,7 @@ function querygenericToDeleteData(table, consult) {
         const query = `DELETE FROM ?? WHERE ?`;
         const values = [table, consult];
         conexion.query(query, values, (error, result) => {
-            console.log(result);
+            /* console.log(result); */
             return error ? reject(error) : resolve(result);
         })
     });

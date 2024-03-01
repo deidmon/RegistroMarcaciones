@@ -32,9 +32,27 @@ async function scheduleAssignmentCron() {
     }
 };
 
-cron.schedule('25 15 * * *', () => {
-    // Agrega aquí la lógica que deseas ejecutar
-    console.log("Empezo la hora");
-    scheduleAssignmentCron();
-    console.log('La tarea se ejecutó a las 6 a.m.');
-});
+async function startProgrammingScheduleAssignment() {
+    function scheduleTask(cronExpression) {
+      cron.schedule(cronExpression, async () => {
+        scheduleAssignmentCron();
+      });
+    }
+  
+    //CAMBIAR LA HORA A LA QUE SE EJECUTARA '02:00:00'
+    let uniqueHourCronJob = ["02:00:00"]; //Cronjob inicial 
+    const hourCronJob = uniqueHourCronJob.map((hour) => {
+      const objetMoment = moment.tz(hour, "HH:mm:ss", "America/Lima");
+      const serverTime = objetMoment.tz("UTC"); //  'ZonaHorariaDelServidor'
+      const minutes = serverTime.format("mm");
+      const hours = serverTime.format("HH");
+  
+      return `${minutes} ${hours} * * *`;
+    });
+    console.log(hourCronJob);
+    hourCronJob.forEach((cronExpression) => {
+      scheduleTask(cronExpression);
+    });
+  };
+
+  startProgrammingScheduleAssignment()

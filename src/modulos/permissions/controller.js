@@ -389,7 +389,7 @@ module.exports = function (dbInyectada) {
     if (result && result.length >= 0) {
       const count = result[0];
       const contador = count.totalRegistros; // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
-      console.log(contador);
+      /* console.log(contador); */
       return contador;
     } else {
       return 0;
@@ -440,7 +440,7 @@ module.exports = function (dbInyectada) {
       body.stateAprovedByRRHH,
       body.stateRejectedByRRHH
     );
-    console.log(resultRequestOfWorkerCount.length);
+    /* console.log(resultRequestOfWorkerCount.length); */
     if (resultRequestOfWorkerCount && resultRequestOfWorkerCount.length >= 0) {
       //Mayor a cero porque si es >= 0 si es cero al intentar acceder a la posicion 0 saldra error
       const count = resultRequestOfWorkerCount[0];
@@ -593,26 +593,26 @@ module.exports = function (dbInyectada) {
     );
     if(body.estadoSolicitudF == 2){
         if (findOutIdsToModifyAssistance.length != 0) {
-            console.log("pasa por aqui");
+            /* console.log("pasa por aqui"); */
           for (let i = 0 ; i < findOutIdsToModifyAssistance.length; i++) {
-            console.log("hola ",findOutIdsToModifyAssistance[i].idUsuario);
+            /* console.log("hola ",findOutIdsToModifyAssistance[i].idUsuario); */
             const data = await db.queryConsultTable(
               tableAssist,
               { IdUsuarios: findOutIdsToModifyAssistance[i].idUsuario },
               { Fecha: findOutIdsToModifyAssistance[i].Fecha },
               { IdTMarcacion: findOutIdsToModifyAssistance[i].idTMarcaciones }
             );
-                console.log("aqui");
+                /* console.log("aqui"); */
             if (!data || data.length === 0) {
               message = "No existe marcación a actualizar";
               return { messages: message };
             }
            
-            console.log("soy la i: ", i);
+            /* console.log("soy la i: ", i); */
             const idMark = data[0].IdAsistencias;
     
-            console.log("fecha")
-            console.log("fecha",date)
+            /* console.log("fecha")
+            console.log("fecha",date) */
             const toUpdateInAssistance = {
               idValidacion: 4,
               Updated_at: date,
@@ -629,7 +629,7 @@ module.exports = function (dbInyectada) {
     }
     
 
-    console.log("antes de actualizar solicitudes");
+    /* console.log("antes de actualizar solicitudes"); */
     const updatigRequests = await db.queryManagementOfRequests(
       tablePermissions,
       idRoles.includes(2) ? valuesOfLider : valuesOfRRHH,
