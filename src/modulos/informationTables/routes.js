@@ -99,7 +99,7 @@ async function allInformationOfModalityWork(req, res, next) {
 async function allInformationOfStateOfRequest(req, res, next) {
     try{
         const responseInfo = await controller.allInformationOfStateOfRequest();
-        console.log(responseInfo);
+        /* console.log(responseInfo); */
         response.success(req, res, responseInfo, 'Con éxito', 200);
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
@@ -110,7 +110,7 @@ async function allInformationOfStateOfRequest(req, res, next) {
 async function allInformationOfStateGeneral(req, res, next) {
     try{
         const responseInfo = await controller.allInformationOfStateGeneral();
-        console.log(responseInfo);
+        /* console.log(responseInfo); */
         response.success(req, res, responseInfo, 'Con éxito', 200);
     }catch(err){
         response.error(req, res, false, errorMessage, 500);
@@ -124,7 +124,7 @@ async function updateTableTypesRequest(req, res, next) {
         if(!responseInfo.messages){
             response.success(req, res, responseInfo, "", 200);
         }else{
-            console.log("aqui");
+            /* console.log("aqui"); */
             response.error(req, res, false, responseInfo.messages, 403);
         }
     }catch(err){
@@ -139,7 +139,7 @@ async function updateTableValidation(req, res, next) {
         if(!responseInfo.messages){
             response.success(req, res, responseInfo, "", 200);
         }else{
-            console.log("aqui");
+            /* console.log("aqui"); */
             response.error(req, res, false, responseInfo.messages, 403);
         }
     }catch(err){

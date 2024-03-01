@@ -94,7 +94,7 @@ async function addTokensUser(req, res, next){
     try{
         const userToken = await controller.addTokensUser(req.body);
         if(!userToken.messages){
-            console.log("hola ", userToken.message);
+            /* console.log("hola ", userToken.message); */
             response.success(req, res, userToken, "", 200);
         }else{
             response.error(req, res, false, userToken.messages, 200);

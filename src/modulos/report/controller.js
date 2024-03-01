@@ -50,7 +50,7 @@ module.exports = function(dbInyectada){
     async function reportOvertime(body) {
         /* console.log(body.Fecha) */
         const dataUser = await db.queryReportOvertime( tableAssistance, tableUser, tableSchedule,tableDaysOff,tableTypeMarking, body.FechaInicio, body.FechaFin);
-        console.log(dataUser)
+        /* console.log(dataUser) */
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Mi Hoja');
         /* worksheet.getCell('A1').value = `Rweporte del: ${body.FechaInicio} al ${body.FechaFin}`

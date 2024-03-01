@@ -26,7 +26,7 @@ async function addJustifications(req, res, next){
 async function updateJustifications(req, res, next){
     try{
         const items = await controller.updateJustifications(req.body);
-        console.log(items)
+        /* console.log(items) */
        if(items){
         response.success(req, res,"", items.messages, 200);
        }        

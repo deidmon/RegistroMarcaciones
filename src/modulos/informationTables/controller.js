@@ -75,7 +75,7 @@ module.exports = function(dbInyectada){
         }
 
         const response = await db.queryUpdateAnyTable(tableTypeRequest, descriptionTypeRequest, idStateRequest);
-        console.log(response);
+        /* console.log(response); */
         if (response && response.changedRows > 0) {
             return 'Modificado con éxito';
         } else {
@@ -277,9 +277,9 @@ module.exports = function(dbInyectada){
     async function getRolesFilter(body){
         const idStates = 
         [body.idStateEnabled, body.idStateDisabled];
-        console.log("279");
+        /* console.log("279"); */
         const  response = await db.queryRolFilter(tableRole, idStates, body.name);
-        console.log(response);
+        /* console.log(response); */
         return response;
     };
 
@@ -320,13 +320,13 @@ module.exports = function(dbInyectada){
             message = 'No tienes permiso para actualizar';
             return { "messages": message }
         };
-        console.log("hola2");
+        /* console.log("hola2"); */
         const searchUser = {
             idUsuario: body.idWorker
         }
         
         const response = await db.queryGetWhere(scheduleAssignment, searchUser);
-        console.log("hola");
+        /* console.log("hola"); */
         if(response.length >= 1){
             //Actualizar
             const toUpdate = {
@@ -338,7 +338,7 @@ module.exports = function(dbInyectada){
             const idWhere = {
                 id: response[0].id
             }
-            console.log("aqui actualizando")
+            /* console.log("aqui actualizando") */
             const responseOfUpdate = await db.queryUpdateAnyTable(scheduleAssignment, toUpdate, idWhere);
             return "Asignado con éxito";
         }
@@ -349,7 +349,7 @@ module.exports = function(dbInyectada){
             idHorarios: body.idHorarios,
             idAsignador: body.idAsignador
         }
-        console.log("aqui agregando")
+        /* console.log("aqui agregando") */
         const responseInfo = await  db.addNewRegister(scheduleAssignment, insertValues);
         return "Asignado con éxito";
     }

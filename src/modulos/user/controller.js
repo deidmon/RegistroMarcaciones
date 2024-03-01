@@ -176,7 +176,7 @@ module.exports = function (dbInjected) {
             return  offset = (numeroPagina - 1) * tamanoPagina
         };
 
-        console.log("178");
+        /* console.log("178"); */
         const getOffset = obtenerDatosPaginados(body.page, PageSiize);
         return db.queryGetLeaders(tableUser, tableRol, body.name, body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset);
     };

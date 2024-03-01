@@ -127,7 +127,7 @@ module.exports = function (dbInyectada) {
       message = `Hoy ${dayOfWeekName.toUpperCase()} es su día no laborable.`;
       return { messages: message };
     }
-    console.log("message   dasdhaofhlsdjflkjaslkfjkadjlsklfjsdf");
+    /* console.log("message   dasdhaofhlsdjflkjaslkfjkadjlsklfjsdf"); */
 
     /* 📌 Verificar si esta de vacaciones */
     var haveVacation = await db.queryCheckVacation(
@@ -204,7 +204,7 @@ module.exports = function (dbInyectada) {
         const typeMarkDescription = await db.queryGetNameTypeMark(
           body.idTypesMarking
         ); //Obtenemos el nombre de tipo de marcación
-        console.log("y aqui hola presencial");
+        /* console.log("y aqui hola presencial"); */
         return await registerBreak(
           body,
           timeBreak,
@@ -240,7 +240,7 @@ module.exports = function (dbInyectada) {
         body.idUser,
         date
       );
-      console.log(timePermission,'timePermission');
+      /* console.log(timePermission,'timePermission'); */
       const startTimeAllowed = parametrization[0].HoraInicio; //Hora de inicio de jornada
       
       const endTimeAllowed = parametrization[0].HoraFin; //Hora de fin de jornada
@@ -280,7 +280,7 @@ module.exports = function (dbInyectada) {
             Updated_by: 0,
             idHorario: idSchedule.IdHorarios,
           };
-          console.log(assists, 'assists');
+          /* console.log(assists, 'assists'); */
           const respuesta = await db.add(constant.tableAssist, assists);
           /* const update = await db.update(constant.tableUser, {tiempoPermiso : 0},body.idUser); */
           return {
@@ -406,7 +406,7 @@ module.exports = function (dbInyectada) {
 
   /* 📌 Para registrar asistencia desde la web ya que, la ubicación falla mucho  */
   async function addMarkingVirtual(body) {
-    console.log("ingresamos a modo virtual1");
+    /* console.log("ingresamos a modo virtual1"); */
     let initialDate = moment();
     let date = await helpers.getDateToday(initialDate);
     const formattedTime = await helpers.getTimeNow(initialDate);
@@ -521,7 +521,7 @@ module.exports = function (dbInyectada) {
       message = `Hoy ${dayOfWeekName.toUpperCase()} es su día no laborable.`;
       return { messages: message };
     }
-    console.log("message   dasdhaofhlsdjflkjaslkfjkadjlsklfjsdf");
+    /* console.log("message   dasdhaofhlsdjflkjaslkfjkadjlsklfjsdf"); */
 
     /* 📌 Verificar si esta de vacaciones */
     var haveVacation = await db.queryCheckVacation(
@@ -550,10 +550,10 @@ module.exports = function (dbInyectada) {
     }
     ///FIN VERIFICACIONES
 
-    console.log("ingresamos a modo virtual2");
+    /* console.log("ingresamos a modo virtual2");
 
     
-    console.log("y aqui hola");
+    console.log("y aqui hola"); */
     /* 📌 Comprueba si inicio o fin de refrigerio - 2 o 3 */
     if (
       body.idTypesMarking == constant.typeRegisterStartBreak ||
@@ -564,7 +564,7 @@ module.exports = function (dbInyectada) {
       const typeMarkDescription = await db.queryGetNameTypeMark(
         body.idTypesMarking
       ); //Obtenemos el nombre de tipo de marcación
-      console.log("y aqui hola2");
+      /* console.log("y aqui hola2"); */
       return await registerBreak(
         body,
         timeBreak,
@@ -808,9 +808,9 @@ module.exports = function (dbInyectada) {
           Updated_by: 0,
           idHorario: pIdSchedule.IdHorarios,
         };
-        console.log("por registrarrrrrrrrrrrrrrrrrrr2");
+        /* console.log("por registrarrrrrrrrrrrrrrrrrrr2"); */
         await db.add(constant.tableAssist, assists);
-        console.log("por registrarrrrrrrrrrrrrrrrrrr3");
+        /* console.log("por registrarrrrrrrrrrrrrrrrrrr3"); */
         if (idvalidation == 2) {
           return {
             idTipoValidacion: idvalidation,
@@ -855,10 +855,10 @@ module.exports = function (dbInyectada) {
           knowHourtoRegisterStartBreak[0].Hora
         );
 
-        console.log(
+        /* console.log(
           hourStartBreakThatRegitered,
           "hourStartBreakThatRegiteredsssssssssssssssssssssss"
-        );
+        ); */
         const timeToBreak = hourStartBreakThatRegitered + pTimeBreak[0].tiempo;
 
         if (pTimeInHoursFormat < timeToBreak) {
@@ -872,8 +872,8 @@ module.exports = function (dbInyectada) {
 
         var descriptionValidation = pGetTypesValidation[0].descripcion;
         var timeLateAfterMark = 0;
-        console.log("descriptionValidationnnnnnnnnnnnnnnnn");
-        console.log(descriptionValidation, "descriptionValidation");
+        /* console.log("descriptionValidationnnnnnnnnnnnnnnnn");
+        console.log(descriptionValidation, "descriptionValidation"); */
         if (pTimeInHoursFormat > constant.timeLimitToRegisterEndBreak) {
           timeLateAfterMark = 1;
           idvalidation = 2;
@@ -887,8 +887,8 @@ module.exports = function (dbInyectada) {
           showForm = 1;
           descriptionValidation = pGetTypesValidation[1].descripcion;
         }
-        console.log(timeLateAfterMark, "timeLateAfterMark");
-        console.log(date, "date");
+        /* console.log(timeLateAfterMark, "timeLateAfterMark");
+        console.log(date, "date"); */
         const assists = {
           /* IdAsistencias: body.id, */
           IdUsuarios: body.idUser,
@@ -904,7 +904,7 @@ module.exports = function (dbInyectada) {
           idHorario: pIdSchedule.IdHorarios,
         };
         await db.add(constant.tableAssist, assists);
-        console.log("Agrego correctamente", assists);
+        /* console.log("Agrego correctamente", assists); */
         if (idvalidation == 2) {
           if (timeLateAfterMark == 1) {
             return {

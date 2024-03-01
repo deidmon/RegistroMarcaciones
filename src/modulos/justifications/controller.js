@@ -119,7 +119,7 @@ module.exports = function (dbInjected) {
         if (result && result.length >= 0) {
             const count = result[0];
             const contador= count.totalRegistros // Si TotalRegistros está definido, utiliza ese valor, de lo contrario, usa 0
-            console.log(contador);
+            /* console.log(contador); */
             return contador; 
          } else {
             return 0;

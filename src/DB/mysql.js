@@ -666,12 +666,12 @@ function queryUpdateAssists(tabla, consulta, IdAsistencias) {
     return new Promise((resolve, reject) => {
         conexion.query(`UPDATE ${tabla} SET ? WHERE IdAsistencias = ?`, [consulta, IdAsistencias], (error, result) => {
             if (error) {
-                console.log(error)
+                /* console.log(error) */
                 reject(error);
             } else {
-                console.log(result);
+                /* console.log(result); */
                 const actualizacionExitosa = result.changedRows > 0;
-                console.log("asistencias: ", actualizacionExitosa)
+                /* console.log("asistencias: ", actualizacionExitosa) */
                 resolve(actualizacionExitosa);
             }
         })
@@ -682,7 +682,7 @@ function queryUpdateAssists(tabla, consulta, IdAsistencias) {
 function update(tabla, consulta) {
     return new Promise((resolve, reject) => {
         conexion.query(`UPDATE ${tabla} SET ? WHERE IdUsuarios = ?`, [consulta, consulta.IdUsuarios], (error, result) => {
-            console.log(result);
+            /* console.log(result); */
             return error ? reject(error) : resolve(result);
         })
     });
@@ -775,12 +775,13 @@ function queryConsultTable(tabla, consult1, consult2, consult3) {
         const query = `SELECT * FROM ?? WHERE  ? AND  ? AND  ?`;
         const values = [tabla, consult1, consult2, consult3];
         conexion.query(query, values, (error, result) => {
-            if (error) {
+            return error ? reject(error) : resolve(result);
+            /* if (error) {
                 reject(error);
 
             } else {
                 resolve(result);
-            }
+            } */
         })
     });
 };
@@ -1278,8 +1279,8 @@ function queryAllRequestOfUserToRRHH(typeRequest, filterName, filterCIP, filterD
         LIMIT ? OFFSET ?`
         const values = [limit, ofset];
         conexion.query(query, values, (error, result) => {
-            console.log(error);
-            console.log(result);
+            /* console.log(error);
+            console.log(result); */
             return error ? reject(error) : resolve(result);
         });
     });
@@ -1296,8 +1297,8 @@ function queryAllRequestOfUserToRRHHCounter(typeRequest, filterName, filterCIP, 
         AND estadoSolicitudF IN (${stateInProgress}, ${stateApprovedByLeader}, ${stateRejectedByLeader}, ${stateInProgressRRHH}, ${stateAprovedByRRHH}, ${stateRejectedByRRHH})`
         const values = [];
         conexion.query(query, values, (error, result) => {
-            console.log(error);
-            console.log(result);
+            /* console.log(error);
+            console.log(result); */
             return error ? reject(error) : resolve(result);
         });
     });
@@ -1691,8 +1692,8 @@ function queryGeneralFilter(table, idStates, name) {
         WHERE t.IdEstado IN(?) AND t.descripcion LIKE "%${name}%"`;
         const values = [table, idStates];
         conexion.query(query, values, (error, result) => {
-            console.log(error);
-            console.log(result);
+            /* console.log(error);
+            console.log(result); */
             return error ? reject(error) : resolve(result);
         });
     });
@@ -1791,8 +1792,8 @@ function queryRolFilter(table, idStates, name) {
         WHERE t.IdEstado IN(?) AND t.Nombre LIKE "%${name}%"`;
         const values = [table, idStates];
         conexion.query(query, values, (error, result) => {
-            console.log(error);
-            console.log(result);
+            /* console.log(error);
+            console.log(result); */
             return error ? reject(error) : resolve(result);
         });
     });
