@@ -3,9 +3,11 @@ module.exports = {
     app:{
         port: process.env.PORT || 4000,
     },
+    
     jwt:{
         secret: process.env.JET_SECRET || 'notasecreta'
     },
+
     mysql:{
         host: process.env.MYSQL_HOST || 'localhost',
         user: process.env.MYSQL_USER || 'root',
@@ -16,5 +18,10 @@ module.exports = {
     gmail:{
         authusergmail: process.env.GMAIL || 'sdwilmer179@gmail.com',
         authuserpass: process.env.GMAIL_PASSWORD || 'ygxb gfzz qrph wwui',
+    },
+
+    outlook:{
+        authuservmail: process.env.VMAIL || 'wilmerjsd@outlook.com',
+        authusevpass: process.env.VMAIL_PASSWORD || 'zsllrvxcdclzikdo',
     }
 }

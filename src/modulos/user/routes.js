@@ -5,10 +5,10 @@ const controller = require('./index');
 
 const router = express.Router();
 
-router.post('/information', security(),consultUser);
-router.post('/markingMonth', security(),consultMarkMonth); 
-router.post('/markingWeek', security(),consultMarkWeek); 
-router.post('/markingDay', security(),consultMarkDay);
+router.post('/information',consultUser);
+router.post('/markingMonth',consultMarkMonth); 
+router.post('/markingWeek', consultMarkWeek); 
+router.post('/markingDay', consultMarkDay);
 router.post('/modifyUser', addUser);
 router.post('/addTokenUser', addTokensUser);
 router.post('/getAllWorkers', getAllWorkers);

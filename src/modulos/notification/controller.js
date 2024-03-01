@@ -39,7 +39,8 @@ module.exports = function (dbInjected) {
         /* 📌 Función para optener a todos los trabajadores que aun no registran su asistencia */
         const usersUnregistered = await db.recordFouls(tableUser, tableAssist, idTypesMarking);
         return usersUnregistered;
-    }
+    };
+
     /* 📌 Optenemos el token de usuarios sin registro para enviar notificación*/
     function tokenUsersUnmarked(usersUnmarked) {
         return db.tokenUsersUnmarked(tableNotification, usersUnmarked);
@@ -64,6 +65,7 @@ module.exports = function (dbInjected) {
         console.log(dataSchedule);
         return dataSchedule
     };
+
     async function hourToRegisterMark(){
         let initialDate = moment();
         let hour = initialDate.format('HH');
@@ -71,12 +73,26 @@ module.exports = function (dbInjected) {
         const formattedTime = `${hour}:${minutes}`;
         console.log(formattedTime);
         return formattedTime;
-    }
+    };
+
+    /* 📌 Obtener la descripción del tipo de marcación*/
+    async function typeMarkDescription(body){
+       const  typeMarkDescription = await db.queryGetNameTypeMark(
+            body.idTypesMarking
+          ); //Obtenemos el nombre de tipo de marcación}
+          console.log('controller', typeMarkDescription)
+          return typeMarkDescription;
+    };
+    async function getTimeBreak(){
+        const timeBreak = await db.queryGetTimeBreak(idSchedule.IdHorarios); //Obtener tiempo de break
+    };
+
     return {
         usersUnmarked,
         tokenUsersUnmarked,
         getEmailLeader,
         scheduleByUser,
         hourToRegisterMark,
+        typeMarkDescription,
     };
 }

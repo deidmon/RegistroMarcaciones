@@ -1,5 +1,6 @@
 const moment = require("moment-timezone");
 moment.tz.setDefault("America/Lima");
+const constant = require("../../helpers/constants");
 const tablePermissions = "solicitudes";
 const tableTypePermissions = "tiposolicitudes";
 const tableState = "estados";
@@ -12,8 +13,9 @@ const tableAssignmentStaff = "asignacionpersonal";
 const tableLeader = "lider";
 const tableDaysOff = "descansos";
 const tableSchedule = "horarios";
-const PageSiize = 15;
+const PageSiize = constant.pageSize;
 var date;
+
 
 module.exports = function (dbInyectada) {
   let db = dbInyectada;

@@ -3,6 +3,8 @@ const tableScheduleException = 'excepciones';
 const tableUser = 'usuarios';
 const tableRestDays = 'descansos';
 const tableStatus = 'estados';
+const constant = require("../../helpers/constants");
+const helpers = require("../../helpers/helpers");
 
 module.exports = function(dbInyectada){
     let db = dbInyectada;
@@ -11,6 +13,7 @@ module.exports = function(dbInyectada){
         db = require('../../DB/mysql');
     }
 
+    /* 📌 Para obtener todos los horarios */
     async function allSchedules(body){
         if (body.idStatus === -1) {
             body.idStatus = null;
@@ -21,6 +24,7 @@ module.exports = function(dbInyectada){
         return db.queryAllSchedulesFilter(tableSchedule, tableRestDays,tableStatus, tableScheduleException, body.idStatus,body.idHorario);
     };
 
+    /* 📌 Para obtener el horario de un usuario */
     async function scheduleByUser(body){   
         const user = await db.query(tableUser, {IdUsuarios: body.idUser})
         const idSchedule =  user.IdHorarios;
@@ -32,11 +36,7 @@ module.exports = function(dbInyectada){
         return dataSchedule
     };
 
-    async function addScheduleUser(body) {
-        const dataUser = await db.queryAddScheduleUser(tableUser, body.idSchedule, body.idUsers);
-        return dataUser;
-    };
-
+    /* 📌 Para añadir un nuevo horario */
     async function addSchedules(body) {
         if(body.idSchedule != 0){
             const dataSchedule = await db.query(tableSchedule, { idHorarios : body.idSchedule });
@@ -46,7 +46,6 @@ module.exports = function(dbInyectada){
             }
         }
 
-       
         if (body.idSchedule !== 0) {
             const respuesta = await parseHour(body.timeStart, body.idRestDay, body.idStatus, body.idSchedule, 1, 0, 0, 1)
             const respuesta2 = await parseHour(body.timeEnd, body.idRestDay, body.idStatus, body.idSchedule, 4, 0, 0, 1)
@@ -56,19 +55,31 @@ module.exports = function(dbInyectada){
                 return 'No se modificó el horario';
             }
         } 
+        let lastIdRefreshment = null;
+
+        if (body.haveRefreshment){
+            lastIdRefreshment = await db.queryLastId(constant.tableRefreshment) + 1; //Obtener el ultimo id de refrigerio
+            lastIdScheduleRefreshment = await db.queryLastId(constant.tableScheduleRefreshment) + 1; //Obtener el ultimo id de horario de inicio de refrigerio
+
+            await addScheduleRefreshment(lastIdScheduleRefreshment, body.timeRefreshment );
+            await addRefreshment(lastIdRefreshment, body.timeRefreshment, lastIdScheduleRefreshment);
+        }
+
         if (body.dayException == -1){ 
-            lastSchedule = await db.queryLastSchedule(tableSchedule) + 1
-            respuesta = await parseHour(body.timeStart, body.idRestDay, body.idStatus, lastSchedule, 1, 0, 0, 0 )
-            respuesta2 = await parseHour(body.timeEnd, body.idRestDay, body.idStatus, lastSchedule, 4, 0, 0, 0)
+            
+            
+            lastSchedule = await db.queryLastSchedule(tableSchedule) + 1//Obtener el ultimo id del horario
+            respuesta = await parseHour(body.timeStart, body.idRestDay, body.idStatus, lastSchedule, 1, 0, 0, 0, lastIdRefreshment );
+            respuesta2 = await parseHour(body.timeEnd, body.idRestDay, body.idStatus, lastSchedule, 4, 0, 0, 0, lastIdRefreshment );
 
         } else {
             let lastScheduleException = await db.queryLastScheduleException(tableScheduleException) + 1
-            /* console.log(lastScheduleException) */
-            respuestaException = await parseHourException(body.timeStartException, body.idStatus, lastScheduleException, 1, 0)
-            respuestaException2 = await parseHourException(body.timeEndException, body.idStatus, lastScheduleException, 4, 0)
-            lastSchedule = await db.queryLastSchedule(tableSchedule) + 1
-            respuesta = await parseHour(body.timeStart, body.idRestDay, body.idStatus, lastSchedule, 1, body.dayException, lastScheduleException, 0)
-            respuesta2 = await parseHour(body.timeEnd, body.idRestDay, body.idStatus, lastSchedule, 4, body.dayException, lastScheduleException, 0)
+            
+            respuestaException = await parseHourException(body.timeStartException, body.idStatus, lastScheduleException, 1, 0);
+            respuestaException2 = await parseHourException(body.timeEndException, body.idStatus, lastScheduleException, 4, 0);
+
+            respuesta = await parseHour(body.timeStart, body.idRestDay, body.idStatus, lastSchedule, 1, body.dayException, lastScheduleException, 0, lastIdRefreshment);
+            respuesta2 = await parseHour(body.timeEnd, body.idRestDay, body.idStatus, lastSchedule, 4, body.dayException, lastScheduleException, 0, lastIdRefreshment); 
         }
         
         if (respuesta && respuesta2 === 'Se añadieron correctamente') {
@@ -78,9 +89,10 @@ module.exports = function(dbInyectada){
         }
 
         
-    }
+    };
 
-    async function addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, idTypesMarking, idTypeValidation, timeStartFormated, timeEndFormated, dayException, idException){
+    async function addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, idTypesMarking, idTypeValidation, timeStartFormated, timeEndFormated, dayException, idException, lastIdRefrigerio){
+        
         const schedule = {
             IdHorarios: lastSchedule,
             IdTipoMarcacion: idTypesMarking,
@@ -91,8 +103,9 @@ module.exports = function(dbInyectada){
             idEstado: idStatus,
             diaExcepcion: dayException,
             IdExcepcion: idException,
-
+            idRefrigerio: lastIdRefrigerio
         }
+        
         if (updateSchedule === 0){
             return await db.add(tableSchedule, schedule);
         }
@@ -100,7 +113,29 @@ module.exports = function(dbInyectada){
         return await db.queryUpdateSchedule(tableSchedule, schedule, lastSchedule, idTypesMarking,idTypeValidation);
 
     };
+    
+    async function addRefreshment(lastIdRefreshment, timeRefreshment, lastIdScheduleRefreshment){
+        const refreshment = {
+            id: lastIdRefreshment,
+            tiempo: timeRefreshment,
+            idHorarioRefrigerio: lastIdScheduleRefreshment,
+        }
+        await db.addNewRegisterGeneric(constant.tableRefreshment, refreshment)
+    };
 
+    async function addScheduleRefreshment(lastIdScheduleRefreshment, timeRefreshment ){
+        
+        timeEndRefreshment = constant.timeLimitToRegisterEndBreak - timeRefreshment;
+        timeEndRefreshmentFormatted = await helpers.parseMinutesToHour(timeEndRefreshment);
+
+        const scheduleRefreshment = {   
+            id: lastIdScheduleRefreshment,
+            horaInicio: constant.startTimeRefreshment,
+            horaFin: timeEndRefreshmentFormatted
+        }
+        await db.addNewRegisterGeneric(constant.tableScheduleRefreshment, scheduleRefreshment);
+    }
+    
     async function addScheduleExceptionDB(updateSchedule, lastSchedule, idTypesMarking, idTypeValidation, timeStartFormated, timeEndFormated){
         const schedule = {
             IdExcepcion: lastSchedule,
@@ -117,7 +152,7 @@ module.exports = function(dbInyectada){
 
     };
 
-    async function parseHour(time, idRestDay, idStatus, lastSchedule,  typesMarking, dayException, idException, updateSchedule){
+    async function parseHour(time, idRestDay, idStatus, lastSchedule,  typesMarking, dayException, idException, updateSchedule, lastIdRefreshment){
         let timeStart = time.split(":");
         let fecha = new Date();
         fecha.setHours(parseInt(timeStart[0]));
@@ -140,9 +175,9 @@ module.exports = function(dbInyectada){
             timeEndFormatedValidation2 = fecha.getHours().toString().padStart(2, '0') + ":" + fecha.getMinutes().toString().padStart(2, '0');
 
             respuestas = await Promise.all([
-                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 1,timeStartFormated, timeEndFormated, dayException, idException ).then(() => true).catch(() => false),
-                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 2,timeEndFormatedValidation2, "23:57", dayException, idException ).then(() => true).catch(() => false),
-                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 3,"23:58", "23:59", dayException, idException ).then(() => true).catch(() => false)
+                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 1,timeStartFormated, timeEndFormated, dayException, idException, lastIdRefreshment ).then(() => true).catch(() => false),
+                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 2,timeEndFormatedValidation2, "23:57", dayException, idException, lastIdRefreshment ).then(() => true).catch(() => false),
+                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 3,"23:58", "23:59", dayException, idException, lastIdRefreshment ).then(() => true).catch(() => false)
             ]);
            
         } else {
@@ -163,10 +198,10 @@ module.exports = function(dbInyectada){
             fecha.setMinutes(fecha.getMinutes() + 1);
             timeStartFormatedValidation3 = fecha.getHours().toString().padStart(2, '0') + ":" + fecha.getMinutes().toString().padStart(2, '0');
             respuestas = await Promise.all([
-                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 1,timeStartFormated, timeEndFormated, dayException, idException).then(() => true).catch(() => false),
-                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 5,timeStartFormatedValidation2, timeEndFormatedValidation2, dayException, idException).then(() => true).catch(() => false),
-                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 6,timeStartFormatedValidation3, "23:57", dayException, idException).then(() => true).catch(() => false),
-                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 3,"23:58", "23:59", dayException, idException).then(() => true).catch(() => false)
+                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 1,timeStartFormated, timeEndFormated, dayException, idException, lastIdRefreshment).then(() => true).catch(() => false),
+                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 5,timeStartFormatedValidation2, timeEndFormatedValidation2, dayException, idException, lastIdRefreshment).then(() => true).catch(() => false),
+                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 6,timeStartFormatedValidation3, "23:57", dayException, idException, lastIdRefreshment).then(() => true).catch(() => false),
+                addScheduleDB(updateSchedule, idRestDay, idStatus, lastSchedule, typesMarking, 3,"23:58", "23:59", dayException, idException, lastIdRefreshment).then(() => true).catch(() => false)
             ]);
         }
 
@@ -242,6 +277,7 @@ module.exports = function(dbInyectada){
 
     };
 
+    /* 📌 Para activar o desactivar un horario */
     async function activateSchedule(body) {
         if (body.idProfile == 1) {
             message = 'No tienes permiso para actualizar';
@@ -265,7 +301,13 @@ module.exports = function(dbInyectada){
         
         return 'No se realizó ninguna modificación';
         
-    }
+    };
+
+    /* 📌 Para añadir un horario a un usuario */
+    async function addScheduleUser(body) {
+        const dataUser = await db.queryAddScheduleUser(tableUser, body.idSchedule, body.idUsers);
+        return dataUser;
+    };
 
     return {
         allSchedules,

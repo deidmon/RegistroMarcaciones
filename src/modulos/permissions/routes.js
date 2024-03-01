@@ -2,6 +2,7 @@ const express = require('express');
 const response = require('../../red/response');
 const controller = require('./index');
 const router = express.Router();
+const constant = require("../../helpers/constants");
 
 router.post('/addJustifications', addJustifications);
 router.post('/addVacations', addVacations);
@@ -16,7 +17,7 @@ router.post('/getRequestOfWorkersAsignedToLeader', allRequestOfWorkersAsignedToL
 router.post('/getAllRequestOfAllWorkerstoRRHH', allRequestOfAllWorkerstoRRHH);
 router.put('/putManagementOfRequests', managementOfRequests);
 errorMessagePermissions = "Algo salio mal, intente más tarde."
-const pageSize = 7;
+const pageSize = constant.pageSize;
 
 async function addJustifications(req, res, next){
     try{
@@ -149,6 +150,7 @@ async function allRequestOfAllWorkerstoRRHH(req, res, next){
         response.error(req, res, false, errorMessage, 500);
     }
 };
+
 /* 📌 Aceptar o rechazar solicitudes */
 async function managementOfRequests(req, res, next){
     try{ 

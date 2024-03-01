@@ -1,5 +1,7 @@
 //Textos
 const errorMessageAsistance = "Algo salio mal, intente más tarde."
+const messageErrorEmail = "Ocurrio un error al enviar el correo de informe de registro de asistencia."
+const linkValtx = "https://proyecto-marcaciones-web.vercel.app/#/login"
 
 //Nombres de tablas
 const tableAssist = "asistencias";
@@ -11,6 +13,11 @@ const tableDaysOff = "descansos";
 const tablePermissions = "solicitudes";
 const tableExceptions = "excepciones";
 const tabletypeValidation = "validacion";
+const tableJustifications = "justificaciones";
+const tableParameterization = "parametrizacion";
+const tableCronJob = "horarionotificaciones";
+const tableRefreshment = "refrigerio";
+const tableScheduleRefreshment = "horariorefrigerio";
 
 //Numeros
 const radiusMeters = 50; //Radio para que se pueda realizar el registro de marcación
@@ -18,11 +25,25 @@ const typeRegisterEntry = 1; // La entrada es tipo marcación 1
 const typeRegisterStartBreak = 2; //El inicio de refrigerio es tipo de marcación 2
 const typeRegisterEndBreak = 3; //El fin de refrigerio es tipo de marcación 3
 const typeRegisterDeparture = 4; // La salida es tipo marcación 4
+const isFisrtSession = 0; // La salida es tipo marcación 4
+
+const pageSize = 15; //El numero de registros que devolvera por pagina
+
+//Correos
+const gmailHost = 'smtp.gmail.com';
+const mailPort = 587;
+const vmailHost = 'smtp-mail.outlook.com';
+
+//Otros
+const startTimeRefreshment = '12:00';//Tiempo de inicio de refrigerio
 const timeLimitToRegisterEndBreak = 905; //Tiempo limite para registrar fin de refrigerio
+const expirationTime  = 180; //Tiempo de expiración del código de verificación
 
 module.exports = {
     //Textos
     errorMessageAsistance,
+    messageErrorEmail,
+    linkValtx,
 
     //Nombres de tablas
     tableAssist,
@@ -34,6 +55,11 @@ module.exports = {
     tablePermissions,
     tableExceptions,
     tabletypeValidation,
+    tableJustifications,
+    tableParameterization,
+    tableCronJob,
+    tableRefreshment,
+    tableScheduleRefreshment,
 
     //Numeros
     radiusMeters,
@@ -41,5 +67,16 @@ module.exports = {
     typeRegisterStartBreak,
     typeRegisterEndBreak,
     timeLimitToRegisterEndBreak,
-    typeRegisterDeparture
+    typeRegisterDeparture,
+    pageSize,
+    isFisrtSession,
+
+    //Correos
+    gmailHost,
+    mailPort,
+    vmailHost,
+    
+    //Otros
+    startTimeRefreshment,
+    expirationTime
 };

@@ -4,7 +4,7 @@ const response = require('../red/response')
 const secret = config.jwt.secret;
 
 function assignToken(data){
-    return jwt.sign(data,secret);
+    return jwt.sign(data, secret);
 }
 
 function verifyToken(token){
