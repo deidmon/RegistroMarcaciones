@@ -280,26 +280,27 @@ async function sendmailOutlook(req, res, next) {
       from: `Valtx ${config.outlook.authuservmail}`,
       to: variablesToEmail.Email,
       subject: "Notificación de asistencias", //asunto
-      text: `Estimado ${variablesToEmail.NameLeader} ${
+      text: `Estimado(a) ${variablesToEmail.NameLeader} ${
         variablesToEmail.LastnameLeader
-      },\n\n
-      
-      El usuario ${variablesToEmail.NameOfWorker} ${
+      },\n
+El usuario ${variablesToEmail.NameOfWorker} ${
         variablesToEmail.LastNamesWorker
       } ha registrado su asistencia de ${
         typeMarkDescription.descripcion
-      } a las ${hourToRegisterMark}.\n\n Por lo tanto, ${validationOfMark.toLocaleLowerCase()}\n\n Ya que, su horario programado es de ${
+      } a las ${hourToRegisterMark}.\n\nPor lo tanto, ${validationOfMark.toLocaleLowerCase()}\n\nYa que, su horario programado es de ${
         scheduleOfUser.HoraInicio
-      } a ${scheduleOfUser.HoraFin}.\n\n
-      
-      Para mas detalles, por favor ir a ${constant.linkValtx} e ingresar a la sección de justificaciones`,
-    };
+      } a ${scheduleOfUser.HoraFin}.\nPara mas detalles, por favor ir a ${constant.linkValtx} e ingresar a la sección de justificaciones
 
+Atentamente 
+Dirección Gestión y Desarrollo Humano.`,
+    };
+    console.log("aqui llega el correo", mensaje);
     //envio de correo
     const info = await transporter.sendMail(mensaje);
     console.log(info.accepted);
     response.success(req, res, info.accepted, "Con éxito", 200);
   } catch (e) {
+    console.log(e, "erorrrrrrrrrrrrrrrrrrrrrrrr enviando corrreo")
     response.error(req, res, false, constant.messageErrorEmail, 500);
   }
 };

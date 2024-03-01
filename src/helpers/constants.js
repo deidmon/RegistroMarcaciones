@@ -31,7 +31,8 @@ const pageSize = 15; //El numero de registros que devolvera por pagina
 
 //Correos
 const gmailHost = 'smtp.gmail.com';
-const mailPort = 587;
+const mailPort = 587; //puerto sin seguridad
+const vmailPort = 465; //puerto con seguridad
 const vmailHost = 'smtp-mail.outlook.com';
 
 //Otros
@@ -74,6 +75,7 @@ module.exports = {
     //Correos
     gmailHost,
     mailPort,
+    vmailPort,
     vmailHost,
     
     //Otros
