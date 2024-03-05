@@ -661,6 +661,23 @@ function queryReportAsistance(tabla, tabla2, tabla3, consult1, consult2) {
     });
 };
 
+/* 📌 Para el reporte diario con ubicación */
+function queryReportAsistanceWithLocation(tabla, tabla2, tabla3, consult1, consult2) {
+    return new Promise((resolve, reject) => {
+        const query =
+            `SELECT  tm.descripcion as Marcación ,CIP,DATE_FORMAT(Fecha, '%Y%m%d') as Fecha, LPAD(HOUR(Hora), 2, '0') AS Hora,
+                LPAD( MINUTE(Hora), 2, '0') AS Minutos, a.Direccion AS Ubicacion
+        FROM ?? AS a INNER JOIN ?? as u ON a.IdUsuarios = u.IdUsuarios INNER JOIN ?? as tm ON a.idTMarcacion = tm.idTMarcaciones
+        WHERE a.Fecha BETWEEN ? AND ?
+        AND idTMarcacion IN (1,4)
+        ORDER BY Fecha DESC, a.IdUsuarios, tm.descripcion`;
+        const values = [tabla, tabla2, tabla3, consult1, consult2];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        })
+    });
+};
+
 /* 📌 Actualizar tabla de asistencia, solo el tipo de validación a autorizado o rechazado */
 function queryUpdateAssists(tabla, consulta, IdAsistencias) {
     return new Promise((resolve, reject) => {
@@ -2047,5 +2064,6 @@ module.exports = {
     queryCheckBreak,
     queryLastId,
     addNewRegisterGeneric,
+    queryReportAsistanceWithLocation
 
 }

@@ -47,6 +47,31 @@ module.exports = function(dbInyectada){
          return buffer; 
     };
 
+    async function reportAsistanceWithLocation(body) {
+        /* console.log(body.Fecha) */
+        const dataUser = await db.queryReportAsistanceWithLocation( tableAssistance,tableUser, tableTypeMarking, body.FechaInicio, body.FechaFin);
+        /* console.log(dataUser) */
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Mi Hoja');
+        worksheet.columns = [
+            { header: 'Marcacion', key: 'Marcación', width: 10 },
+            { header: 'CIP', key: 'CIP', width: 10 },
+            { header: 'Fecha', key: 'Fecha', width: 10 },
+            { header: 'Hora', key: 'Hora', width: 10 },
+            { header: 'Minutos', key: 'Minutos', width: 10 },
+            /* { header: 'Codigo_Local', key: 'Código_Local', width: 15 },
+            { header: 'TXT', key: 'TXT', width: 25 },
+            { header: 'Longitud', key: 'Longitud', width: 10 }, */
+            { header: 'Ubicacion', key: 'Ubicacion', width: 40 }
+           ];
+        dataUser.forEach(row => {
+        worksheet.addRow(row);
+        });
+        /* await workbook.xlsx.writeFile('MiArchivo.xlsx'); */
+        const buffer = await workbook.xlsx.writeBuffer();
+         return buffer; 
+    };
+
     async function reportOvertime(body) {
         /* console.log(body.Fecha) */
         const dataUser = await db.queryReportOvertime( tableAssistance, tableUser, tableSchedule,tableDaysOff,tableTypeMarking, body.FechaInicio, body.FechaFin);
@@ -759,6 +784,7 @@ module.exports = function(dbInyectada){
         reportOvertime,
         reportRequest,
         reportAudit,
-        reportOvertimeNew
+        reportOvertimeNew,
+        reportAsistanceWithLocation
     }
 }
