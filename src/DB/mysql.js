@@ -1959,6 +1959,38 @@ function addNewRegisterGeneric(tabla, data) {
         });
     });
 };
+
+/* 📌 Para encontrar un correo y enviarle el código de verificación */
+function queryFindEmailAndSendCode(consult) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT IdUsuarios, Email
+        FROM usuarios
+        WHERE Email = ?`;
+        const values = [consult];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        });
+    });
+};
+
+/* 📌 Verificación de código */
+function queryVerificationOfCode(email, id_user) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT *
+        FROM code_user
+        WHERE Email = ${email} and id_user= ${id_user}`;
+        const values = [];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        });
+    });
+};
+
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -2064,6 +2096,8 @@ module.exports = {
     queryCheckBreak,
     queryLastId,
     addNewRegisterGeneric,
-    queryReportAsistanceWithLocation
+    queryReportAsistanceWithLocation,
+    queryFindEmailAndSendCode,
+    queryVerificationOfCode,
 
 }

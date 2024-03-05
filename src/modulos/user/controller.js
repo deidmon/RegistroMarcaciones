@@ -14,6 +14,8 @@ const tablePermissions = 'solicitudes';
 const bcrypt = require('bcrypt');
 const PageSiize = 15;
 const minimumPasswordCharacters = 6;
+const helpers = require("../../helpers/helpers");
+const constant = require("../../helpers/constants");
 
 module.exports = function (dbInjected) {
 
@@ -358,6 +360,48 @@ module.exports = function (dbInjected) {
         }
     };
     
+    async function sendCodeVerfication(body){
+        const response = await db.queryFindEmailAndSendCode(body.email);
+        if(!response || response.length === 0){
+            return { "messages": `Correo no encontrado` } 
+        }
+        let code_user = '';
+        for(let i = 0; i <=5; i++){
+            let character = Math.ceil(Math.random() * 9)
+            code_user += character;
+        }
+        
+        const data = {
+            /* id:1, */
+            id_user: response[0].IdUsuarios,
+            code: code_user,
+            state: 1,
+            time_exp: constant.timeExpOfCode
+        }
+        console.log(data,'llegaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+        const responseSaveCode = await db.addNewRegisterGeneric(constant.tableCodeUser, data);
+        console.log('llegaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2');
+
+        const responseEmail = await helpers.sendCodeVerificationOutlook(response[0].Email, code_user);//Envia el correo con el código
+        console.log(response[0].Email,'responseEmail');
+        if (!responseEmail){
+            return { "messages": `No se pudo enviar el código de verificación`} 
+        }
+        return 'Código enviado con éxito';
+    }
+
+    async function verificationOfCode(body){
+        let response = await db.queryVerificationOfCode(body.code, body.id_user);
+        if(response  && respone.length > 0){
+            if(response[0].status == 1 ){
+                return 'Código verifcado con éxito';
+            }else{
+                return { "messages": `Código ya no esta disponible`} 
+            }   
+        }
+        return { "messages": `Código no valido`} 
+    }
+
 
     return {
         allWorkers,
@@ -374,6 +418,8 @@ module.exports = function (dbInjected) {
         getLeaders,
         getLeadersCounter,
         updateRolOfWorkers,
-        updatePasswordOfUser
+        updatePasswordOfUser,
+        sendCodeVerfication,
+        verificationOfCode,
     }
 }

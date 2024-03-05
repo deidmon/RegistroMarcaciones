@@ -2,6 +2,7 @@ const express = require('express');
 const security = require('./security');
 const response = require('../../red/response');
 const controller = require('./index');
+const constant = require("../../helpers/constants");
 
 const router = express.Router();
 
@@ -17,6 +18,8 @@ router.put('/activateUsers', activateUsers);
 router.post('/getLeaders', getLeaders);
 router.put('/putUpdateRolOfWorkers', updateRolOfWorkers);
 router.put('/putupdatePassword', updatePasswordOfUser);
+router.post('/sendCodeVerfication', sendCodeVerfication);
+router.post('/verificationOfCode', verificationOfCode);
 
 
 errorMessageUser = "Algo salio mal, intente más tarde"
@@ -180,6 +183,30 @@ async function updatePasswordOfUser(req, res, next) {
     }
 };
 
+async function sendCodeVerfication(req, res, next) {
+    try{
+        const responseInfo = await controller.sendCodeVerfication(req.body);
+        if(!responseInfo.messages){
+            response.success(req, res, responseInfo, "", 200);
+        }else{
+            response.failure(req, res, responseInfo.messages, '' , 200);
+        }
+    }catch(err){
+        response.error(req, res,false, constant.errorMessageAsistance, 500);
+    }
+};
 
+async function verificationOfCode(req, res, next) {
+    try{
+        const responseInfo = await controller.verificationOfCode(req.body);
+        if(!responseInfo.messages){
+            response.success(req, res, responseInfo, "", 200);
+        }else{
+            response.failure(req, res, responseInfo.messages, '' , 200);
+        }
+    }catch(err){
+        response.error(req, res,false, constant.errorMessageAsistance, 500);
+    }
+};
 
 module.exports = router;   

@@ -2,6 +2,7 @@ const express = require('express');
 const constant = require("./constants");
 const response = require("../red/response");
 const config = require("../config");
+const nodemailer = require("nodemailer");
 const router = express.Router();
 
 
@@ -40,9 +41,8 @@ async function parseMinutesToHour(minutesToParse) {
 };
 
 /* 📌 Enviamos correo al usario con su codigo de verificación*/
-async function sendCodeVerificationOutlook(emailUser, codeVerification, req, res) {
+async function sendCodeVerificationOutlook(emailUser, codeVerification) {
   try {
-
     //configuracion del transporter
     const transporter = nodemailer.createTransport({
       host: constant.vmailHost,
@@ -59,8 +59,7 @@ async function sendCodeVerificationOutlook(emailUser, codeVerification, req, res
       from: `Valtx ${config.outlook.authuservmail}`,
       to: emailUser,
       subject: "Código de verificación", //asunto
-      text: `Tu código de verifciación para cambiar tu contraseña
-      en Sistema de asistencia Valtx es ${codeVerification}. No lo comparatas con nadie.
+      text: `Tu código de verificación para cambiar tu contraseña en Sistema de asistencia Valtx es ${codeVerification}. No lo comparatas con nadie.
       \n
       `,
     };
@@ -68,10 +67,11 @@ async function sendCodeVerificationOutlook(emailUser, codeVerification, req, res
     //envio de correo
     const info = await transporter.sendMail(mensaje);
     console.log(info.accepted);
-    response.success(req, res, info.accepted, "Con éxito", 200);
+    return true;
+    /* response.success(req, res, info.accepted, "Con éxito", 200); */
   } catch (e) {
-
-    response.error(req, res, false, constant.messageErrorEmail, 500);
+    return false;
+    /* response.error(req, res, false, constant.messageErrorEmail, 500); */
   }
 }
 

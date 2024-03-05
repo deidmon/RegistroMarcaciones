@@ -18,6 +18,7 @@ const tableParameterization = "parametrizacion";
 const tableCronJob = "horarionotificaciones";
 const tableRefreshment = "refrigerio";
 const tableScheduleRefreshment = "horariorefrigerio";
+const tableCodeUser = "code_user";
 
 //Numeros
 const radiusMeters = 50; //Radio para que se pueda realizar el registro de marcación
@@ -26,6 +27,8 @@ const typeRegisterStartBreak = 2; //El inicio de refrigerio es tipo de marcació
 const typeRegisterEndBreak = 3; //El fin de refrigerio es tipo de marcación 3
 const typeRegisterDeparture = 4; // La salida es tipo marcación 4
 const isFisrtSession = 0; // La salida es tipo marcación 4
+const minimumPasswordCharacters = 6; //Caracteres minimos de una contraseña
+const timeExpOfCode = 90; //Tiempo de expiración del código de verificación
 
 const pageSize = 15; //El numero de registros que devolvera por pagina
 
@@ -61,6 +64,7 @@ module.exports = {
     tableCronJob,
     tableRefreshment,
     tableScheduleRefreshment,
+    tableCodeUser,
 
     //Numeros
     radiusMeters,
@@ -71,6 +75,8 @@ module.exports = {
     typeRegisterDeparture,
     pageSize,
     isFisrtSession,
+    minimumPasswordCharacters,
+    timeExpOfCode,
 
     //Correos
     gmailHost,
