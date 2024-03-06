@@ -1980,16 +1980,15 @@ function queryFindEmailAndSendCode(consult) {
 };
 
 /* 📌 Verificación de código */
-function queryVerificationOfCode(email, id_user) {
+function queryVerificationOfCode(code, id_user) {
     return new Promise((resolve, reject) => {
         const query = `
         SELECT *
         FROM code_user
-        WHERE Email = ${email} and id_user= ${id_user}`;
+        WHERE code = ${code} and id_user= ${id_user}`;
         const values = [];
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result);
-
         });
     });
 };

@@ -5,7 +5,6 @@ const tableAssist = 'asistencias';
 const tableAddress = 'direcciones';
 const tableTypeMarking = 'tipomarcaciones'
 const tabletypeValidation = 'validacion';
-const tabletypeJustifications = 'justificaciones';
 const tableTokenUser = 'tokennotificaciones';
 const tableStateUser = 'estados'
 const tableModalityWork = 'modalidadtrabajo' 
@@ -13,7 +12,6 @@ const tableRol = 'rol'
 const tablePermissions = 'solicitudes';
 const bcrypt = require('bcrypt');
 const PageSiize = 15;
-const minimumPasswordCharacters = 6;
 const helpers = require("../../helpers/helpers");
 const constant = require("../../helpers/constants");
 
@@ -338,8 +336,8 @@ module.exports = function (dbInjected) {
         const hasCharacter = /[a-zA-Z]/.test(body.password);
         const hasUppercase = /[A-Z]/.test(body.password);
 
-        if(body.password.length < minimumPasswordCharacters){
-            return { "messages": `La  contraseña debe tener como minimo ${minimumPasswordCharacters} caracteres` }
+        if(body.password.length < constant.minimumPasswordCharacters){
+            return { "messages": `La  contraseña debe tener como minimo ${constant.minimumPasswordCharacters} caracteres` }
         } else if (!hasNumber || !hasCharacter || !hasUppercase) {
             return { "messages": "La contraseña debe contener al menos un número, un carácter y una mayúscula" };
         }
@@ -359,8 +357,13 @@ module.exports = function (dbInjected) {
             return 'Contraseña modificada con éxito';
         }
     };
-    
+
+    /* 📌 Enviar código de verificación */
     async function sendCodeVerfication(body){
+
+        let initialDate = moment();
+        const dateTimeNowMoreOne = await helpers.getDateTimeToday(initialDate);
+
         const response = await db.queryFindEmailAndSendCode(body.email);
         if(!response || response.length === 0){
             return { "messages": `Correo no encontrado` } 
@@ -376,11 +379,21 @@ module.exports = function (dbInjected) {
             id_user: response[0].IdUsuarios,
             code: code_user,
             state: 1,
-            time_exp: constant.timeExpOfCode
+            time_exp: dateTimeNowMoreOne,
         }
-        console.log(data,'llegaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-        const responseSaveCode = await db.addNewRegisterGeneric(constant.tableCodeUser, data);
-        console.log('llegaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2');
+        //primero consultar la tabla code_user para actualizar o registrar uno nuevo
+        const verifiExistRegister = await db.query(constant.tableCodeUser, response[0].IdUsuarios);
+        if(verifiExistRegister && verifiExistRegister.length > 0) {
+            //Actualizamos
+            const toUpdate = {
+                code: code_user,
+                state: 1,
+                time_exp: dateTimeNowMoreOne,
+            }
+            await db.queryUpdateAnyTable(constant.tableCodeUser, toUpdate);
+
+        }
+        await db.addNewRegisterGeneric(constant.tableCodeUser, data);//sino añadimos
 
         const responseEmail = await helpers.sendCodeVerificationOutlook(response[0].Email, code_user);//Envia el correo con el código
         console.log(response[0].Email,'responseEmail');
@@ -390,10 +403,31 @@ module.exports = function (dbInjected) {
         return 'Código enviado con éxito';
     }
 
+    /* 📌 Verificación de código */
     async function verificationOfCode(body){
+        let initialDate = moment();
+        const getDateTimeNow = await helpers.getDateTimeToday(initialDate);
+        console.log(getDateTimeNow, 'getDateTimeNow');
+        
         let response = await db.queryVerificationOfCode(body.code, body.id_user);
-        if(response  && respone.length > 0){
-            if(response[0].status == 1 ){
+
+        // Ahora puedes comparar la fecha en formato Date utilizando operadores de comparación
+        const fechaActual = new Date();
+        console.log(fechaActual, 'fechaActual');
+
+        console.log("deberia decir código no valido");
+        if(response  && response.length > 0){
+            const dateFormated = moment(response[0].time_exp).format("YYYY-MM-DD HH:mm:ss");
+            const fechaEnDate = new Date(dateFormated);
+            console.log(fechaEnDate, 'fechaEnDate');
+            console.log(dateFormated, 'dateFormated');
+
+            if(response[0].status == 1 &&  fechaActual <= fechaEnDate){
+                console.log("ingreso aqui en la fecha ");
+                const toUpdate = {
+                    state: 0,
+                }
+                await db.queryUpdateAnyTable(constant.tableCodeUser, toUpdate)
                 return 'Código verifcado con éxito';
             }else{
                 return { "messages": `Código ya no esta disponible`} 
