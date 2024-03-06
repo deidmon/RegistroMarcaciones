@@ -464,20 +464,23 @@ function queryMarkDay2(tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha) {
 };
 
 /* 📌 Obtener horario por usuario*/
-function queryScheduleByUser(table1, table2, consult1) {
+function queryScheduleByUser(table1, table2, tabla3, tabla4, consult1) {
     return new Promise((resolve, reject) => {
         const query = `
         SELECT 
                 h.IdHorarios,
                 MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_FORMAT(DATE_ADD(h.HoraInicio, INTERVAL 15 MINUTE), '%H:%i') END) AS HoraInicio,
+                h.idRefrigerio, r.tiempo, hr.horainicio, hr.horafin,
                 MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN DATE_FORMAT(h.HoraInicio,'%H:%i') END) AS HoraFin,
                 h.IdDescanso,
                 GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día, 1) DESC SEPARATOR ', ') AS Descanso
         FROM ?? AS h 
         INNER JOIN ?? AS d ON h.IdDescanso = d.IdDescansos
+        LEFT JOIN ?? AS r ON h.idRefrigerio = r.id
+        LEFT JOIN ?? AS hr ON r.idHorarioRefrigerio = hr.id
         WHERE h.IdHorarios = ?
         GROUP BY h.IdHorarios, h.IdDescanso`;
-        const values = [table1, table2, consult1];
+        const values = [table1, table2, tabla3, tabla4, consult1];
 
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result[0]);

@@ -3,6 +3,8 @@ const tableScheduleException = 'excepciones';
 const tableUser = 'usuarios';
 const tableRestDays = 'descansos';
 const tableStatus = 'estados';
+const tableRefreshment = "refrigerio";
+const tableScheduleRefreshment = "horariorefrigerio";
 const constant = require("../../helpers/constants");
 const helpers = require("../../helpers/helpers");
 
@@ -28,7 +30,7 @@ module.exports = function(dbInyectada){
     async function scheduleByUser(body){   
         const user = await db.query(tableUser, {IdUsuarios: body.idUser})
         const idSchedule =  user.IdHorarios;
-        const dataSchedule = await db.queryScheduleByUser(tableSchedule, tableRestDays, idSchedule);
+        const dataSchedule = await db.queryScheduleByUser(tableSchedule, tableRestDays, tableRefreshment, tableScheduleRefreshment, idSchedule);
         if (!dataSchedule) {
             message = 'No existe horario asignado'
             return { "messages": message }
@@ -77,7 +79,7 @@ module.exports = function(dbInyectada){
             
             respuestaException = await parseHourException(body.timeStartException, body.idStatus, lastScheduleException, 1, 0);
             respuestaException2 = await parseHourException(body.timeEndException, body.idStatus, lastScheduleException, 4, 0);
-
+            lastSchedule = await db.queryLastSchedule(tableSchedule) + 1
             respuesta = await parseHour(body.timeStart, body.idRestDay, body.idStatus, lastSchedule, 1, body.dayException, lastScheduleException, 0, lastIdRefreshment);
             respuesta2 = await parseHour(body.timeEnd, body.idRestDay, body.idStatus, lastSchedule, 4, body.dayException, lastScheduleException, 0, lastIdRefreshment); 
         }
