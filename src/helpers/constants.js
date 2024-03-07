@@ -29,6 +29,8 @@ const typeRegisterDeparture = 4; // La salida es tipo marcación 4
 const isFisrtSession = 0; // La salida es tipo marcación 4
 const minimumPasswordCharacters = 6; //Caracteres minimos de una contraseña
 const timeExpOfCode = 90; //Tiempo de expiración del código de verificación
+const stateInactive = 0; //Caracteres minimos de una contraseña
+const stateActive = 1; //Tiempo de expiración del código de verificación
 
 const pageSize = 15; //El numero de registros que devolvera por pagina
 
@@ -77,6 +79,8 @@ module.exports = {
     isFisrtSession,
     minimumPasswordCharacters,
     timeExpOfCode,
+    stateInactive,
+    stateActive, 
 
     //Correos
     gmailHost,

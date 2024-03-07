@@ -1148,15 +1148,16 @@ function queryCheckPermissionAllDay(table, user, date) {
 };
 
 /* 📌 Verificar vacaciones */
-function queryCheckVacation(table, consult) {
+function queryCheckVacation(date, idUser) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT FechaDesde, FechaHasta 
-        FROM ?? 
-        WHERE IdUsuario = ? 
-        AND idTipoSolicitud = 3 
-        AND estadoSolicitudF = 2`;
-        const values = [table, consult];
-
+        const query = `SELECT * 
+        FROM solicitudes s
+        WHERE idTipoSolicitud = 3
+        AND estadoSolicitudF = 2
+        AND FechaDesde <= ?
+        AND FechaHasta >= ?
+        AND idUsuario = ?`;
+        const values = [date, date, idUser];
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result);
 
@@ -1992,6 +1993,21 @@ function queryVerificationOfCode(code, id_user) {
         });
     });
 };
+
+/* 📌 Verificación de código */
+function queryVerificationOfCode(code, id_user) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT *
+        FROM code_user
+        WHERE code = ${code} and id_user= ${id_user}`;
+        const values = [];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
 
 module.exports = {
     allInformationOfOneTable,

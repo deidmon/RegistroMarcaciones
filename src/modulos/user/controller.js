@@ -1,5 +1,8 @@
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/Lima');
+const helpers = require("../../helpers/helpers");
+const constant = require("../../helpers/constants");
+
 const tableUser = 'usuarios';
 const tableAssist = 'asistencias';
 const tableAddress = 'direcciones';
@@ -11,9 +14,8 @@ const tableModalityWork = 'modalidadtrabajo'
 const tableRol = 'rol'
 const tablePermissions = 'solicitudes';
 const bcrypt = require('bcrypt');
-const PageSiize = 15;
-const helpers = require("../../helpers/helpers");
-const constant = require("../../helpers/constants");
+const PageSiize = constant.pageSize;
+
 
 module.exports = function (dbInjected) {
 
@@ -362,7 +364,7 @@ module.exports = function (dbInjected) {
     async function sendCodeVerfication(body){
 
         let initialDate = moment();
-        const dateTimeNowMoreOne = await helpers.getDateTimeToday(initialDate);
+        const dateTimeNowMoreOne = await helpers.getDateTimeMoreOne(initialDate);
 
         const response = await db.queryFindEmailAndSendCode(body.email);
         if(!response || response.length === 0){
@@ -382,7 +384,10 @@ module.exports = function (dbInjected) {
             time_exp: dateTimeNowMoreOne,
         }
         //primero consultar la tabla code_user para actualizar o registrar uno nuevo
-        const verifiExistRegister = await db.query(constant.tableCodeUser, response[0].IdUsuarios);
+        const verifiExistRegister = await db.queryGetWhere(constant.tableCodeUser, response[0].IdUsuarios);
+
+        console.log(verifiExistRegister, 'verifiExistRegister');
+
         if(verifiExistRegister && verifiExistRegister.length > 0) {
             //Actualizamos
             const toUpdate = {
@@ -390,10 +395,19 @@ module.exports = function (dbInjected) {
                 state: 1,
                 time_exp: dateTimeNowMoreOne,
             }
-            await db.queryUpdateAnyTable(constant.tableCodeUser, toUpdate);
 
+            const whereUpdate = {
+                id_user: response[0].IdUsuarios
+            }
+            console.log("actualizando1")
+            await db.queryUpdateAnyTable(constant.tableCodeUser, toUpdate, whereUpdate );
+            console.log("actualizando2")
+
+        }else{
+            console.log("actualizando3")
+            await db.addNewRegisterGeneric(constant.tableCodeUser, data);//sino añadimos
+            console.log("actualizando4")
         }
-        await db.addNewRegisterGeneric(constant.tableCodeUser, data);//sino añadimos
 
         const responseEmail = await helpers.sendCodeVerificationOutlook(response[0].Email, code_user);//Envia el correo con el código
         console.log(response[0].Email,'responseEmail');
@@ -405,29 +419,20 @@ module.exports = function (dbInjected) {
 
     /* 📌 Verificación de código */
     async function verificationOfCode(body){
-        let initialDate = moment();
-        const getDateTimeNow = await helpers.getDateTimeToday(initialDate);
-        console.log(getDateTimeNow, 'getDateTimeNow');
+        const fechaActual = new Date();
         
         let response = await db.queryVerificationOfCode(body.code, body.id_user);
 
-        // Ahora puedes comparar la fecha en formato Date utilizando operadores de comparación
-        const fechaActual = new Date();
-        console.log(fechaActual, 'fechaActual');
-
-        console.log("deberia decir código no valido");
         if(response  && response.length > 0){
-            const dateFormated = moment(response[0].time_exp).format("YYYY-MM-DD HH:mm:ss");
-            const fechaEnDate = new Date(dateFormated);
-            console.log(fechaEnDate, 'fechaEnDate');
-            console.log(dateFormated, 'dateFormated');
-
-            if(response[0].status == 1 &&  fechaActual <= fechaEnDate){
+            if(response[0].state == constant.stateActive &&  fechaActual <= response[0].time_exp){
                 console.log("ingreso aqui en la fecha ");
                 const toUpdate = {
-                    state: 0,
+                    state: constant.stateInactive,
                 }
-                await db.queryUpdateAnyTable(constant.tableCodeUser, toUpdate)
+                const whereToUpdate = {
+                    id_user: body.id_user
+                }
+                await db.queryUpdateAnyTable(constant.tableCodeUser, toUpdate, whereToUpdate);
                 return 'Código verifcado con éxito';
             }else{
                 return { "messages": `Código ya no esta disponible`} 
@@ -435,8 +440,7 @@ module.exports = function (dbInjected) {
         }
         return { "messages": `Código no valido`} 
     }
-
-
+    
     return {
         allWorkers,
         getWorkersCounter,

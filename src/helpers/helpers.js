@@ -18,7 +18,7 @@ async function getDateToday(pInitialDate) {
   let day = pInitialDate.format("DD");
   let month = pInitialDate.format("MM");
   let age = pInitialDate.format("YYYY");
-  return (date = `${age}-${month}-${day}`);
+  return date = `${age}-${month}-${day}`;
 };
 
 /* 📌 Obtener la hora */
@@ -76,7 +76,7 @@ async function sendCodeVerificationOutlook(emailUser, codeVerification) {
 }
 
 /* 📌 Obtener la fecha y hora + 1 hora que sera el tiempo de expiración */
-async function getDateTimeToday(pInitialDate) {
+async function getDateTimeMoreOne(pInitialDate) {
   let day = pInitialDate.format("DD");
   let month = pInitialDate.format("MM");
   let age = pInitialDate.format("YYYY");
@@ -104,6 +104,7 @@ async function getDateTimeToday(pInitialDate) {
 module.exports = {
   parseHourToMinutes,
   getDateToday,
+  getDateTimeMoreOne,
   getTimeNow,
   getJustDay,
   parseMinutesToHour,

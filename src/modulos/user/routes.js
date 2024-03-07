@@ -21,9 +21,8 @@ router.put('/putupdatePassword', updatePasswordOfUser);
 router.post('/sendCodeVerfication', sendCodeVerfication);
 router.post('/verificationOfCode', verificationOfCode);
 
-
-errorMessageUser = "Algo salio mal, intente más tarde"
-pageSize = 15;
+errorMessageUser = constant.errorMessageAsistance
+pageSize = constant.pageSize;
 
 async function consultUser(req, res, next) {
     try{
