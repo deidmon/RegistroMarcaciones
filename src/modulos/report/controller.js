@@ -395,10 +395,8 @@ module.exports = function(dbInyectada){
         /* let prueba = calcularDiferenciaHoras('08:00', '-09:00');
         console.log(prueba) */
         for (const row of dataUser) {
-                newdate = row.Fecha.split("-").reverse().join("-");
-                row.Fecha = newdate;
-                const fecha = new Date(row.Fecha); // obtener dia de la semana
-                const diaSemana = fecha.getDay() ;
+                const fecha = new Date(row.Fecha);
+                const diaSemana = fecha.getDay() + 1;
                 const diaSemanaPersonalizado = (diaSemana ===  0) ?  7 : diaSemana;
                 
                 if (row.diaExcepcion === diaSemanaPersonalizado) {

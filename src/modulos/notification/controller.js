@@ -3,6 +3,8 @@ const tableAssist = 'asistencias';
 const tableNotification = 'tokennotificaciones';
 const tableSchedule = 'horarios';
 const tableRestDays = 'descansos';
+const tableRefreshment = "refrigerio";
+const tableScheduleRefreshment = "horariorefrigerio";
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/Lima');
 moment.locale('es'); 
@@ -57,12 +59,12 @@ module.exports = function (dbInjected) {
     async function scheduleByUser(body){   
         const user = await db.query(tableUser, {IdUsuarios: body.idUser})
         const idSchedule =  user.IdHorarios;
-        const dataSchedule = await db.queryScheduleByUser(tableSchedule, tableRestDays, idSchedule);
+        const dataSchedule = await db.queryScheduleByUser(tableSchedule, tableRestDays, tableRefreshment, tableScheduleRefreshment, idSchedule);
         if (!dataSchedule) {
             message = 'No existe horario asignado'
             return { "messages": message }
         }
-        console.log(dataSchedule);
+        /* console.log(dataSchedule); */
         return dataSchedule
     };
 
@@ -71,7 +73,7 @@ module.exports = function (dbInjected) {
         let hour = initialDate.format('HH');
         let minutes = initialDate.format('mm');
         const formattedTime = `${hour}:${minutes}`;
-        console.log(formattedTime);
+        /* console.log(formattedTime); */
         return formattedTime;
     };
 
@@ -80,7 +82,7 @@ module.exports = function (dbInjected) {
        const  typeMarkDescription = await db.queryGetNameTypeMark(
             body.idTypesMarking
           ); //Obtenemos el nombre de tipo de marcación}
-          console.log('controller', typeMarkDescription)
+          /* console.log('controller', typeMarkDescription) */
           return typeMarkDescription;
     };
     async function getTimeBreak(){
