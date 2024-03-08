@@ -258,49 +258,51 @@ async function sendmailOutlook(req, res, next) {
   try {
 
     const variablesToEmail = await controller.getEmailLeader(req.body);
-    const scheduleOfUser = await controller.scheduleByUser(req.body);
-    const typeMarkDescription = await controller.typeMarkDescription(req.body);
-    const hourToRegisterMark = await controller.hourToRegisterMark();
-    const validationOfMark = req.body.ValidationOfMark;
-    console.log(variablesToEmail.Email);
+    console.log(variablesToEmail,'variablesToEmail');
+    if(variablesToEmail) {
+      const scheduleOfUser = await controller.scheduleByUser(req.body);
+      const typeMarkDescription = await controller.typeMarkDescription(req.body);
+      const hourToRegisterMark = await controller.hourToRegisterMark();
+      const validationOfMark = req.body.ValidationOfMark;
 
-    //configuracion del transporter
-    const transporter = nodemailer.createTransport({
-      host: constant.vmailHost,
-      port: constant.mailPort,
-      secure: false,
-      auth: {
-        user: config.outlook.authuservmail,
-        pass: config.outlook.authusevpass,
-      },
-    });
+      //configuracion del transporter
+      const transporter = nodemailer.createTransport({
+        host: constant.vmailHost,
+        port: constant.mailPort,
+        secure: false,
+        auth: {
+          user: config.outlook.authuservmail,
+          pass: config.outlook.authusevpass,
+        },
+      });
 
-    //Para quien va, asunto y mensaje
-    const mensaje = {
-      from: `Valtx ${config.outlook.authuservmail}`,
-      to: variablesToEmail.Email,
-      subject: "Notificación de asistencias", //asunto
-      text: `Estimado(a) ${variablesToEmail.NameLeader} ${
-        variablesToEmail.LastnameLeader
-      },\n
+      //Para quien va, asunto y mensaje
+      const mensaje = {
+        from: `Valtx ${config.outlook.authuservmail}`,
+        to: variablesToEmail.Email,
+        subject: "Notificación de asistencias", //asunto
+        text: `Estimado(a) ${variablesToEmail.NameLeader} ${
+          variablesToEmail.LastnameLeader
+        },\n
 El usuario ${variablesToEmail.NameOfWorker} ${
-        variablesToEmail.LastNamesWorker
-      } ha registrado su asistencia de ${
-        typeMarkDescription.descripcion
-      } a las ${hourToRegisterMark}.\n\nPor lo tanto, ${validationOfMark.toLocaleLowerCase()}\n\nYa que, su horario programado es de ${
-        scheduleOfUser.HoraInicio
-      } a ${scheduleOfUser.HoraFin}.\nPara mas detalles, por favor ir a ${constant.linkValtx} e ingresar a la sección de justificaciones
+          variablesToEmail.LastNamesWorker
+        } ha registrado su asistencia de ${
+          typeMarkDescription.descripcion
+        } a las ${hourToRegisterMark}.\n\nPor lo tanto, ${validationOfMark.toLocaleLowerCase()}\n\nYa que, su horario programado es de ${
+          scheduleOfUser.HoraInicio
+        } a ${scheduleOfUser.HoraFin}.\nPara mas detalles, por favor ir a ${constant.linkValtx} e ingresar a la sección de justificaciones
 
 Atentamente 
 Dirección Gestión y Desarrollo Humano.`,
-    };
-    console.log("aqui llega el correo", mensaje);
-    //envio de correo
-    const info = await transporter.sendMail(mensaje);
-    console.log(info.accepted);
-    response.success(req, res, info.accepted, "Con éxito", 200);
+      };
+
+      //envio de correo
+      const info = await transporter.sendMail(mensaje);
+
+      return response.success(req, res, info.accepted, "Con éxito", 200);
+    }
+    return response.success(req, res, ["No tiene lider asignado"], "Con éxito", 200);
   } catch (e) {
-    console.log(e, "erorrrrrrrrrrrrrrrrrrrrrrrr enviando corrreo")
     response.error(req, res, false, constant.messageErrorEmail, 500);
   }
 };

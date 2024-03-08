@@ -53,25 +53,22 @@ async function sendCodeVerificationOutlook(emailUser, codeVerification) {
         pass: config.outlook.authusevpass,
       },
     });
-    console.log("Aqui llegaaaaaaaaaaaaaaaaaaaaaaaaaaaaa el correo")
+
     //Para quien va, asunto y mensaje
     const mensaje = {
       from: `Valtx ${config.outlook.authuservmail}`,
       to: emailUser,
       subject: "Código de verificación", //asunto
-      text: `Tu código de verificación para cambiar tu contraseña en Sistema de asistencia Valtx es ${codeVerification}. No lo comparatas con nadie.
+      html: `<p>Tu código de verificación para cambiar tu contraseña en Sistema de asistencia Valtx es <span style="color: blue;">${codeVerification}</span>. No lo compartas con nadie.</p>
       \n
       `,
     };
     
     //envio de correo
-    const info = await transporter.sendMail(mensaje);
-    console.log(info.accepted);
+    await transporter.sendMail(mensaje);
     return true;
-    /* response.success(req, res, info.accepted, "Con éxito", 200); */
   } catch (e) {
     return false;
-    /* response.error(req, res, false, constant.messageErrorEmail, 500); */
   }
 }
 

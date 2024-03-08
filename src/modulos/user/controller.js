@@ -338,11 +338,14 @@ module.exports = function (dbInjected) {
         const hasCharacter = /[a-zA-Z]/.test(body.password);
         const hasUppercase = /[A-Z]/.test(body.password);
 
-        if(body.password.length < constant.minimumPasswordCharacters){
-            return { "messages": `La  contraseña debe tener como minimo ${constant.minimumPasswordCharacters} caracteres` }
-        } else if (!hasNumber || !hasCharacter || !hasUppercase) {
+        if (!hasNumber || !hasCharacter || !hasUppercase) {
             return { "messages": "La contraseña debe contener al menos un número, un carácter y una mayúscula" };
         }
+        
+        if(body.password.length < constant.minimumPasswordCharacters){
+            return { "messages": `La  contraseña debe tener como minimo ${constant.minimumPasswordCharacters} caracteres` }
+        }
+        
         let password = body.password;
 
         if (body.password) {
@@ -370,6 +373,7 @@ module.exports = function (dbInjected) {
         if(!response || response.length === 0){
             return { "messages": `Correo no encontrado` } 
         }
+
         let code_user = '';
         for(let i = 0; i <=5; i++){
             let character = Math.ceil(Math.random() * 9)
@@ -377,17 +381,17 @@ module.exports = function (dbInjected) {
         }
         
         const data = {
-            /* id:1, */
             id_user: response[0].IdUsuarios,
             code: code_user,
             state: 1,
             time_exp: dateTimeNowMoreOne,
         }
         //primero consultar la tabla code_user para actualizar o registrar uno nuevo
-        const verifiExistRegister = await db.queryGetWhere(constant.tableCodeUser, response[0].IdUsuarios);
-
-        console.log(verifiExistRegister, 'verifiExistRegister');
-
+        const whereVerified = {
+            id_user: response[0].IdUsuarios
+        }
+        const verifiExistRegister = await db.queryGetWhere(constant.tableCodeUser, whereVerified);
+        
         if(verifiExistRegister && verifiExistRegister.length > 0) {
             //Actualizamos
             const toUpdate = {
@@ -399,31 +403,36 @@ module.exports = function (dbInjected) {
             const whereUpdate = {
                 id_user: response[0].IdUsuarios
             }
-            console.log("actualizando1")
             await db.queryUpdateAnyTable(constant.tableCodeUser, toUpdate, whereUpdate );
-            console.log("actualizando2")
-
         }else{
-            console.log("actualizando3")
             await db.addNewRegisterGeneric(constant.tableCodeUser, data);//sino añadimos
-            console.log("actualizando4")
-        }
+        }   
 
         const responseEmail = await helpers.sendCodeVerificationOutlook(response[0].Email, code_user);//Envia el correo con el código
-        console.log(response[0].Email,'responseEmail');
+
         if (!responseEmail){
             return { "messages": `No se pudo enviar el código de verificación`} 
         }
-        return 'Código enviado con éxito';
+        return `${response[0].IdUsuarios}`;
     }
 
     /* 📌 Verificación de código */
     async function verificationOfCode(body){
         const fechaActual = new Date();
+        console.log(fechaActual, "fechaActual");
         
         let response = await db.queryVerificationOfCode(body.code, body.id_user);
 
         if(response  && response.length > 0){
+            
+            const fechaFormateada = moment(response[0].time_exp).format("YYYY-MM-DD HH:mm:ss");
+            const fechaFormateadaback = moment(fechaActual).format("YYYY-MM-DD HH:mm:ss");
+            console.log( fechaFormateada, ' fechaFormateada')
+            console.log( fechaFormateadaback, ' fechaFormateadaback')
+            let toknow = false;
+            toknow = fechaActual <= response[0].time_exp;
+            console.log( toknow, 'toknow');
+
             if(response[0].state == constant.stateActive &&  fechaActual <= response[0].time_exp){
                 console.log("ingreso aqui en la fecha ");
                 const toUpdate = {
@@ -433,7 +442,7 @@ module.exports = function (dbInjected) {
                     id_user: body.id_user
                 }
                 await db.queryUpdateAnyTable(constant.tableCodeUser, toUpdate, whereToUpdate);
-                return 'Código verifcado con éxito';
+                return 'Código verificado con éxito';
             }else{
                 return { "messages": `Código ya no esta disponible`} 
             }   
