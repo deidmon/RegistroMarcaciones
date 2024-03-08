@@ -15,12 +15,14 @@ module.exports = function (dbInyectada) {
 
   /* 📌 Añadir registro de asistencia presencial*/
   async function addMarkingOnSite(body) {
-
+    console.log("Pasando por aqui addMarkingONsite")
     let initialDate = moment();     
     let date = await helpers.getDateToday(initialDate);
     const formattedTime = await helpers.getTimeNow(initialDate);
     const hourInMinutesNow = await helpers.parseHourToMinutes(formattedTime); //Obtener la hora en minutos
 
+    const dayOfWeekName = await helpers.getJustDay(initialDate);
+    
     const idSchedule = await db.queryGetIdSchedule(constant.tableUser, {
       IdUsuarios: body.idUser,
     }); //Obtener id de horario
@@ -47,7 +49,7 @@ module.exports = function (dbInyectada) {
       message = `Usted ya ha registrado su ${descrptionTypeMarking.toUpperCase()} hoy.`;
       return { messages: message };
     }
-
+    console.log("Pasando por aqui addMarkingONsite2")
     /* 📌 Verificar que primero ingrese entrada, antes de poder registrar break */
     let alreadyMarkedEntry = false; //aun no marca
     alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
@@ -64,6 +66,7 @@ module.exports = function (dbInyectada) {
       ].descripcion.toUpperCase()} primero.`;
       return { messages: message };
     }
+    
 
     /* 📌 Verificar que primero ingrese break, antes de poder registrar fin break */
     alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
@@ -80,7 +83,8 @@ module.exports = function (dbInyectada) {
       ].descripcion.toUpperCase()} primero.`;
       return { messages: message };
     }
-    if (pTimeBreak && pTimeBreak.length > 0) {
+    
+    if (timeBreak && timeBreak.length > 0) {
       /* 📌 Verificar que primero ingrese fin break, antes de poder registrar salida */
       alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
         body.idTypesMarking,
@@ -114,7 +118,7 @@ module.exports = function (dbInyectada) {
       }
     }
     
-
+    console.log("Pasando por aqui addMarkingONsite3")
     /* 📌 Verificar si es su día de descanso */
     const daysOff = await db.queryGetDaysOff(
       constant.tableDaysOff,
@@ -122,11 +126,13 @@ module.exports = function (dbInyectada) {
       constant.tableUser,
       { IdUsuarios: body.idUser }
     );
+    console.log(daysOff, 'dia de descans o no laborable');
     if (daysOff.includes(dayOfWeekName)) {
       message = `Hoy ${dayOfWeekName.toUpperCase()} es su día no laborable.`;
       return { messages: message };
     }
-
+    console.log("Pasando por aqui addMarkingONsite4")
+   
     /* 📌 Verificar si esta de vacaciones */
     var haveVacation = await db.queryCheckVacation(
       date,
@@ -136,7 +142,7 @@ module.exports = function (dbInyectada) {
         message = `Está de vacaciones, disfrútelas al máximo`;
         return { messages: message };
     }
-
+   
     /* 📌 Verificar si trabajador tiene permiso todo el día */
     const havePermissionAllDay = await db.queryCheckPermissionAllDay(
       constant.tablePermissions,
@@ -165,7 +171,7 @@ module.exports = function (dbInyectada) {
 
     if (locations.length > 0) {
       
-      const dayOfWeekName = await helpers.getJustDay(initialDate);
+      
       const firstLocationResult = locations[0];
       const nameAddress = firstLocationResult.Direccion;
 
@@ -184,7 +190,7 @@ module.exports = function (dbInyectada) {
       const IdExcepcion = await db.queryGetIdException(constant.tableSchedule, {
         IdHorarios: idSchedule.IdHorarios,
       });//Obtener id de horario de día diferente
-      
+     
       /* 📌 Comprueba si inicio o fin de refrigerio - 2 o 3 */
       if (
         body.idTypesMarking == constant.typeRegisterStartBreak ||
@@ -377,6 +383,7 @@ module.exports = function (dbInyectada) {
   //////////////////////////////////////////////////////////////
   /* 📌 Para registrar asistencia modalidad presencial o virtual*/
   async function addMarking(body) {
+    
     /* 📌 Verificar usuario es correcto */
     const data = await db.query(constant.tableUser, { IdUsuarios: body.idUser });
     if (!data) {
@@ -388,6 +395,7 @@ module.exports = function (dbInyectada) {
     const workModality = await db.queryModalityValidation(constant.tableUser, {
       IdUsuarios: body.idUser,
     });
+    
     if (!workModality) {
       return await addMarkingOnSite(body);
     }
@@ -396,6 +404,7 @@ module.exports = function (dbInyectada) {
 
   /* 📌 Para registrar asistencia desde la web ya que, la ubicación falla mucho  */
   async function addMarkingVirtual(body) {
+    console.log("entrando a virtual");
     let initialDate = moment();
     let date = await helpers.getDateToday(initialDate);
     const formattedTime = await helpers.getTimeNow(initialDate);
@@ -531,7 +540,7 @@ module.exports = function (dbInyectada) {
       return { messages: message };
     }
     ///FIN VERIFICACIONES
-    
+    console.log("LLEGA HASTA INICION O IN REFRIGERIO");
     /* 📌 Comprueba si inicio o fin de refrigerio - 2 o 3 */
     if (
       body.idTypesMarking == constant.typeRegisterStartBreak ||
