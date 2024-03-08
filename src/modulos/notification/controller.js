@@ -5,6 +5,7 @@ const tableSchedule = 'horarios';
 const tableRestDays = 'descansos';
 const tableRefreshment = "refrigerio";
 const tableScheduleRefreshment = "horariorefrigerio";
+const tableExceptions = "excepciones";
 const moment = require('moment-timezone');
 moment.tz.setDefault('America/Lima');
 moment.locale('es'); 
@@ -59,7 +60,7 @@ module.exports = function (dbInjected) {
     async function scheduleByUser(body){   
         const user = await db.query(tableUser, {IdUsuarios: body.idUser})
         const idSchedule =  user.IdHorarios;
-        const dataSchedule = await db.queryScheduleByUser(tableSchedule, tableRestDays, tableRefreshment, tableScheduleRefreshment, idSchedule);
+        const dataSchedule = await db.queryScheduleByUser(tableSchedule, tableRestDays, tableRefreshment, tableScheduleRefreshment, tableExceptions,idSchedule);
         if (!dataSchedule) {
             message = 'No existe horario asignado'
             return { "messages": message }

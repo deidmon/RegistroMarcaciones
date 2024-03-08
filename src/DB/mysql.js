@@ -464,7 +464,7 @@ function queryMarkDay2(tabla, tabla2, tabla3, tabla4, IdUsuario, Fecha) {
 };
 
 /* 📌 Obtener horario por usuario*/
-function queryScheduleByUser(table1, table2, tabla3, tabla4, consult1) {
+function queryScheduleByUser(table1, table2, table3, table4, table5, consult1) {
     return new Promise((resolve, reject) => {
         const query = `
         SELECT 
@@ -473,14 +473,22 @@ function queryScheduleByUser(table1, table2, tabla3, tabla4, consult1) {
                 h.idRefrigerio, r.tiempo, hr.horainicio, hr.horafin,
                 MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN DATE_FORMAT(h.HoraInicio,'%H:%i') END) AS HoraFin,
                 h.IdDescanso,
-                GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día, 1) DESC SEPARATOR ', ') AS Descanso
+                GROUP_CONCAT(distinct d.Día ORDER BY LEFT(d.Día, 1) DESC SEPARATOR ', ') AS Descanso,
+                exc2.Día AS dia_Excepcion, exc.HoraInicio_Excepcion, exc.HoraFin_Excepcion
         FROM ?? AS h 
         INNER JOIN ?? AS d ON h.IdDescanso = d.IdDescansos
         LEFT JOIN ?? AS r ON h.idRefrigerio = r.id
         LEFT JOIN ?? AS hr ON r.idHorarioRefrigerio = hr.id
+        LEFT JOIN (SELECT 
+            ex.IdExcepcion,
+            MIN(CASE WHEN ex.IdTipoMarcacion = 1 AND ex.IdValidacion = 1 THEN DATE_ADD(ex.HoraInicio, INTERVAL 15 MINUTE) END) AS HoraInicio_Excepcion,
+            MAX(CASE WHEN ex.IdTipoMarcacion = 4 AND ex.IdValidacion = 1 THEN ex.HoraInicio END) AS HoraFin_Excepcion
+        FROM ?? AS ex 
+        GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
+        LEFT JOIN ?? AS exc2 ON h.diaExcepcion = exc2.IdDescansos
         WHERE h.IdHorarios = ?
         GROUP BY h.IdHorarios, h.IdDescanso`;
-        const values = [table1, table2, tabla3, tabla4, consult1];
+        const values = [table1, table2, table3, table4, table5, table2, consult1];
 
         conexion.query(query, values, (error, result) => {
             return error ? reject(error) : resolve(result[0]);
