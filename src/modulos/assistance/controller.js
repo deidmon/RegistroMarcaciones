@@ -15,7 +15,7 @@ module.exports = function (dbInyectada) {
 
   /* 📌 Añadir registro de asistencia presencial*/
   async function addMarkingOnSite(body) {
-    console.log("Pasando por aqui addMarkingONsite")
+    /* console.log("Pasando por aqui addMarkingONsite") */
     let initialDate = moment();     
     let date = await helpers.getDateToday(initialDate);
     const formattedTime = await helpers.getTimeNow(initialDate);
@@ -49,7 +49,7 @@ module.exports = function (dbInyectada) {
       message = `Usted ya ha registrado su ${descrptionTypeMarking.toUpperCase()} hoy.`;
       return { messages: message };
     }
-    console.log("Pasando por aqui addMarkingONsite2")
+    /* console.log("Pasando por aqui addMarkingONsite2") */
     /* 📌 Verificar que primero ingrese entrada, antes de poder registrar break */
     let alreadyMarkedEntry = false; //aun no marca
     alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
@@ -118,7 +118,7 @@ module.exports = function (dbInyectada) {
       }
     }
     
-    console.log("Pasando por aqui addMarkingONsite3")
+    /* console.log("Pasando por aqui addMarkingONsite3") */
     /* 📌 Verificar si es su día de descanso */
     const daysOff = await db.queryGetDaysOff(
       constant.tableDaysOff,
@@ -126,12 +126,12 @@ module.exports = function (dbInyectada) {
       constant.tableUser,
       { IdUsuarios: body.idUser }
     );
-    console.log(daysOff, 'dia de descans o no laborable');
+    /* console.log(daysOff, 'dia de descans o no laborable'); */
     if (daysOff.includes(dayOfWeekName)) {
       message = `Hoy ${dayOfWeekName.toUpperCase()} es su día no laborable.`;
       return { messages: message };
     }
-    console.log("Pasando por aqui addMarkingONsite4")
+    /* console.log("Pasando por aqui addMarkingONsite4") */
    
     /* 📌 Verificar si esta de vacaciones */
     var haveVacation = await db.queryCheckVacation(
@@ -404,7 +404,7 @@ module.exports = function (dbInyectada) {
 
   /* 📌 Para registrar asistencia desde la web ya que, la ubicación falla mucho  */
   async function addMarkingVirtual(body) {
-    console.log("entrando a virtual");
+    /* console.log("entrando a virtual"); */
     let initialDate = moment();
     let date = await helpers.getDateToday(initialDate);
     const formattedTime = await helpers.getTimeNow(initialDate);
@@ -540,7 +540,7 @@ module.exports = function (dbInyectada) {
       return { messages: message };
     }
     ///FIN VERIFICACIONES
-    console.log("LLEGA HASTA INICION O IN REFRIGERIO");
+    /* console.log("LLEGA HASTA INICION O IN REFRIGERIO"); */
     /* 📌 Comprueba si inicio o fin de refrigerio - 2 o 3 */
     if (
       body.idTypesMarking == constant.typeRegisterStartBreak ||

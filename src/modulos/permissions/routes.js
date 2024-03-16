@@ -70,7 +70,7 @@ async function addAuthorization(req, res, next){
 async function updatePermissions(req, res, next){
     try{
         const items = await controller.updatePermissions(req.body);
-        console.log(items)
+        /* console.log(items) */
        if(items){
         response.success(req, res,"", items.messages, 200);
        }        

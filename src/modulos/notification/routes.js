@@ -20,7 +20,7 @@ const tableExceptions = "excepciones";
 const tableHoliday = "feriados";
 
 const bearerToken =
-  "AAAABAqfEQ8:APA91bEgr4R2yhqoez4YD1mSHtGnQcNChmI7uYRvK7CXFaVWKi98S3v0clv5sxP_UYK9vomiFAEAxPxhbUR-gR2En4b_hRuwxATvLqhq0dtxHgqWT3qQrDzxrGFWJepvmKGsAPwh49Yi";
+  "AAAAD85SmVo:APA91bHw2px9VZxOyeLzdqb98FSYA1W8asL5-VYV2qV_HXjoz6V-aWKpamk9L9f0S8vlXxKLnVodLAHNAgOAavTvZ2mAQHyj7_V9oLdYCR2If4XltZUAWqZTcspPpIxQVqwryMeh4F97";
 const endpoint = "https://fcm.googleapis.com/fcm/send";
 
 router.post("/latenessreport", sendmailOutlook);

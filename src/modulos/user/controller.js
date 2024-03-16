@@ -225,7 +225,9 @@ module.exports = function (dbInjected) {
             CIP: body.cip,
             DNI: body.DNI,
             idHorarios: body.schedule,
-            idPerfil: body.idProfile
+            idPerfil: body.idProfile,
+            Email : body.email,
+            isFisrtLogin : 1
         }
         const updateUser = {
             IdUsuarios: body.idUser,
@@ -419,7 +421,7 @@ module.exports = function (dbInjected) {
     /* 📌 Verificación de código */
     async function verificationOfCode(body){
         const fechaActual = new Date();
-        console.log(fechaActual, "fechaActual");
+        /* console.log(fechaActual, "fechaActual"); */
         
         let response = await db.queryVerificationOfCode(body.code, body.id_user);
 
@@ -427,14 +429,14 @@ module.exports = function (dbInjected) {
             
             const fechaFormateada = moment(response[0].time_exp).format("YYYY-MM-DD HH:mm:ss");
             const fechaFormateadaback = moment(fechaActual).format("YYYY-MM-DD HH:mm:ss");
-            console.log( fechaFormateada, ' fechaFormateada')
-            console.log( fechaFormateadaback, ' fechaFormateadaback')
+            /* console.log( fechaFormateada, ' fechaFormateada')
+            console.log( fechaFormateadaback, ' fechaFormateadaback') */
             let toknow = false;
             toknow = fechaActual <= response[0].time_exp;
-            console.log( toknow, 'toknow');
+            /* console.log( toknow, 'toknow'); */
 
             if(response[0].state == constant.stateActive &&  fechaActual <= response[0].time_exp){
-                console.log("ingreso aqui en la fecha ");
+                /* console.log("ingreso aqui en la fecha "); */
                 const toUpdate = {
                     state: constant.stateInactive,
                 }
