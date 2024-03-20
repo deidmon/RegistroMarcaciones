@@ -17,6 +17,7 @@ const cronjobNotification = require('./modulos/notification/routes');
 const Justifications = require('./modulos/justifications/routes')
 const schedules = require('./modulos/schedules/routes')
 const addScheduleProgrammed = require('./modulos/cronjob/addSchedule')
+const addUsersProgrammed = require('./modulos/cronjob/addDataUsers')
 const app = express();
 
 //Middleware

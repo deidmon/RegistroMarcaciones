@@ -18,6 +18,10 @@ module.exports = function (dbInjected) {
     }
     try {
       const data = await db.query(tableUser, { Usuario: user });
+      if(data.Activo === 0){
+        message = "Usuario desactivado";
+        return { messages: message };
+      };
       if (!data || !data.Contraseña) {
         message = "Credenciales inválidas";
         return { messages: message };

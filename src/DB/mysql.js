@@ -2016,6 +2016,43 @@ function queryVerificationOfCode(code, id_user) {
     });
 };
 
+/* 📌 Query para desactivar todos los usuarios */
+function queryUpdateStatusUser(table, toUpdate, ) {
+    return new Promise((resolve, reject) => {
+        const query = `UPDATE ?? SET ?`;
+        const values = [table, toUpdate];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        });
+    });
+};
+
+/* 📌 Chequear si existe un usuario */
+function queryUserExist(tabla, consult1, ) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT EXISTS((SELECT IdUsuarios FROM ?? WHERE CIP = ? LIMIT 1)) AS user_Exist`;
+        const values = [tabla, consult1];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].user_Exist);
+        });
+    });
+};
+
+/* 📌 Desactivar usuarios */
+function queryUsersInactive(tabla, users) {
+    return new Promise((resolve, reject) => {
+        const query = `UPDATE ?? SET Activo = 0 WHERE CIP NOT IN (?)`;
+        const values = [tabla, users];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        });
+    });
+};
 
 module.exports = {
     allInformationOfOneTable,
@@ -2125,5 +2162,8 @@ module.exports = {
     queryReportAsistanceWithLocation,
     queryFindEmailAndSendCode,
     queryVerificationOfCode,
+    queryUpdateStatusUser,
+    queryUserExist,
+    queryUsersInactive
 
 }
