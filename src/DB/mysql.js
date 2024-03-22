@@ -612,7 +612,7 @@ function userInformation(tabla, tabla2, id) {
         const query = `SELECT IdUsuarios AS "idUser", Nombres AS "names", Apellidos AS "lastNames", 
         Activo AS "status", Usuario AS "user", IdRol AS 'idRole', IdDirec AS "idPrimaryAddress", 
         d1.Direccion AS "primaryAddress", IdDirecSecu AS "idSecondaryAddress", 
-        d2.Direccion AS "secondaryAddress", email
+        d2.Direccion AS "secondaryAddress", email, CIP
             FROM ?? u 
             INNER JOIN ?? d1 ON u.IdDirec = d1.IdDireccion 
             INNER JOIN ?? d2 ON u.IdDirecSecu = d2.IdDireccion 

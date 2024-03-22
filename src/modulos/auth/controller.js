@@ -37,6 +37,7 @@ module.exports = function (dbInjected) {
             rol: data.IdRol,
             email: data.Email,
             isFisrtTime: data.isFisrtLogin,
+            CIP: data.CIP,
             exp: Math.floor(Date.now() / 1000) + 18000,
           };
           /* if (data.isFisrtLogin == 0)  {
