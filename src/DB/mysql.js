@@ -1707,7 +1707,6 @@ function addNewRegister(table, data) {
 
         conexion.query(insertQuery, values, (error, result) => {
             return error ? reject(error) : resolve(result);
-
         });
     });
 };
@@ -2054,6 +2053,76 @@ function queryUsersInactive(tabla, users) {
     });
 };
 
+/* 📌Obtener id de un usuario */
+function queryUserId(tabla, consult1) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT IdUsuarios FROM ?? WHERE CIP = ?`;
+        const values = [tabla, consult1];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].IdUsuarios);
+        });
+    });
+};
+
+/* 📌 Chequear si existe un usuario */
+function queryVerifyLicensing(tabla, consult1, consult2, consult3, consult4, consult5) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT EXISTS((SELECT id FROM ?? WHERE ? AND ? AND ? AND ? AND ? LIMIT 1)) AS licensing_Exist`;
+        const values = [tabla, consult1, consult2, consult3, consult4, consult5];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].licensing_Exist);
+            /*  if (error) {
+                reject(error);
+            } else {
+                resolve(result[0].licensing_Exist)
+            } */
+        });
+    });
+};
+/* function queryVerifyUserIsActive(tabla, users) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT EXISTS((SELECT Activo FROM ?? WHERE Activo = 1  LIMIT 1)) AS user_Active`;
+        const values = [tabla, users];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].user_Active);
+
+        });
+    });
+}; */
+
+function queryVerifyUserIsActive(tabla, users) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT 
+        CASE 
+            WHEN EXISTS (SELECT IdUsuarios FROM ?? WHERE CIP = ?)
+            THEN (SELECT Activo FROM ?? WHERE CIP = ?)
+            ELSE -1
+        END AS user_Active`;
+        const values = [tabla, users, tabla, users];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].user_Active);
+
+        });
+    });
+};
+
+/* 📌 Activar usuarios */
+function queryUpdateStateUsers(tabla, users) {
+    return new Promise((resolve, reject) => {
+        const query = `UPDATE ?? SET Activo = 1 WHERE CIP IN (?)`;
+        const values = [tabla, users];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+
+        });
+    });
+};
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -2164,6 +2233,9 @@ module.exports = {
     queryVerificationOfCode,
     queryUpdateStatusUser,
     queryUserExist,
-    queryUsersInactive
-
+    queryUsersInactive,
+    queryUserId,
+    queryVerifyLicensing,
+    queryVerifyUserIsActive,
+    queryUpdateStateUsers
 }
