@@ -1,3 +1,4 @@
+const axios = require("axios");
 const moment = require("moment-timezone");
 moment.tz.setDefault("America/Lima");
 const constant = require("../../helpers/constants");
@@ -15,7 +16,8 @@ const tableDaysOff = "descansos";
 const tableSchedule = "horarios";
 const PageSiize = constant.pageSize;
 var date;
-
+const apiClave = "sTSR8wr4HeS5GAIR5ESP4TEFA76GojVlHAVj0RBHrEHdLUAniKij3AhIWQ8Ed";
+const endpoint = "http://10.4.220.15/ApiServiciosRRHH/registroVacaciones/registrar";
 
 module.exports = function (dbInyectada) {
   let db = dbInyectada;
@@ -192,6 +194,32 @@ module.exports = function (dbInyectada) {
     message = "No se registrar la solicitud de vacaciones";
     return { messages: message };
   }
+
+    /* 📌 Para añadir solicitud de vacaciones con meta4*/
+    async function addVacations2(body) {
+        try {
+           const response = await axios.post(endpoint, {}, {
+             params: body,
+             /* {
+               codigo: body.codigo,
+               perfil: body.perfil,
+               inicio: body.inicio,
+               fin: body.fin,
+               adelanto: body.adelanto,
+             }, */
+             headers: {
+               apiClave: apiClave,
+            },
+           }
+          );
+           /* console.log(response.data); */
+           return response.data
+        } catch (error) {
+          /* console.error(error.response.data); */
+          return { messages: error.response.data };
+        }
+       
+    }
 
   /* 📌 Para permitir que el trabajador ingrese antes de su hora - solo puede realizar el lider*/
   async function addAuthorization(body) {
@@ -660,5 +688,6 @@ module.exports = function (dbInyectada) {
     allRequestOfAllWorkersToRRHH,
     allRequestOfAllWorkersCounterToRRHH,
     managementOfRequests,
+    addVacations2
   };
 };

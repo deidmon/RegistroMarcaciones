@@ -45,9 +45,12 @@ async function addPermissions(req, res, next){
 
 async function addVacations(req, res, next){
     try{
-        const items = await controller.addVacations(req.body);
-         if(items){
-            response.success(req, res,"", items.messages, 200);
+        /* const items = await controller.addVacations(req.body); */
+        const items = await controller.addVacations2(req.body); 
+        if(!items.messages){
+            response.success(req, res, items,"",200);
+        }else{
+            response.failure(req, res,items.messages,"", 200);
         }
        
     }catch(err){

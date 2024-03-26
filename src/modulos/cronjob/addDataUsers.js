@@ -24,6 +24,7 @@ async function consultDataUsers() {
       },
     }
   );
+    /* console.log(response.data) */
     return response.data;
   } catch (error) {
     console.error(`Error al consultar data de usuarios.`);
@@ -342,7 +343,7 @@ async function startProgrammingDataUsers() {
     }
   
     //CAMBIAR LA HORA A LA QUE SE EJECUTARA '04:20:00'
-    let uniqueHourCronJob = ["06:32:00"]; //Cronjob inicial 
+    let uniqueHourCronJob = ["12:43:00"]; //Cronjob inicial 
     const hourCronJob = uniqueHourCronJob.map((hour) => {
       const objetMoment = moment.tz(hour, "HH:mm:ss", "America/Lima");
       const serverTime = objetMoment.tz("UTC"); //  'ZonaHorariaDelServidor'
