@@ -421,22 +421,12 @@ module.exports = function (dbInjected) {
     /* 📌 Verificación de código */
     async function verificationOfCode(body){
         const fechaActual = new Date();
-        /* console.log(fechaActual, "fechaActual"); */
-        
+        fechaActual.setHours(fechaActual.getHours() - 5);//le restamos 5 horas porque lo crea con 5 horas de adelanto
         let response = await db.queryVerificationOfCode(body.code, body.id_user);
 
         if(response  && response.length > 0){
-            
-            const fechaFormateada = moment(response[0].time_exp).format("YYYY-MM-DD HH:mm:ss");
-            const fechaFormateadaback = moment(fechaActual).format("YYYY-MM-DD HH:mm:ss");
-            /* console.log( fechaFormateada, ' fechaFormateada')
-            console.log( fechaFormateadaback, ' fechaFormateadaback') */
-            let toknow = false;
-            toknow = fechaActual <= response[0].time_exp;
-            /* console.log( toknow, 'toknow'); */
 
             if(response[0].state == constant.stateActive &&  fechaActual <= response[0].time_exp){
-                /* console.log("ingreso aqui en la fecha "); */
                 const toUpdate = {
                     state: constant.stateInactive,
                 }

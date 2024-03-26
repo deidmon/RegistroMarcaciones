@@ -2001,20 +2001,6 @@ function queryVerificationOfCode(code, id_user) {
     });
 };
 
-/* 📌 Verificación de código */
-function queryVerificationOfCode(code, id_user) {
-    return new Promise((resolve, reject) => {
-        const query = `
-        SELECT *
-        FROM code_user
-        WHERE code = ${code} and id_user= ${id_user}`;
-        const values = [];
-        conexion.query(query, values, (error, result) => {
-            return error ? reject(error) : resolve(result);
-        });
-    });
-};
-
 /* 📌 Query para desactivar todos los usuarios */
 function queryUpdateStatusUser(table, toUpdate, ) {
     return new Promise((resolve, reject) => {
@@ -2081,17 +2067,6 @@ function queryVerifyLicensing(tabla, consult1, consult2, consult3, consult4, con
         });
     });
 };
-/* function queryVerifyUserIsActive(tabla, users) {
-    return new Promise((resolve, reject) => {
-        const query = `SELECT EXISTS((SELECT Activo FROM ?? WHERE Activo = 1  LIMIT 1)) AS user_Active`;
-        const values = [tabla, users];
-
-        conexion.query(query, values, (error, result) => {
-            return error ? reject(error) : resolve(result[0].user_Active);
-
-        });
-    });
-}; */
 
 function queryVerifyUserIsActive(tabla, users) {
     return new Promise((resolve, reject) => {
