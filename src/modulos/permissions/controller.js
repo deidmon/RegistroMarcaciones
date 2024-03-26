@@ -18,6 +18,7 @@ const PageSiize = constant.pageSize;
 var date;
 const apiClave = "sTSR8wr4HeS5GAIR5ESP4TEFA76GojVlHAVj0RBHrEHdLUAniKij3AhIWQ8Ed";
 const endpoint = "http://10.4.220.15/ApiServiciosRRHH/registroVacaciones/registrar";
+const endpointIndicator = "http://10.4.220.15/ApiServiciosRRHH/indicadorVacaciones/indicadores";
 
 module.exports = function (dbInyectada) {
   let db = dbInyectada;
@@ -215,11 +216,34 @@ module.exports = function (dbInyectada) {
            /* console.log(response.data); */
            return response.data
         } catch (error) {
-          /* console.error(error.response.data); */
+          console.error(error.response);
           return { messages: error.response.data };
         }
        
     }
+
+    /* 📌 Para traer información de los indicadores vacacionales en meta4*/
+    async function holidayIndicators(body) {
+      try {
+          const response = await axios.get(endpointIndicator, {
+            params: {
+            codigo: body.codigo,
+            
+          },
+            headers: {
+              apiClave: apiClave,
+              'Content-Type': 'application/json',
+          },
+          }
+        );
+          /* console.log(response.data); */
+          return response.data
+      } catch (error) {
+        console.error(error.response);
+        return { messages: error.response.data };
+      }
+      
+  }
 
   /* 📌 Para permitir que el trabajador ingrese antes de su hora - solo puede realizar el lider*/
   async function addAuthorization(body) {
@@ -688,6 +712,7 @@ module.exports = function (dbInyectada) {
     allRequestOfAllWorkersToRRHH,
     allRequestOfAllWorkersCounterToRRHH,
     managementOfRequests,
-    addVacations2
+    addVacations2,
+    holidayIndicators
   };
 };

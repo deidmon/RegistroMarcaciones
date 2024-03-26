@@ -6,6 +6,7 @@ const constant = require("../../helpers/constants");
 
 router.post('/addJustifications', addJustifications);
 router.post('/addVacations', addVacations);
+router.post('/getholidayIndicators', getholidayIndicators);
 router.post('/addPermissions', addPermissions);
 router.post('/addAuthorization', addAuthorization);
 router.post('/listPermissions',listPermissions);
@@ -57,6 +58,21 @@ async function addVacations(req, res, next){
         response.error(req, res, false, errorMessagePermissions, 500);
     }
 };
+
+async function getholidayIndicators(req, res, next){
+    try{
+        const items = await controller.holidayIndicators(req.body); 
+        if(!items.messages){
+            response.success(req, res, items,"",200);
+        }else{
+            response.failure(req, res,items.messages,"", 200);
+        }
+       
+    }catch(err){
+        response.error(req, res, false, errorMessagePermissions, 500);
+    }
+};
+
 
 async function addAuthorization(req, res, next){
     try{
