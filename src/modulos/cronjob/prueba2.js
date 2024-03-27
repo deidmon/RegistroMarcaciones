@@ -10,7 +10,7 @@ const bcrypt = require('bcrypt');
 
 var date;
 const apiClave = "sTSR8wr4HeS5GAIR5ESP4TEFA76GojVlHAVj0RBHrEHdLUAniKij3AhIWQ8Ed";
-const endpoint = "http://10.4.220.15/ApiServiciosRRHH/registroVacaciones/registrar";
+const endpoint = "https://portal.valtx.pe/ApiServiciosRRHH/registroVacaciones/registrar";
 
 
 

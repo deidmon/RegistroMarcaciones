@@ -10,7 +10,7 @@ const bcrypt = require('bcrypt');
 
 var date;
 const apiClave = "sTSR8wr4HeS5GAIR5ESP4TEFA76GojVlHAVj0RBHrEHdLUAniKij3AhIWQ8Ed";
-const endpoint = "http://10.4.220.15/ApiServiciosRRHH/personal/consulta?codigo";
+const endpoint = "https://portal.valtx.pe/ApiServiciosRRHH/personal/consulta?codigo";
 
 
 /* 📌Consultar a la base de Meta-4*/
@@ -22,11 +22,12 @@ async function consultDataUsers() {
         apiClave: apiClave,
         'Content-Type': 'application/json',
       },
+      timeout : 100000,
     }
   );
     return response.data;
   } catch (error) {
-    console.error(`Error al consultar data de usuarios.`);
+    console.error(`Error al consultar data de usuarios.${error}`);
     /* return "Error al consultar data de usuarios."; */
   }
 };
@@ -41,7 +42,7 @@ function modalityOfWork(userModality) {
      case 4:
        return 2;
      default:
-       return 1;
+       return 2;
   }
  }
  function convertDate(originalDate) {
@@ -140,7 +141,7 @@ function modalityOfWork(userModality) {
             IdModalidad: modalityOfWork(row.EmpleadoCodModalidad),
             CIP: row.EmpleadoCIP,
             DNI: row.EmpleadoNumDoc,
-            idHorarios: 1,
+            idHorarios: 6 /* luego cambiar el horario */,
             idPerfil: 1 /* VER DATA DE META4 */,
             tiempoPermiso: 0,
             Email : row.EmpleadoCorreoLab,
@@ -205,7 +206,7 @@ async function startProgrammingDataUsers() {
     }
   
     //CAMBIAR LA HORA A LA QUE SE EJECUTARA '04:20:00'
-    let uniqueHourCronJob = ["08:15:00"]; //Cronjob inicial 
+    let uniqueHourCronJob = ["10:02:00"]; //Cronjob inicial 
     const hourCronJob = uniqueHourCronJob.map((hour) => {
       const objetMoment = moment.tz(hour, "HH:mm:ss", "America/Lima");
       const serverTime = objetMoment.tz("UTC"); //  'ZonaHorariaDelServidor'

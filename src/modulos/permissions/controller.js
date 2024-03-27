@@ -17,8 +17,8 @@ const tableSchedule = "horarios";
 const PageSiize = constant.pageSize;
 var date;
 const apiClave = "sTSR8wr4HeS5GAIR5ESP4TEFA76GojVlHAVj0RBHrEHdLUAniKij3AhIWQ8Ed";
-const endpoint = "http://10.4.220.15/ApiServiciosRRHH/registroVacaciones/registrar";
-const endpointIndicator = "http://10.4.220.15/ApiServiciosRRHH/indicadorVacaciones/indicadores";
+const endpoint = "https://portal.valtx.pe/ApiServiciosRRHH/registroVacaciones/registrar";
+const endpointIndicator = "https://portal.valtx.pe/ApiServiciosRRHH/indicadorVacaciones/indicadores";
 
 module.exports = function (dbInyectada) {
   let db = dbInyectada;
