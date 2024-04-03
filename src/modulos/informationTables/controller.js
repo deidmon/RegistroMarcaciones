@@ -206,10 +206,10 @@ module.exports = function(dbInyectada){
             message = 'No tienes permiso para actualizar';
             return { "messages": message }
         };
-        
-         const response = await db.queryUpdateAnyTable(tablePersonalAssigment, toUpdate, idWhere);
 
-         if (response && response.changedRows > 0) {
+        //Modificar en la tabla asignación personal
+         const response = await db.queryUpdateAnyTable(tablePersonalAssigment, toUpdate, idWhere);
+         if (response && response.affectedRows > 0) {
             return 'Modificado con éxito';
         } else {
             const newWorkerAsignedToLeader = {
