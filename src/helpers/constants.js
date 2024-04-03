@@ -1,7 +1,7 @@
 //Textos
 const errorMessageAsistance = "Algo salio mal, intente más tarde."
 const messageErrorEmail = "Ocurrio un error al enviar el correo de informe de registro de asistencia."
-const linkValtx = "https://proyecto-marcaciones-web.vercel.app/#/login"
+const linkValtx = "https://marcaciones.valtx.pe:8020/marcaciones_valtx/#/login"
 
 //Nombres de tablas
 const tableAssist = "asistencias";
@@ -42,7 +42,7 @@ const vmailHost = 'smtp-mail.outlook.com';
 
 //Otros
 const startTimeRefreshment = '12:00';//Tiempo de inicio de refrigerio
-const timeLimitToRegisterEndBreak = 905; //Tiempo limite para registrar fin de refrigerio
+const timeLimitToRegisterEndBreak = 965; //Tiempo limite para registrar fin de refrigerio
 const expirationTime  = 180; //Tiempo de expiración del código de verificación
 
 module.exports = {

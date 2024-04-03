@@ -22,9 +22,10 @@ async function consultDataUsers() {
         apiClave: apiClave,
         'Content-Type': 'application/json',
       },
-      timeout : 100000,
+      timeout : 200000,
     }
   );
+  console.log("response.data", response.data)
     return response.data;
   } catch (error) {
     console.error(`Error al consultar data de usuarios.${error}`);
@@ -52,53 +53,6 @@ function modalityOfWork(userModality) {
 
  async function getDataUsers22() {
   const valuesDataUser = await consultDataUsers();
-  /* console.log(valuesDataUser) */
-  /* {
-    "personal":[
-      {
-      "EmpleadoNombres": "Lima Rio, Jose Juan4",
-      "EmpleadoNumDoc": "90908900",
-      "EmpleadoCIP": "890890011",
-      "EmpleadoCorreoLab": "Juan@gmail.com",
-      "EmpleadoCodModalidad": 3,
-      "VacacionesDtoLista" :{
-        "FechaInicio" : "24-06-2024",
-        "FechaFin" : "29-06-2024"
-      }
-      
-      },
-      {
-        "EmpleadoNombres": "Lima Rio, Jose Juan444",
-        "EmpleadoNumDoc": "90908000",
-        "EmpleadoCIP": "890890111",
-        "EmpleadoCorreoLab": "Juan@gmail.com",
-        "EmpleadoCodModalidad": 3,
-        "VacacionesDtoLista" :{
-          "FechaInicio" : "22-04-2024",
-          "FechaFin" : "30-04-2024"
-        }
-        
-        },
-      {
-      "EmpleadoNombres": "Flores Rio, Jose Juan5",
-      "EmpleadoNumDoc": "90908901",
-      "EmpleadoCIP": "890890012",
-      "EmpleadoCodModalidad": 3,
-      "EmpleadoCorreoLab": "Juan2@gmail.com",
-      "LicenciasDtoLista" :{
-        
-      }
-      
-      },
-      {
-      "EmpleadoNombres": "Lin Rio, Jose Juan6",
-      "EmpleadoNumDoc": "90908902",
-      "EmpleadoCIP": "890890013",
-      "EmpleadoCodModalidad": 3,
-      "EmpleadoCorreoLab": "Juan3@gmail.com",      
-      },
-      ]
-  }; */
   if(!valuesDataUser){
     console.log('No se hizo la petición')
     return 'No viene data'
@@ -143,7 +97,7 @@ function modalityOfWork(userModality) {
             DNI: row.EmpleadoNumDoc,
             idHorarios: 6 /* luego cambiar el horario */,
             idPerfil: 1 /* VER DATA DE META4 */,
-            tiempoPermiso: 0,
+            /* tiempoPermiso: 0, */
             Email : row.EmpleadoCorreoLab,
             isFisrtLogin : 1
         }             
@@ -206,7 +160,7 @@ async function startProgrammingDataUsers() {
     }
   
     //CAMBIAR LA HORA A LA QUE SE EJECUTARA '04:20:00'
-    let uniqueHourCronJob = ["10:02:00"]; //Cronjob inicial 
+    let uniqueHourCronJob = ["11:20:00"]; //Cronjob inicial 
     const hourCronJob = uniqueHourCronJob.map((hour) => {
       const objetMoment = moment.tz(hour, "HH:mm:ss", "America/Lima");
       const serverTime = objetMoment.tz("UTC"); //  'ZonaHorariaDelServidor'

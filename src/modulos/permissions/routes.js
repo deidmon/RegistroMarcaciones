@@ -35,8 +35,10 @@ async function addJustifications(req, res, next){
 async function addPermissions(req, res, next){
     try{
         const items = await controller.addPermissions(req.body);
-         if(items){
-            response.success(req, res,"", items.messages, 200);
+         if(!items.messages){
+            response.success(req, res,"", items, 200);
+        }else{
+            response.failure(req, res,"", items.messages, 200);
         }
        
     }catch(err){

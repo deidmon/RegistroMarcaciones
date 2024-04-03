@@ -103,6 +103,19 @@ module.exports = function (dbInyectada) {
       tableUser,
       { IdUsuarios: body.idUser }
     );
+    const fechaActual = new Date();
+    //le restamos 16 horas porque lo crea con 5 horas de adelanto y si la fecha que viene de front se crea con menos horas
+        fechaActual.setHours(fechaActual.getHours() - 16);
+    var dateObject = new Date(fechaString);
+
+    console.log("fechaActual", fechaActual);
+    console.log("dateObject", dateObject);
+
+    if (dateObject < fechaActual){
+      message = `La fecha de solicitud no puede ser anterior a la fecha actual`;
+      return { messages: message };
+    }
+
     if (daysOff.includes(dayOfWeekName)) {
       message = `Debes elegir un día laborable para pedir permiso`;
       return { messages: message };
@@ -121,8 +134,6 @@ module.exports = function (dbInyectada) {
     let day = initialDate.format("DD");
     let month = initialDate.format("MM");
     let age = initialDate.format("YYYY");
-    let hour = initialDate.format("HH");
-    let minutes = initialDate.format("mm");
     let date = `${age}-${month}-${day}`;
 
     let statusPermission = 1;
@@ -144,7 +155,7 @@ module.exports = function (dbInyectada) {
 
     if (respuesta) {
       message = "Solicitud de permiso añadido con éxito";
-      return { messages: message };
+      return message;
     }
     message = "No se pudo añadir la solicitud de permiso";
     return { messages: message };
@@ -192,7 +203,7 @@ module.exports = function (dbInyectada) {
       message = "Solicitud de vacaciones añadida con éxito";
       return { messages: message };
     }
-    message = "No se registrar la solicitud de vacaciones";
+    message = "No se pudo registrar la solicitud de vacaciones";
     return { messages: message };
   }
 

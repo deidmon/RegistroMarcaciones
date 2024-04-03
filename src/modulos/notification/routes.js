@@ -293,7 +293,7 @@ El usuario ${variablesToEmail.NameOfWorker} ${
         } a ${scheduleOfUser.HoraFin}.\nPara mas detalles, por favor ir a ${constant.linkValtx} e ingresar a la sección de justificaciones
 
 Atentamente 
-Dirección Gestión y Desarrollo Humano.`,
+Recursos Humanos.`,
       };
 
       //envio de correo
