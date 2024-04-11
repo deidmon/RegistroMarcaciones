@@ -372,7 +372,7 @@ module.exports = function (dbInyectada) {
       return {
         idTipoValidacion: resultValidation,
         idMostrarForm: showForm,
-        "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
+        "Registrado como": `La asistencia de ${descrptionTypeMarking.toUpperCase()} ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
         Detalle: `Hora de registro: ${formattedTime}. ¡gracias por su puntualidad!`,
       };
     }
@@ -708,7 +708,7 @@ module.exports = function (dbInyectada) {
     return {
       idTipoValidacion: resultValidation,
       idMostrarForm: showForm,
-      "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
+      "Registrado como": `La asistencia de ${descrptionTypeMarking.toUpperCase()} ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
       Detalle: `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!`,
     };
   };
@@ -814,7 +814,7 @@ module.exports = function (dbInyectada) {
         return {
           idTipoValidacion: idvalidation,
           idMostrarForm: showForm,
-          "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
+          "Registrado como": `La asistencia de ${descrptionTypeMarking.toUpperCase()} ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
           Detalle: `Hora de registro: ${pFormattedTime}.¡gracias por su puntualidad!`,
         };
       }
@@ -910,7 +910,7 @@ module.exports = function (dbInyectada) {
         return {
           idTipoValidacion: idvalidation,
           idMostrarForm: showForm,
-          "Registrado como": `La asistencia ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
+          "Registrado como": `La asistencia de ${descrptionTypeMarking.toUpperCase()} ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
           Detalle: `Hora de registro: ${pFormattedTime}.¡gracias por su puntualidad!`,
         };
       }

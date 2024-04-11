@@ -1,7 +1,7 @@
 //Textos
 const errorMessageAsistance = "Algo salio mal, intente más tarde."
 const messageErrorEmail = "Ocurrio un error al enviar el correo de informe de registro de asistencia."
-const linkValtx = "https://marcaciones.valtx.pe:8020/marcaciones_valtx/#/login"
+const linkValtx = "https://asistencia.valtx.pe:8020/asistencia_valtx/#/login"
 
 //Nombres de tablas
 const tableAssist = "asistencias";

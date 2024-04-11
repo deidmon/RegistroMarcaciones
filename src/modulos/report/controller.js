@@ -448,7 +448,7 @@ module.exports = function(dbInyectada){
                 } else if (!ausenciaAsignada && hora1.isBefore(hora2)) {
                     row.Sobretiempo = calcularDiferenciaHoras( row.Asist, row.Asignado);
                 } else if (!ausenciaAsignada) {
-                    return '00:00';
+                    /* return '00:00'; */
                 }
 
                 if (row.validacionSalida === 4 && row.validacionSalidaSec === 6) {
