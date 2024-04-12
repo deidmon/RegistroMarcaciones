@@ -424,7 +424,12 @@ module.exports = function(dbInyectada){
 
                 if(row.HoraFin === '00:00' && row.HoraFinRefrigerio === '00:00'){
                     row.Asist =    calcularDiferenciaHoras(row.HoraInicioRefrigerio, row.HoraInicio)
-                } else {
+                } else if(row.HoraFin === '00:00'){
+                    let AsistidoSinHoraFin = calcularDiferenciaHoras(row.HoraFinRefrigerio, row.HoraInicio);
+                    let RefrigerioReal = calcularDiferenciaHoras(row.HoraFinRefrigerio, row.HoraInicioRefrigerio );
+                    row.Asist = calcularDiferenciaHoras(AsistidoSinHoraFin, RefrigerioReal);
+                }              
+                else {
                     let AsistidoSinRefrigerio = calcularDiferenciaHoras(row.HoraFin, row.HoraInicio);
                     let RefrigerioReal = calcularDiferenciaHoras(row.HoraFinRefrigerio, row.HoraInicioRefrigerio );
                     row.Asist = calcularDiferenciaHoras(AsistidoSinRefrigerio, RefrigerioReal);
