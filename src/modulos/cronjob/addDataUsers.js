@@ -22,13 +22,13 @@ async function consultDataUsers() {
         apiClave: apiClave,
         'Content-Type': 'application/json',
       },
-      timeout : 200000,
+      timeout : 500000,
     }
   );
-  console.log("response.data", response.data)
+  /* console.log("response.data", response.data) */
     return response.data;
   } catch (error) {
-    console.error(`Error al consultar data de usuarios.${error}`);
+    console.error(`Error al consultar data de usuarios. ${error.data}`);
     /* return "Error al consultar data de usuarios."; */
   }
 };
@@ -47,7 +47,7 @@ function modalityOfWork(userModality) {
   }
  }
  function convertDate(originalDate) {
-  const partsDate = originalDate.split('-');
+  const partsDate = originalDate.split('/');
   return `${partsDate[2]}-${partsDate[1]}-${partsDate[0]}`;
  }
 
@@ -65,15 +65,23 @@ function modalityOfWork(userModality) {
         constant.tableUser,
         row.EmpleadoCIP
       );
-      //Almacenamos el cip del usuario
+      //Usuario ya está activado
       if (usersUnregistered === 1){
         /* const isUserActive = await db.queryVerifyUserIsActive(constant.tableUser) */
         userActive.push(row.EmpleadoCIP);
+        // Verificar el horario y modificarlo
+        const consultUserSchedule = await db.queryGetIdSchedule(constant.tableUser, {CIP : row.EmpleadoCIP})
+        if( consultUserSchedule !==  Number(row.EmpleadoCodHorario)){
+          const updateItem = {
+            IdHorarios: row.EmpleadoCodHorario, 
+          }             
+          const updateScheduleUser = await db.queryUpdateAnyTable(constant.tableUser, updateItem,{CIP : row.EmpleadoCIP} );
+        }
       }
       //Existe el usuario pero está inactivo
       if (usersUnregistered === 0){
-        const updateStateUser = await db.queryUpdateStateUsers(constant.tableUser,row.EmpleadoCIP)
         userActive.push(row.EmpleadoCIP);
+        const updateStateUser = await db.queryUpdateStateUsers(constant.tableUser,row.EmpleadoCIP)
       }
       
       //Añadir un nuevo usuario
@@ -95,7 +103,7 @@ function modalityOfWork(userModality) {
             IdModalidad: modalityOfWork(row.EmpleadoCodModalidad),
             CIP: row.EmpleadoCIP,
             DNI: row.EmpleadoNumDoc,
-            idHorarios: 6 /* luego cambiar el horario */,
+            idHorarios: row.EmpleadoCodHorario /* luego cambiar el horario */,
             idPerfil: 1 /* VER DATA DE META4 */,
             /* tiempoPermiso: 0, */
             Email : row.EmpleadoCorreoLab,
@@ -103,33 +111,31 @@ function modalityOfWork(userModality) {
         }             
         const respuesta = await db.add(constant.tableUser, usuario);
         if (respuesta && respuesta.affectedRows > 0) {
-            console.log('Usuario añadido con éxito');
+            console.log(`Usuario añadido con éxito, CIP: ${row.EmpleadoCIP}`);
         } else {
             console.log('No se añadió el usuario');
         }        
       }
       
-      if( row.VacacionesDtoLista &&  Object.keys(row.VacacionesDtoLista).length > 0){
+      if(Array.isArray(row.VacacionesDtoLista) && row.VacacionesDtoLista.length > 0){
         let initialDate = moment();
         let date = await helpers.getDateToday(initialDate);
         const userId = await db.queryUserId(constant.tableUser, row.EmpleadoCIP)
-        /* console.log(userId)   */         
         const verifyLicensing = await db.queryVerifyLicensing(constant.tablePermissions, {
-          idUsuario: userId}, {idTipoSolicitud:3}, {FechaDesde: convertDate(row.VacacionesDtoLista.FechaInicio)}, {FechaHasta: convertDate(row.VacacionesDtoLista.FechaFin)},
-          { estadoSolicitudF: 2});
-        /* console.log(verifyLicensing) */
+          idUsuario: userId}, {idTipoSolicitud:3}, {FechaDesde: convertDate(row.VacacionesDtoLista[0].FechaInicio)}, {FechaHasta: convertDate(row.VacacionesDtoLista[0].FechaFin)},
+          { estadoSolicitudF: 2});  
         if (verifyLicensing === 0){
           const addLicensingUser = {
             idUsuario: userId,
             idTipoSolicitud:3,
             Fecha: date,
-            FechaDesde: convertDate(row.VacacionesDtoLista.FechaInicio),
-            FechaHasta: convertDate(row.VacacionesDtoLista.FechaFin),
+            FechaDesde: convertDate(row.VacacionesDtoLista[0].FechaInicio),
+            FechaHasta: convertDate(row.VacacionesDtoLista[0].FechaFin),
             estadoSolicitudF: 2
           } 
           const addLicensing = await db.addNewRegister(constant.tablePermissions, addLicensingUser);
           if(addLicensing.affectedRows ===1){
-            console.log(`Licencia añadida, usuario: ${userId}`)
+            console.log(`Licencia añadida, usuario: ${userId}, CIP: ${row.EmpleadoCIP}`)
           }
         }
 
@@ -160,10 +166,10 @@ async function startProgrammingDataUsers() {
     }
   
     //CAMBIAR LA HORA A LA QUE SE EJECUTARA '04:20:00'
-    let uniqueHourCronJob = ["11:20:00"]; //Cronjob inicial 
+    let uniqueHourCronJob = ["15:15:00"]; //Cronjob inicial 
     const hourCronJob = uniqueHourCronJob.map((hour) => {
-      const objetMoment = moment.tz(hour, "HH:mm:ss", "America/Lima");
-      const serverTime = objetMoment.tz("UTC"); //  'ZonaHorariaDelServidor'
+      const serverTime = moment.tz(hour, "HH:mm:ss", "America/Lima");
+      //const serverTime = objetMoment.tz("UTC"); //  'ZonaHorariaDelServidor'
       const minutes = serverTime.format("mm");
       const hours = serverTime.format("HH");
   
