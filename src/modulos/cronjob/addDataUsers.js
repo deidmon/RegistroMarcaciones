@@ -28,7 +28,7 @@ async function consultDataUsers() {
   /* console.log("response.data", response.data) */
     return response.data;
   } catch (error) {
-    console.error(`Error al consultar data de usuarios. ${error.data}`);
+    console.error(`Error al consultar data de usuarios. ${error}`);
     /* return "Error al consultar data de usuarios."; */
   }
 };
@@ -69,11 +69,15 @@ function modalityOfWork(userModality) {
       if (usersUnregistered === 1){
         /* const isUserActive = await db.queryVerifyUserIsActive(constant.tableUser) */
         userActive.push(row.EmpleadoCIP);
-        // Verificar el horario y modificarlo
+        // Verificar el horario y modificarlo  ---------------- DESACTIVAR LA SEGUNDA VEZ QUE SE EJECUTE
         const consultUserSchedule = await db.queryGetIdSchedule(constant.tableUser, {CIP : row.EmpleadoCIP})
-        if( consultUserSchedule !==  Number(row.EmpleadoCodHorario)){
+        let scheduleExist = await db.queryScheduleExist(constant.tableSchedule, {IdHorarios : row.EmpleadoCodHorario})
+        if (scheduleExist === 0){
+          scheduleExist = 6;
+        }
+        if( consultUserSchedule !== scheduleExist){
           const updateItem = {
-            IdHorarios: row.EmpleadoCodHorario, 
+            IdHorarios: scheduleExist, 
           }             
           const updateScheduleUser = await db.queryUpdateAnyTable(constant.tableUser, updateItem,{CIP : row.EmpleadoCIP} );
         }
@@ -90,7 +94,11 @@ function modalityOfWork(userModality) {
         const userNames = row.EmpleadoNombres.split(",");
         const apellidos = userNames[0];
         const nombres = userNames[1];
-        password = await bcrypt.hash(row.EmpleadoNumDoc.toString(), 5)
+        password = await bcrypt.hash(row.EmpleadoNumDoc.toString(), 5);
+        let scheduleExist = await db.queryScheduleExist(constant.tableSchedule, {IdHorarios : row.EmpleadoCodHorario})
+        if (scheduleExist === 0){
+          scheduleExist = 6;
+        }
         const usuario = {
             Nombres: nombres,
             Apellidos: apellidos,
@@ -103,7 +111,7 @@ function modalityOfWork(userModality) {
             IdModalidad: modalityOfWork(row.EmpleadoCodModalidad),
             CIP: row.EmpleadoCIP,
             DNI: row.EmpleadoNumDoc,
-            idHorarios: row.EmpleadoCodHorario /* luego cambiar el horario */,
+            idHorarios: scheduleExist, /* luego cambiar el horario */
             idPerfil: 1 /* VER DATA DE META4 */,
             /* tiempoPermiso: 0, */
             Email : row.EmpleadoCorreoLab,
@@ -166,7 +174,7 @@ async function startProgrammingDataUsers() {
     }
   
     //CAMBIAR LA HORA A LA QUE SE EJECUTARA '04:20:00'
-    let uniqueHourCronJob = ["15:15:00"]; //Cronjob inicial 
+    let uniqueHourCronJob = ["04:20:00"]; //Cronjob inicial 
     const hourCronJob = uniqueHourCronJob.map((hour) => {
       const serverTime = moment.tz(hour, "HH:mm:ss", "America/Lima");
       //const serverTime = objetMoment.tz("UTC"); //  'ZonaHorariaDelServidor'

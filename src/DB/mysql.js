@@ -2098,6 +2098,19 @@ function queryUpdateStateUsers(tabla, users) {
         });
     });
 };
+
+/* 📌 Chequear si existe un horario*/
+function queryScheduleExist(tabla, consult1, ) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT COALESCE((SELECT IdHorarios FROM ?? WHERE IdHorarios = ? GROUP BY IdHorarios), 0) AS schedule_Exist`;
+        const values = [tabla, consult1];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].schedule_Exist);
+        });
+    });
+};
+
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -2212,5 +2225,6 @@ module.exports = {
     queryUserId,
     queryVerifyLicensing,
     queryVerifyUserIsActive,
-    queryUpdateStateUsers
+    queryUpdateStateUsers,
+    queryScheduleExist
 }
