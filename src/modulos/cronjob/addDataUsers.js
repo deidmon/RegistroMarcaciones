@@ -51,6 +51,16 @@ function modalityOfWork(userModality) {
   return `${partsDate[2]}-${partsDate[1]}-${partsDate[0]}`;
  }
 
+ function validateSchedule(schedule) {
+  const regex = /40(\d{2})/; // Expresión regular que busca '40' 
+  const match = schedule.match(regex);
+  if (match) {
+  const scheduleUser = match[1]; 
+  return scheduleUser;
+  } 
+  return '10000';
+ }
+
  async function getDataUsers22() {
   const valuesDataUser = await consultDataUsers();
   if(!valuesDataUser){
@@ -65,13 +75,15 @@ function modalityOfWork(userModality) {
         constant.tableUser,
         row.EmpleadoCIP
       );
+      //Convertir el horario de meta4 a horario de la base de datos
+      let scheduleUser = validateSchedule(row.EmpleadoCodHorario || 'Sin horario');
       //Usuario ya está activado
       if (usersUnregistered === 1){
         /* const isUserActive = await db.queryVerifyUserIsActive(constant.tableUser) */
         userActive.push(row.EmpleadoCIP);
         // Verificar el horario y modificarlo  ---------------- DESACTIVAR LA SEGUNDA VEZ QUE SE EJECUTE
         const consultUserSchedule = await db.queryGetIdSchedule(constant.tableUser, {CIP : row.EmpleadoCIP})
-        let scheduleExist = await db.queryScheduleExist(constant.tableSchedule, {IdHorarios : row.EmpleadoCodHorario})
+        let scheduleExist = await db.queryScheduleExist(constant.tableSchedule, scheduleUser)
         if (scheduleExist === 0){
           scheduleExist = 6;
         }
@@ -95,7 +107,7 @@ function modalityOfWork(userModality) {
         const apellidos = userNames[0];
         const nombres = userNames[1];
         password = await bcrypt.hash(row.EmpleadoNumDoc.toString(), 5);
-        let scheduleExist = await db.queryScheduleExist(constant.tableSchedule, {IdHorarios : row.EmpleadoCodHorario})
+        let scheduleExist = await db.queryScheduleExist(constant.tableSchedule, scheduleUser)
         if (scheduleExist === 0){
           scheduleExist = 6;
         }
@@ -174,7 +186,7 @@ async function startProgrammingDataUsers() {
     }
   
     //CAMBIAR LA HORA A LA QUE SE EJECUTARA '04:20:00'
-    let uniqueHourCronJob = ["04:20:00"]; //Cronjob inicial 
+    let uniqueHourCronJob = ["05:00:00"]; //Cronjob inicial 
     const hourCronJob = uniqueHourCronJob.map((hour) => {
       const serverTime = moment.tz(hour, "HH:mm:ss", "America/Lima");
       //const serverTime = objetMoment.tz("UTC"); //  'ZonaHorariaDelServidor'
