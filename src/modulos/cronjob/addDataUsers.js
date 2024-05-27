@@ -85,7 +85,7 @@ function modalityOfWork(userModality) {
         const consultUserSchedule = await db.queryGetIdSchedule(constant.tableUser, {CIP : row.EmpleadoCIP})
         let scheduleExist = await db.queryScheduleExist(constant.tableSchedule, scheduleUser)
         if (scheduleExist === 0){
-          scheduleExist = 6;
+          scheduleExist = 8;
         }
         if( consultUserSchedule !== scheduleExist){
           const updateItem = {
@@ -109,7 +109,7 @@ function modalityOfWork(userModality) {
         password = await bcrypt.hash(row.EmpleadoNumDoc.toString(), 5);
         let scheduleExist = await db.queryScheduleExist(constant.tableSchedule, scheduleUser)
         if (scheduleExist === 0){
-          scheduleExist = 6;
+          scheduleExist = 8;
         }
         const usuario = {
             Nombres: nombres,
