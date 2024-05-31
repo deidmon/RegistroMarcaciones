@@ -19,6 +19,17 @@ const tableCronJob = "horarionotificaciones";
 const tableRefreshment = "refrigerio";
 const tableScheduleRefreshment = "horariorefrigerio";
 const tableCodeUser = "code_user";
+const tableRelationshipAreas = "relacionareas";
+const tableCompany = "empresa";
+const tableManagement = "gerencias";
+const tableHeadquarters = "jefaturas";
+const tableUnits = "unidades";
+const tablePersonalAssigment= 'asignacionpersonal';  
+const tableProfile= 'perfil';
+const tableOptions ='opcion';
+const tableModule = 'modulo';
+const tableProfileOption = 'perfilopcion'; 
+const tableStatus = 'estados';  
 
 //Numeros
 const radiusMeters = 50; //Radio para que se pueda realizar el registro de marcación
@@ -67,6 +78,17 @@ module.exports = {
     tableRefreshment,
     tableScheduleRefreshment,
     tableCodeUser,
+    tableRelationshipAreas,
+    tableCompany,
+    tableManagement,
+    tableHeadquarters,
+    tableUnits,
+    tablePersonalAssigment,
+    tableProfile,
+    tableOptions,
+    tableModule,
+    tableProfileOption,
+    tableStatus,
 
     //Numeros
     radiusMeters,

@@ -2111,6 +2111,26 @@ function queryScheduleExist(tabla, consult1, ) {
     });
 };
 
+/* 📌 Consultar si existe un usuario con lider asignado*/
+function queryConsultUserLeader(tabla, consult1) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT 
+        CASE 
+            WHEN EXISTS (SELECT IdUsuario FROM ?? WHERE idUsuario = ?)
+            THEN (SELECT IdUsuario FROM ?? WHERE idUsuario = ?)
+            ELSE -1
+        END AS exist_userLeader
+        `;
+        const values = [tabla, consult1,tabla, consult1];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].exist_userLeader);
+        });
+    });
+};
+
+
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -2226,5 +2246,6 @@ module.exports = {
     queryVerifyLicensing,
     queryVerifyUserIsActive,
     queryUpdateStateUsers,
-    queryScheduleExist
+    queryScheduleExist,
+    queryConsultUserLeader,
 }

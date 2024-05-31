@@ -134,7 +134,7 @@ module.exports = function(dbInyectada){
         //1.Primero verificar el rol si es lider o rrhh
         const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idUser);
         let IdRolUser = whatRolHaveWorker[0].IdRol
-        if(IdRolUser === 3){
+        if(IdRolUser === 3 || IdRolUser === 4){
             dataUser = await db.queryReportRequestRRHH( tablePermissions,tableUser, tableTypeMarking, tableTypeRequest, tableStateRequest, body.idTipoSolicitud, body.FechaInicio, body.FechaFin); 
         }else {
             var getIdsOfWorkers = await db.queryGetIdAsignedToLeader(body.idUser);//Obtener los ids de trabajadores asignados al lider

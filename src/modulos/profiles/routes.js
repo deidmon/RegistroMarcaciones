@@ -11,6 +11,8 @@ router.get('/getProfiles', allProfiles);
 router.post('/addPermissions', addPermissions);
 router.put('/activateProfile', activateProfile);
 router.post('/addProfile', addProfile);
+router.post('/getPermissionsByProfile', getPermissionsByProfile);
+router.put('/updatePermissionByProfile', updatePermissionByProfile);
 
 
 errorProfiles = "Algo salio mal, intente más tarde."
@@ -28,7 +30,7 @@ async function addProfile(req, res, next) {
     try{
         const profile = await controller.addProfile(req.body);
         if(!profile.messages){
-            response.success(req, res, profile, 'Con éxito', 200);
+            response.success(req, res, {}, profile, 200);
         }else{
             response.error(req, res,false, profile.messages, 200);
         }        
@@ -41,7 +43,7 @@ async function activateProfile(req, res, next) {
     try{
         const profile = await controller.activateProfile(req.body);
         if(!profile.messages){
-            response.success(req, res, profile, 'Con éxito', 200);
+            response.success(req, res, {}, profile, 200);
         }else{
             response.error(req, res,false, profile.messages, 200);
         }        
@@ -89,5 +91,31 @@ async function permissionByProfile(req, res, next) {
         response.error(req, res, false, errorProfiles, 500);
     }
 }; */
+
+async function getPermissionsByProfile(req, res, next) {
+    try{
+        const consult = await controller.getPermissionByProfile(req.body);
+        if(!consult.messages){
+            response.success(req, res, consult, 'Con éxito', 200);
+        }else{
+            response.error(req, res,false, consult.messages, 200);
+        } 
+    }catch(err){
+        response.error(req, res, false, errorProfiles, 500);
+    }
+};
+
+async function updatePermissionByProfile(req, res, next) {
+    try{
+        const consult = await controller.updatePermissionByProfile(req.body);
+        if(!consult.messages){
+            response.success(req, res,{}, consult, 200);
+        }else{
+            response.error(req, res,false, consult.messages, 200);
+        } 
+    }catch(err){
+        response.error(req, res, false, errorProfiles, 500);
+    }
+};
 
 module.exports = router;   

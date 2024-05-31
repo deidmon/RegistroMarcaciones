@@ -29,7 +29,8 @@ router.get('/getAllRoles', getAllRoles);
 router.post('/getRolesFilter', getRolesFilter);
 router.put('/putUpdateTableRol', updateTableRol);
 router.put('/addScheduleToAsignmentSchedules', addScheduleToAsignmentSchedules);
-
+router.get('/getAllProfile', getAllProfile);
+router.post('/getProfileFilter', getProfileFilter);
 
 
 const errorMessage = "Algo salio mal, intente más tarde."
@@ -308,6 +309,25 @@ async function addScheduleToAsignmentSchedules(req, res, next) {
     }
 };
 
+/* 📌 Obtener perfiles solo activos */
+async function getAllProfile(req, res) {
+    try{
+        const responseInfo = await controller.getAllProfile();
+        response.success(req, res, responseInfo, "Con éxito", 200);
+    }catch{
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
+
+/* 📌 Obtener perfiles por filtro */
+async function getProfileFilter(req, res) {
+    try{
+        const responseInfo = await controller.getProfileFilter(req.body);
+        response.success(req, res, responseInfo, "Con éxito", 200);
+    }catch{
+        response.error(req, res, false, errorMessage, 500);
+    }
+};
 
 
 module.exports = router;   

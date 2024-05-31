@@ -8,6 +8,7 @@ const tableWorkers= 'usuarios';
 const tablePersonalAssigment= 'asignacionpersonal';  
 const tableRole= 'rol';
 const scheduleAssignment = 'asignacionhorarios';
+const constant = require("../../helpers/constants");
 
 
 module.exports = function(dbInyectada){
@@ -353,6 +354,21 @@ module.exports = function(dbInyectada){
         const responseInfo = await  db.addNewRegister(scheduleAssignment, insertValues);
         return "Asignado con éxito";
     }
+
+    /* 📌 Obtener todos los perfiles */
+    async function getAllProfile() {
+        const roles = await db.allInformationOfOneTable(constant.tableProfile);
+        return roles;
+    };
+
+    /* 📌 Obtener perfiles por filtro */
+    async function getProfileFilter(body){
+        if (body.idStatus === -1) {
+            body.idStatus = null;
+        }
+        const  response = await db.queryProfileFilter(constant.tableProfile, constant.tableStatus, body.idStatus, body.name);
+        return response;
+    };
     
     
     return {
@@ -379,6 +395,8 @@ module.exports = function(dbInyectada){
         getAllRoles,
         getRolesFilter,
         updateTableRol,
-        addScheduleToAsignmentSchedules
+        addScheduleToAsignmentSchedules,
+        getAllProfile,
+        getProfileFilter
     }
 }

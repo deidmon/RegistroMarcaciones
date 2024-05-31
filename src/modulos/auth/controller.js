@@ -27,6 +27,57 @@ module.exports = function (dbInjected) {
         return { messages: message };
         /* throw new Error("Credenciales inválidas"); */
       }
+
+      /* const user_view = ;
+      const user_update= ;
+
+      const perfil_view = ;
+      const perfil_update = ;
+      const perfil_create = ;
+      const perfil_delete = ;
+
+      const changePass_view = ;
+      const changePass_update = ;
+
+      const schedule_view = ;
+      const schedule_update = ;
+      const schedule_create = ;
+      const schedule_delete= ;
+
+      const typeregister_view = ;
+      const typeregister_update = ;
+
+      const modalitywork_view = ;
+      const modalitywork_update = ;
+
+      const typerequest_view = ;
+      const typerequest_update = ;
+
+      const typevalidation_view = ;
+      const typevalidation_update = ;
+
+      const scheduleassignment_view = ;
+      const scheduleassignment_update = ;
+
+      const staterequest_view = ;
+      const staterequest_update = ;
+
+      const rol_view = ;
+      const rol_update = ;
+      const rol_create = ;
+      const rol_delete = ;
+
+      const registerasiss_view = ;
+      const registerasiss_create = ;
+      
+      const historyassis_view = ;
+
+      const myhistoryassis_view = ;
+
+      const registerrequest_view = ;
+      const registerrequest_create = ;
+
+      const registerrequest_create = ; */
       return bcrypt.compare(password, data.Contraseña).then((result) => {
         if (result) {
           const payload = {

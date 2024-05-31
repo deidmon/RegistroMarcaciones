@@ -129,7 +129,7 @@ module.exports = function (dbInjected) {
         const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idUser);
         let IdRolUser = whatRolHaveWorker[0].IdRol
 
-        if(IdRolUser === 3){
+        if(IdRolUser === 3 || IdRolUser === 4){
             return db.queryAllWorkers(tableUser, tableStateUser, tableModalityWork, tableRol, body.name, body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2, PageSiize, getOffset);
         }
 
@@ -149,7 +149,7 @@ module.exports = function (dbInjected) {
         const whatRolHaveWorker = await db.queryToKnowWhatRolIs(body.idUser);
         let IdRolUser = whatRolHaveWorker[0].IdRol;
         let result;
-        if(IdRolUser === 3){
+        if(IdRolUser === 3 || IdRolUser === 4){
              result = await  db.queryGetWorkersCounter(tableUser, body.name ?? "", body.CIP, body.DNI, body.IdEstateWorkerA ?? 1, body.IdEstateWorkerI ?? 2); 
         } else {
             var getIdsOfWorkers = await db.queryGetIdAsignedToLeader(body.idUser);//Obtener los ids de trabajadores asignados al lider
@@ -441,6 +441,28 @@ module.exports = function (dbInjected) {
         }
         return { "messages": `Código no valido`} 
     }
+
+    /* 📌 Obtener datos del area del trajador*/
+    async function consultUserArea(id) {
+        if (!id || /^\d+$/.test(id) === false) {
+            message = 'Ingrese un id válido del trabajador';
+            return { "messages": message };
+        }
+        const codigoUserArea = await db.userCodeArea('usuarios', id);
+        if (codigoUserArea === 0) {
+            message = 'Usuario no tiene área asignada'
+            return { "messages": message }
+        }
+        const dataUserArea = await db.queryConsultUserArea(constant.tableRelationshipAreas,constant.tableCompany, constant.tableManagement,
+                                constant.tableHeadquarters, constant.tableUnits, codigoUserArea);
+        if (!dataUserArea) {
+            message = 'CIP incorrecto'
+            return { "messages": message }
+        }
+        
+         return dataUserArea;
+        
+    };
     
     return {
         allWorkers,
@@ -460,5 +482,6 @@ module.exports = function (dbInjected) {
         updatePasswordOfUser,
         sendCodeVerfication,
         verificationOfCode,
+        consultUserArea
     }
 }

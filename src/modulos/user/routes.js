@@ -7,6 +7,7 @@ const constant = require("../../helpers/constants");
 const router = express.Router();
 
 router.post('/information',consultUser);
+router.post('/informationArea',consultUserArea);
 router.post('/markingMonth',consultMarkMonth); 
 router.post('/markingWeek', consultMarkWeek); 
 router.post('/markingDay', consultMarkDay);
@@ -205,6 +206,20 @@ async function verificationOfCode(req, res, next) {
         }
     }catch(err){
         response.error(req, res,false, constant.errorMessageAsistance, 500);
+    }
+};
+
+async function consultUserArea(req, res, next) {
+    try{
+        const userArea = await controller.consultUserArea(req.body.id);
+        if(!userArea.messages){
+            response.success(req, res, userArea, "", 200);
+        }else{
+            response.error(req, res,false, userArea.messages, 200);
+        }
+    }catch(err){
+        /* next(err); */
+         response.error(req, res, false, errorMessageUser, 500);
     }
 };
 

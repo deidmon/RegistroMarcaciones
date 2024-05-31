@@ -61,6 +61,17 @@ function modalityOfWork(userModality) {
   return '10000';
  }
 
+ function validateCodeArea(texto) {
+  const regex = /^\d+/; // Expresión regular que busca codigo del area
+  const match = texto.match(regex);
+  if (match) {
+    const codeArea = match[0]; 
+    return codeArea;
+  } 
+  return 0;
+  
+ }
+
  async function getDataUsers22() {
   const valuesDataUser = await consultDataUsers();
   if(!valuesDataUser){
@@ -93,6 +104,12 @@ function modalityOfWork(userModality) {
           }             
           const updateScheduleUser = await db.queryUpdateAnyTable(constant.tableUser, updateItem,{CIP : row.EmpleadoCIP} );
         }
+        //ACTUALIZAR CODEAREA DE LOS USUARIOS --SOLO LA PRIMERA VEZ
+        /* const updateCodeArea = {
+          CodeArea: validateCodeArea(row.EmpleadoUnidad), 
+        }             
+        const updateCodeAreaUser = await db.queryUpdateAnyTable(constant.tableUser, updateCodeArea,{CIP : row.EmpleadoCIP} ); */
+
       }
       //Existe el usuario pero está inactivo
       if (usersUnregistered === 0){
@@ -127,7 +144,8 @@ function modalityOfWork(userModality) {
             idPerfil: 1 /* VER DATA DE META4 */,
             /* tiempoPermiso: 0, */
             Email : row.EmpleadoCorreoLab,
-            isFisrtLogin : 1
+            isFisrtLogin : 1,
+            /* CodeArea: validateCodeArea(row.EmpleadoUnidad) */
         }             
         const respuesta = await db.add(constant.tableUser, usuario);
         if (respuesta && respuesta.affectedRows > 0) {
@@ -159,6 +177,34 @@ function modalityOfWork(userModality) {
           }
         }
 
+      }
+
+      //funcion para asignar personal:
+      if (row.EmpleadoCodJefe && row.EmpleadoCodJefe.trim()!== "") {
+        const userId = await db.queryUserId(constant.tableUser, row.EmpleadoCIP)
+        const verifyUserLeader = await db.queryConsultUserLeader(constant.tablePersonalAssigment, userId)
+        const liderId = await db.queryUserId(constant.tableUser, row.EmpleadoCodJefe)
+        if(verifyUserLeader === -1){
+          const newWorkerAsignedToLeader = {
+                  idLider: liderId,
+                  idUsuario: userId
+          };
+          const responsoInsert = await db.addNewRegister(constant.tablePersonalAssigment, newWorkerAsignedToLeader );
+          if(responsoInsert.affectedRows === 1){
+            console.log(`Asignado a líder con éxito`)
+          }
+        }else if(verifyUserLeader !== liderId){
+          const toUpdate = {
+            idLider: liderId
+          };
+          const idWhere = {
+              idUsuario: userId
+          };
+          const response = await db.queryUpdateAnyTable(constant.tablePersonalAssigment, toUpdate, idWhere);
+          if (response && response.affectedRows > 0) {
+            console.log('Modificado con éxito');
+          }
+        }
       }
       
     } catch (error) {
