@@ -1,6 +1,7 @@
 const auth = require("../../auth");
 const bcrypt = require("bcrypt");
 const tableUser = "usuarios";
+const tableRole = "rol";
 const helpers = require("../../helpers/helpers");
 
 module.exports = function (dbInjected) {
@@ -17,7 +18,7 @@ module.exports = function (dbInjected) {
       /* throw new Error("Datos faltantes"); */
     }
     try {
-      const data = await db.query(tableUser, { Usuario: user });
+      const data = await db.queryUserWithRol(tableUser, tableRole,  { Usuario: user });
       if(data.Activo === 0){
         message = "Usuario desactivado";
         return { messages: message };
@@ -86,6 +87,7 @@ module.exports = function (dbInjected) {
             firstnames: data.Nombres,
             lastnames: data.Apellidos,
             rol: data.IdRol,
+            nameRol: data.nameRol,
             email: data.Email,
             isFisrtTime: data.isFisrtLogin,
             CIP: data.CIP,

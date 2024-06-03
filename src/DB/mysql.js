@@ -82,7 +82,7 @@ function queryAllWorkers(users, states, workModality, role, name, cip, dni, stat
         left join asignacionpersonal as a ON u.IdUsuarios = a.idUsuario
         left join usuarios AS l ON l.IdUsuarios = a.idLider
         left join asignacionhorarios as asignacion ON asignacion.idUsuario = u.IdUsuarios
-        left join usuarios AS userLast ON userLast.IdUsuarios = asignacion.idUsuario
+        left join usuarios AS userLast ON userLast.IdUsuarios = asignacion.idAsignador
         WHERE u.Nombres LIKE "%${name}%" AND u.CIP LIKE "%${cip}%" AND u.DNI LIKE "%${dni}%" AND u.Activo IN (${state1}, ${state2})  
         ORDER BY IdUsuarios ASC 
         LIMIT ? OFFSET ?
@@ -2129,6 +2129,268 @@ function queryConsultUserLeader(tabla, consult1) {
         });
     });
 };
+/* 📌 Consultar información del trabajador y su rol*/
+function queryUserWithRol(tabla, tabla2, consulta) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT us.*, ro.Nombre AS nameRol 
+		       FROM ?? us INNER JOIN ?? ro ON us.idRol = ro.idRol
+		       WHERE ?`;
+        const values = [tabla, tabla2, consulta];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0] || []);
+
+        })
+    });
+};
+
+/* 📌 Consultar area de un trabajador*/
+function queryConsultUserArea(tabla, tabla2, tabla3, tabla4, tabla5,consult1, ) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT
+            ra.idEmpresa, em.nombre AS nombreEmpresa,
+            ra.idGerencia, gr.Nombre AS nombreGerencia,
+            ra.idJefatura, jf.Nombre AS nombreJefatura,
+            ra.idUnidad, un.Nombre AS nombreUnidad
+        FROM ?? ra INNER JOIN ?? em ON ra.idEmpresa = em.idEmpresa
+        INNER JOIN ?? gr ON ra.idGerencia = gr.idGerencia
+        LEFT JOIN ?? jf ON ra.idJefatura = jf.idJefatura
+        LEFT JOIN ?? un ON ra.idUnidad = un.idUnidad
+        WHERE ra.idGerencia = ?
+        OR ra.idJefatura = ?
+        OR ra.idUnidad = ?
+        ORDER BY ra.idGerencia ASC, ra.idJefatura ASC, ra.idUnidad ASC
+        LIMIT 1`;
+        const values = [tabla,tabla2, tabla3, tabla4, tabla5, consult1,consult1,consult1];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+/* 📌 consultar codigo de área del usuario */
+function userCodeArea(tabla, id) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT CodeArea
+            FROM ?? u 
+            WHERE idUsuarios = ?`;
+
+        const values = [tabla, id];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result.length > 0? result[0].CodeArea : 0);
+        });
+    });
+};
+
+/* 📌 Consultar opciones de un trabajador*/
+function getPermissionByProfile(tabla, tabla2, tabla3, consult1, ) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT po.idPerfilOpcion,po.idOpcion,op.idModulo, mo.nombre nombreModulo, op.descripcion descripcionOpcion,
+               po.acceso_vizualizar,po.acceso_crear, po.acceso_actualizar, po.acceso_eliminar
+        FROM ?? po INNER JOIN ?? op ON po.IdOpcion = op.idOpcion
+        INNER JOIN ?? mo ON op.idModulo = mo.IdModulo
+        WHERE po.idPerfil = ?;
+        `;
+        const values = [tabla, tabla2, tabla3, consult1];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+            /*  if (error) {
+                console.log(error)
+                reject(error);
+            } else {
+                console.log(result)
+                resolve(result)
+            } */
+        });
+    });
+};
+
+/* 📌 Consultar si existen usuarios con ese perfil*/
+function queryUsersWithProfile(tabla, consult) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT EXISTS( SELECT 1 FROM ?? WHERE idPerfil IN (?) LIMIT 1 ) AS existe_usuario;`;
+        const values = [tabla, consult];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].existe_usuario);
+        });
+    });
+};
+
+/* 📌 Consultar perfil de un usuario*/
+function queryProfileUser(tabla, schedules) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT idPerfil FROM ?? WHERE IdUsuarios = ?`;
+        const values = [tabla, schedules];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result.length > 0? result[0].idPerfil : 0);
+        });
+    });
+};
+
+/* 📌 Consultar opciones de un trabajador --devuelve todas las opciones*/
+function getPermissionByProfile2(tabla, tabla2, tabla3, consult1, ) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT op.idOpcion,op.idModulo, mo.nombre nombreModulo, op.descripcion descripcionOpcion,
+                COALESCE(p_o.acceso_vizualizar, 0) AS acceso_vizualizar,
+                COALESCE(p_o.acceso_crear, 0) AS acceso_crear,
+                COALESCE(p_o.acceso_actualizar, 0) AS acceso_actualizar,
+                COALESCE(p_o.acceso_eliminar, 0) AS acceso_eliminar
+        FROM  ?? op INNER JOIN ?? mo ON op.idModulo = mo.IdModulo
+        LEFT JOIN (
+            SELECT idPerfilOpcion,idPerfil, idOpcion,acceso_vizualizar ,acceso_crear, acceso_actualizar,acceso_eliminar
+            FROM ??
+            WHERE idPerfil = ?
+        ) AS p_o ON op.idOpcion = p_o.idOpcion
+        ORDER BY op.idOpcion;
+        `;
+        const values = [tabla, tabla2, tabla3, consult1];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        });
+    });
+};
+
+/* function queryUpdateProfileOpcion(tabla, consult1, consult2, consult3) {
+    return new Promise((resolve, reject) => {
+
+        const insertQuery = `INSERT INTO ?? SET ? ON DUPLICATE KEY UPDATE idPerfil =VALUES(idPerfil), idOpcion = VALUES(idOpcion)`;
+        const values = [tabla, consult1, consult2, consult3];
+
+        conexion.query(insertQuery, values, (error, result) => {
+            //return error ? reject(error) : resolve(result); 
+             if (error) {
+                console.log(error)
+                reject(error);
+            } else {
+                console.log(result)
+                resolve(result)
+            }
+        });
+    });
+}; */
+
+/* function queryUpdateProfileOpcion(tabla, updateItem) {
+    return new Promise((resolve, reject) => {
+        const query = `
+            INSERT INTO ?? (idPerfil, idOpcion, acceso_vizualizar, acceso_crear, acceso_actualizar, acceso_eliminar)
+            SELECT ?, ?, ?, ?, ?, ?
+            FROM DUAL
+            WHERE NOT EXISTS (
+                SELECT 1 FROM ?? WHERE idPerfil = ? AND idOpcion = ?
+            )
+            AND ? <> 0 AND ? <> 0 AND ? <> 0 AND ? <> 0
+            ON DUPLICATE KEY UPDATE
+                acceso_vizualizar = VALUES(acceso_vizualizar),
+                acceso_crear = VALUES(acceso_crear),
+                acceso_actualizar = VALUES(acceso_actualizar),
+                acceso_eliminar = VALUES(acceso_eliminar)
+        `;
+        const values = [
+            tabla,
+            updateItem.idPerfil,
+            updateItem.idOpcion,
+            updateItem.acceso_vizualizar,
+            updateItem.acceso_crear,
+            updateItem.acceso_actualizar,
+            updateItem.acceso_eliminar,
+            tabla,
+            updateItem.idPerfil,
+            updateItem.idOpcion,
+            updateItem.idPerfil,
+            updateItem.idOpcion,
+            updateItem.acceso_vizualizar,
+            updateItem.acceso_crear,
+            updateItem.acceso_actualizar,
+            updateItem.acceso_eliminar
+        ];
+
+        conexion.query(query, values, (error, result) => {
+            if (error) {
+                console.log(error);
+                reject(error);
+            } else {
+                console.log(result);
+                resolve(result);
+            }
+        });
+    });
+} */
+
+/* 📌 Actualizar las opciones del perfil*/
+function queryUpdateProfileOpcion(tabla, consult1, consult2) {
+    return new Promise((resolve, reject) => {
+
+        const insertQuery = `UPDATE ?? SET ? WHERE idPerfil = ? AND idOpcion = ?`;
+        const values = [tabla, consult1, consult2.idPerfil, consult2.idOpcion];
+
+        conexion.query(insertQuery, values, (error, result) => {
+            return error ? reject(error) : resolve(result); 
+        });
+    });
+};
+/* 📌 Consultar si existe una opcion en especifico para un perfil*/
+function queryConsultProfileOpcion(tabla, consult1, consult2) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT EXISTS( SELECT 1 FROM ?? WHERE idPerfil = ? and idOpcion = ? LIMIT 1 ) AS existe_perfilopcion;`;
+        const values = [tabla, consult1, consult2];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].existe_perfilopcion);
+        });
+    });
+};
+
+/* 📌 Consultar si existe un perfil con ese nombre*/
+function queryConsultNameProfile(tabla, consult1) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT EXISTS( SELECT 1 FROM ?? WHERE nombre = ? LIMIT 1 ) AS existe_perfilName;`;
+        const values = [tabla, consult1];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].existe_perfilName);
+        });
+    });
+};
+/* 📌 Consultar el id perfil con ese nombre*/
+function queryConsultIdProfile(tabla, consult1) {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT idPerfil FROM ?? WHERE nombre = ? LIMIT 1;`;
+        const values = [tabla, consult1];
+
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].idPerfil);
+        });
+    });
+};
+
+
+/* 📌 Query generico para traer toda la infomación de una tabla */
+/* 📌 Filtro de roles*/
+function queryProfileFilter(table, table2, idStates, name) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT ts.idPerfil, ts.descripcion, ts.idEstado,e.Descripcion
+        FROM ?? AS ts INNER JOIN ?? as e ON ts.idEstado = e.IdEstado
+        WHERE  FIND_IN_SET(ts.IdEstado, COALESCE(?, (SELECT GROUP_CONCAT(ts.IdEstado) FROM ??))) > 0
+        AND ts.idPerfil LIKE '%${name}%'
+        `;
+        
+        const values = [table, table2, idStates, table];
+        conexion.query(query, values, (error, result) => {
+            /* console.log(error);
+            console.log(result); */
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
+
 
 
 module.exports = {
@@ -2248,4 +2510,17 @@ module.exports = {
     queryUpdateStateUsers,
     queryScheduleExist,
     queryConsultUserLeader,
+    queryScheduleExist,
+    queryConsultUserArea,
+    userCodeArea,
+    getPermissionByProfile,
+    queryUsersWithProfile,
+    queryProfileUser,
+    getPermissionByProfile2,
+    queryUpdateProfileOpcion,
+    queryConsultProfileOpcion,
+    queryConsultNameProfile,
+    queryConsultIdProfile,
+    queryProfileFilter,
+    queryUserWithRol
 }
