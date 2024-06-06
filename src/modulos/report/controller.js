@@ -785,6 +785,236 @@ module.exports = function(dbInyectada){
         return `${horas.toString().padStart(2, '0')}:${minutosRestantes.toString().padStart(2, '0')}`;
     }
 
+    async function reportAuditArea(body) {
+        const doubleBorderStyle = {
+            top: { style: 'double' },
+            left: { style: 'double' },
+            bottom: { style: 'double' },
+            right: { style: 'double' }
+          };
+        
+        const dataInformationUser = await db.userInformationForReport(tableUser, body.idUser);
+        const userCIP = dataInformationUser[0].CIP 
+        const userDNI = dataInformationUser[0].DNI 
+        const userNames = dataInformationUser[0].NombreCompleto
+        let initialDate = moment();
+        let date = initialDate.format('DD-MM-YYYY');
+        const dataUser = await db.queryReportAuditNew( tableAssistance,tableUser, tableSchedule, tableLunch,tableExceptions, body.FechaInicio, body.FechaFin, body.idUser);
+        countRows = dataUser.length 
+        /* console.log(dataUser) */
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Mi Hoja');
+        // Crear una nueva fila con el título 
+        worksheet.mergeCells('A1:S1');
+        worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+        worksheet.getRow(5).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        worksheet.getRow(6).alignment = { vertical: 'middle', horizontal: 'center' };
+        worksheet.mergeCells('A2:B2');
+        worksheet.getCell('A2').value = 'Compañía:';
+        worksheet.mergeCells('C2:J2');
+        worksheet.getCell('C2').value = 'GESTION DE SERVICIOS COMPARTIDOS PERÚ SAC';
+        worksheet.mergeCells('K2:L2');
+        worksheet.getCell('K2').value = 'RUC:';
+        worksheet.mergeCells('M2:O2');
+        worksheet.getCell('M2').value = '20501827623';
+        worksheet.mergeCells('P2:Q2');
+        worksheet.getCell('P2').value = 'Fecha emisión:';
+        worksheet.getCell('R2').value = date;
+        worksheet.mergeCells('A3:B3');
+        worksheet.getCell('A3').value = 'CIP';
+        worksheet.mergeCells('C3:F3');
+        worksheet.getCell('C3').value = userCIP;
+        worksheet.getCell('G3').value = 'DNI:';
+        worksheet.mergeCells('H3:J3');
+        worksheet.getCell('H3').value = userDNI;
+        worksheet.mergeCells('K3:L3');
+        worksheet.getCell('K3').value = 'Nombre:';
+        worksheet.mergeCells('M3:R3');
+        worksheet.getCell('M3').value = userNames;
+
+        worksheet.mergeCells('N4:O4');
+        worksheet.getCell('O4').value = 'Periodo desde';
+        worksheet.getCell('P4').value = body.FechaInicio;
+        worksheet.getCell('Q4').value = 'Hasta';
+        worksheet.getCell('R4').value = body.FechaFin;
+
+        worksheet.mergeCells('A5:A6');
+        worksheet.getCell('A5').value = 'Fecha';
+        worksheet.mergeCells('B5:D5');
+        worksheet.getCell('B5').value = 'HORARIO';
+        worksheet.mergeCells('E5:H5');
+        worksheet.getCell('E5').value = 'JORNADA REAL';
+        worksheet.mergeCells('I5:L5');
+        worksheet.getCell('I5').value = 'VALIDACIÓN';
+        worksheet.mergeCells('M5:Q5');
+        worksheet.getCell('M5').value = 'HORAS';
+
+        worksheet.mergeCells('R5:R6');
+        worksheet.getCell('R5').value = 'Tipo evento';
+
+        worksheet.getCell('B6').value = 'Entrada';
+        worksheet.getCell('C6').value = 'Tiempo refrigerio';
+        worksheet.getCell('D6').value = 'Salida';
+        worksheet.getCell('E6').value = 'Entrada';
+        worksheet.getCell('F6').value = 'Descanso';
+        worksheet.mergeCells('F6:G6');
+        worksheet.getCell('H6').value = 'Salida';
+        
+        worksheet.getCell('I6').value = 'Entrada';
+        worksheet.getCell('J6').value = 'Inicio Refrigerio';
+        worksheet.getCell('K6').value = 'Fin Refrigerio';
+        worksheet.getCell('L6').value = 'Salida';
+        worksheet.getCell('M6').value = 'Asignado';
+        worksheet.getCell('N6').value = 'Asistido';
+        worksheet.getCell('O6').value = 'Horas no laboradas';
+        worksheet.getCell('P6').value = 'S. Temp.';
+        worksheet.getCell('Q6').value = 'Ausencia';
+        
+        worksheet.columns = [
+            { header: 'Fecha', key: 'Fecha', width: 10 },
+            { header: 'Entrada', key: 'Entrada', width: 8 },
+            { header: 'HoraRefrigerio', key: 'HoraRefrigerio', width: 12 },
+            { header: 'Salida', key: 'Salida', width: 8 },
+            { header: 'HoraInicio', key: 'HoraInicio', width: 8 },
+            { header: 'HoraInicioRefrigerio', key: 'HoraInicioRefrigerio', width: 8 },
+            { header: 'HoraFinRefrigerio', key: 'HoraFinRefrigerio', width: 8 },
+            { header: 'HoraFin', key: 'HoraFin', width: 8 },
+            { header: 'nombrevalidacionEntrada', key: 'nombrevalidacionEntrada', width: 12 },
+            { header: 'nombrevalidacionInicioRef', key: 'nombrevalidacionInicioRef', width: 12 },
+            { header: 'nombrevalidacionFinRef', key: 'nombrevalidacionFinRef', width: 12 },
+            { header: 'nombrevalidacionSalida', key: 'nombrevalidacionSalida', width: 12 },
+            { header: 'Asignado', key: 'Asignado', width: 8 },
+            { header: 'Asist', key: 'Asist', width: 8 },
+            { header: 'Atraso', key: 'Atraso', width: 15 },
+            { header: 'Sobretiempo', key: 'Sobretiempo', width: 8 },
+            { header: 'Ausencia', key: 'Ausencia', width: 8 },
+            { header: 'Tipo_evento', key: 'Tipo_evento', width: 10 },
+            { header: 'Planilla de asistencia', key: 'Planilla de asistencia', width: 15,hidden: true, },
+           ];
+           
+        let countAbsences = 0
+        let sumAsistSeconds =  0;
+        let countEarlyExit =  0;
+        let sumEarlyExitSeconds =  0;
+        /* let prueba = calcularDiferenciaHoras('08:00', '-09:00');
+        console.log(prueba) */
+        for (const row of dataUser) {
+                const fecha = new Date(row.Fecha);
+                const diaSemana = fecha.getDay() + 1;
+                const diaSemanaPersonalizado = (diaSemana ===  0) ?  7 : diaSemana;
+                
+                if (row.diaExcepcion === diaSemanaPersonalizado) {
+                    row.Entrada = row.HoraInicio_Excepcion
+                    row.Salida = row.HoraFin_Excepcion
+                    
+                }
+                
+                const horaFinAsist = moment(row.HoraFin, 'HH:mm');
+                const horaFinAsig = moment(row.Salida, 'HH:mm');
+                if(row.HoraFin !== '00:00' && horaFinAsist.isBefore( horaFinAsig)){
+                    countEarlyExit += 1
+                    let hourEarlyExit = calcularDiferenciaHoras(horaFinAsig,horaFinAsist)
+                    sumEarlyExitSeconds += convertirHoraASegundos(hourEarlyExit);
+                } 
+                let AsignadoSinRefrigerio = calcularDiferenciaHoras(row.Salida, row.Entrada);
+                /* let RefrigerioAsignado = '01:00'; */
+                let RefrigerioAsignado
+                if (row.HoraRefrigerio === null){
+                    RefrigerioAsignado = '00:00'
+                } else {
+                    RefrigerioAsignado = convertirMinutosAHoras(row.HoraRefrigerio);
+                }
+                row.Asignado = calcularDiferenciaHoras(AsignadoSinRefrigerio, RefrigerioAsignado);
+
+                if(row.HoraFin === '00:00' && row.HoraFinRefrigerio === '00:00'){
+                    if (row.HoraInicioRefrigerio === '00:00'){
+                        row.Asist =    '00:00'
+                    }else {
+                        row.Asist =    calcularDiferenciaHoras(row.HoraInicioRefrigerio, row.HoraInicio)
+                    }   
+                } else if(row.HoraFin === '00:00'){
+                    let AsistidoSinHoraFin = calcularDiferenciaHoras(row.HoraFinRefrigerio, row.HoraInicio);
+                    let RefrigerioReal = calcularDiferenciaHoras(row.HoraFinRefrigerio, row.HoraInicioRefrigerio );
+                    row.Asist = calcularDiferenciaHoras(AsistidoSinHoraFin, RefrigerioReal);
+                }              
+                else {
+                    let AsistidoSinRefrigerio = calcularDiferenciaHoras(row.HoraFin, row.HoraInicio);
+                    let RefrigerioReal = calcularDiferenciaHoras(row.HoraFinRefrigerio, row.HoraInicioRefrigerio );
+                    row.Asist = calcularDiferenciaHoras(AsistidoSinRefrigerio, RefrigerioReal);
+                }
+                
+                const hora1 = moment(row.Asignado, 'HH:mm');
+                const hora2 = moment(row.Asist, 'HH:mm');
+                const hora_simple = moment('02:00', 'HH:mm');
+                
+                let ausenciaAsignada = false;
+                if(row.HoraInicio === '00:00' && row.HoraFin === '00:00'){
+                    row.Ausencia = row.Asignado
+                    ausenciaAsignada = true; 
+                    countAbsences += 1;
+                }
+
+                if (!ausenciaAsignada && hora1.isAfter(hora2)) {
+                    row.Atraso = calcularDiferenciaHoras(row.Asignado, row.Asist);
+                } else if (!ausenciaAsignada && hora1.isBefore(hora2)) {
+                    row.Sobretiempo = calcularDiferenciaHoras( row.Asist, row.Asignado);
+                } else if (!ausenciaAsignada) {
+                    /* return '00:00'; */
+                }
+
+                if (row.validacionSalida === 4 && row.validacionSalidaSec === 6) {
+                    row.SJT = calcularDiferenciaHoras(row.HoraFin, row.Salida);
+                    const horaSJT = moment(row.SJT, 'HH:mm');
+                    if(horaSJT.isAfter(hora_simple)){
+                        row.Horas_extras_normal = '02:00'
+                        row.Horas_extras_tipo2 = calcularDiferenciaHoras(row.SJT, hora_simple)
+                    }
+                }
+                if (row.validacionSalida === 6 && row.validacionSalidaSec === 6) {
+                    row.SNJ = calcularDiferenciaHoras(row.HoraFin, row.Salida);
+                }
+                
+                row.Horas_Falta = row.Atraso
+
+                const is_holiday = await db.queryCheckHoliday( tableHoliday, row.Fecha);
+                /* console.log(is_holiday) */
+                if (is_holiday ===1){
+                    row.Tipo_evento ='J.FEST.E.';
+                    sumAsistSeconds += convertirHoraASegundos(row.Asist);
+                    
+                } else{
+                    row.Tipo_evento ='J.NORMAL'
+                }
+
+             worksheet.addRow(row);
+        };
+        
+        // Función para convertir 'HH:MM' a segundos
+        function convertirHoraASegundos(hora) {
+            const [horas, minutos] = hora.split(':').map(Number);
+            return horas *  3600 + minutos *  60;
+        }
+
+        worksheet.eachRow({ includeEmpty: true }, function(row, rowNumber) {
+            row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+                cell.font = { size:  8 };
+            });
+        });
+        
+
+        for (let row =  5; row <=  6; row++) {
+            for (let col =  1; col <=  18; col++) {
+              const cell = worksheet.getCell(row, col);
+              cell.font = {size:  8, bold: true };
+              cell.border = doubleBorderStyle;
+            }
+          } 
+        
+
+        const buffer = await workbook.xlsx.writeBuffer();
+         return buffer; 
+    };
+
     return {
         
         reportAsistance,
@@ -792,6 +1022,7 @@ module.exports = function(dbInyectada){
         reportRequest,
         reportAudit,
         reportOvertimeNew,
-        reportAsistanceWithLocation
+        reportAsistanceWithLocation,
+        reportAuditArea
     }
 }

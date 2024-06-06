@@ -2391,6 +2391,63 @@ function queryProfileFilter(table, table2, idStates, name) {
     });
 }
 
+/* 📌 Reporte auditoria */
+function queryReportAuditNew(table, table2, table3, table4,table5, consult, consult2, consult3) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT u.CIP,DATE_FORMAT(a.Fecha, '%Y-%m-%d') as Fecha,  DATE_FORMAT(a.hora,'%H:%i') AS HoraInicio,DATE_FORMAT(asis.hora,'%H:%i')  AS HoraFin ,
+        DATE_FORMAT(asis2.hora,'%H:%i')  AS HoraInicioRefrigerio , DATE_FORMAT(asis3.hora,'%H:%i')  AS HoraFinRefrigerio,h_n.HoraRefrigerio,
+        a.idhorario,DATE_FORMAT(h_n.HoraInicio,'%H:%i') AS Entrada,DATE_FORMAT(h_n.HoraFin,'%H:%i') AS Salida,
+               h_n.diaExcepcion, DATE_FORMAT(h_n.HoraInicio_Excepcion,'%H:%i') AS HoraInicio_Excepcion,             	
+               DATE_FORMAT(h_n.HoraFin_Excepcion,'%H:%i') AS HoraFin_Excepcion, a.idValidacion AS validacionEntrada, a.idValidacionSecond AS validacionEntradaSec, asis.idValidacion AS validacionSalida, asis.idValidacionSecond AS validacionSalidaSec,
+               asis2.idValidacion AS validacionInicioRefrigerio, asis2.idValidacionSecond AS validacionInicioRefrigerioSec, asis3.idValidacion AS validacionFinRefrigerio, asis3.idValidacionSecond AS validacionFinRefrigerioSec,
+               va1.descripcion as nombrevalidacionEntrada, va2.descripcion as nombrevalidacionSalida, va3.descripcion as nombrevalidacionInicioRef, va4.descripcion as nombrevalidacionFinRef
+        FROM ?? AS a INNER JOIN ?? as u ON a.IdUsuarios = u.IdUsuarios 
+        INNER JOIN ?? AS asis ON a.Fecha = asis.Fecha AND a.IdUsuarios = asis.IdUsuarios
+        INNER JOIN ?? AS asis2 ON a.Fecha = asis2.Fecha AND a.IdUsuarios = asis2.IdUsuarios
+        INNER JOIN ?? AS asis3 ON a.Fecha = asis3.Fecha AND a.IdUsuarios = asis3.IdUsuarios
+        INNER JOIN validacion va1 ON a.idValidacionSecond = va1.idValidacion
+        INNER JOIN validacion va2 ON asis.idValidacionSecond = va2.idValidacion
+        INNER JOIN validacion va3 ON asis2.idValidacionSecond = va3.idValidacion
+        INNER JOIN validacion va4 ON asis3.idValidacionSecond = va4.idValidacion
+        INNER JOIN 
+                (
+                SELECT 
+                h.IdHorarios, h.diaExcepcion,h.idRefrigerio,r.tiempo AS HoraRefrigerio,
+                    MIN(CASE WHEN h.IdTipoMarcacion = 1 AND h.IdValidacion = 1 THEN DATE_ADD(h.HoraInicio, INTERVAL 15 MINUTE) END) AS HoraInicio, 
+                    MAX(CASE WHEN h.IdTipoMarcacion = 4 AND h.IdValidacion = 1 THEN h.HoraInicio END) AS HoraFin, exc.HoraInicio_Excepcion, 
+                    exc.HoraFin_Excepcion 
+                FROM ?? AS h 
+                LEFT JOIN ?? AS r ON h.idRefrigerio = r.id
+                LEFT JOIN (
+                SELECT ex.IdExcepcion,
+                    MIN(CASE WHEN ex.IdTipoMarcacion = 1 AND ex.IdValidacion = 1 THEN DATE_ADD(ex.HoraInicio, INTERVAL 15 MINUTE) END) AS HoraInicio_Excepcion,
+                    MAX(CASE WHEN ex.IdTipoMarcacion = 4 AND ex.IdValidacion = 1 THEN ex.HoraInicio END) AS HoraFin_Excepcion
+                FROM ?? AS ex 
+                GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
+                INNER JOIN descansos AS d ON h.IdDescanso = d.IdDescansos
+                WHERE h.IdEstado = 1
+                GROUP BY h.IdHorarios, h.IdDescanso
+                ) AS h_n ON a.idhorario = h_n.IdHorarios
+        WHERE a.Fecha BETWEEN ? AND ?
+        AND a.idTMarcacion IN (1)
+        AND asis.idTMarcacion IN (4)
+        AND asis2.idTMarcacion IN (2)
+        AND asis3.idTMarcacion IN (3)
+        AND u.IdUsuarios = ?
+        ORDER BY a.Fecha 
+        `;
+        const values = [table, table2, table,table,table,table3, table4, table5, consult, consult2, consult3];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result);
+            /* if (error) {
+                reject(error);
+            } else {
+                resolve(result);
+            } */
+        });
+    });
+};
 
 
 module.exports = {
@@ -2522,5 +2579,6 @@ module.exports = {
     queryConsultNameProfile,
     queryConsultIdProfile,
     queryProfileFilter,
-    queryUserWithRol
+    queryUserWithRol,
+    queryReportAuditNew
 }

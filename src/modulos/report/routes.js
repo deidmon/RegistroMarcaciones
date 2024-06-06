@@ -9,6 +9,7 @@ router.post('/reportAsistanceWithLocation', reportAsistanceWithLocation);
 router.post('/reportOvertime', reportOvertime);
 router.post('/reportRequest', reportRequest);
 router.post('/reportAudit', reportAudit);
+router.post('/reportAuditArea', reportAuditArea);
 
 errorMessageSchedule = "Algo salio mal, intente más tarde."
 
@@ -102,5 +103,23 @@ async function reportAudit(req, res, next){
     }
 };
 
+
+async function reportAuditArea(req, res, next){
+    try{
+        const reportAudit  = await controller.reportAuditArea(req.body);
+        if (reportAudit) {
+            const pass = new stream.PassThrough();
+            pass.end(reportAudit);
+            res.setHeader('Content-Disposition', 'attachment; filename=MiArchivo.xlsx');
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            pass.pipe(res);
+        } else {
+            mensaje = 'No se pudo generar el reporte.';
+            response.error(req, res, mensaje, 400);
+        }
+    }catch(err){
+        response.error(req, res, false, errorMessageSchedule, 500);
+    }
+};
 
 module.exports = router;   
