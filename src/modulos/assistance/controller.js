@@ -15,24 +15,25 @@ module.exports = function (dbInyectada) {
 
   /* 📌 Añadir registro de asistencia presencial*/
   async function addMarkingOnSite(body) {
-    /* console.log("Pasando por aqui addMarkingONsite") */
-    let initialDate = moment();     
+    let initialDate = moment();
     let date = await helpers.getDateToday(initialDate);
+    let showForm = constant.showFormFalse;
     const formattedTime = await helpers.getTimeNow(initialDate);
     const hourInMinutesNow = await helpers.parseHourToMinutes(formattedTime); //Obtener la hora en minutos
 
     const dayOfWeekName = await helpers.getJustDay(initialDate);
-    
+
     const idSchedule = await db.queryGetIdSchedule(constant.tableUser, {
       IdUsuarios: body.idUser,
     }); //Obtener id de horario
 
     const timeBreak = await db.queryGetTimeBreak(idSchedule.IdHorarios); //Obtener tiempo de break
 
-    let typesMarkings = await db.allInformationOfOneTable(constant.tableTypeMarking);
+    let typesMarkings = await db.allInformationOfOneTable(
+      constant.tableTypeMarking
+    );
     //Descripción de tipo de marcación (entrada, almuerzo, fin almuerzo, salida)
-
-    const descrptionTypeMarking =
+    var descrptionTypeMarking =
       typesMarkings[body.idTypesMarking - 1].descripcion; //-1 porque los indices empiezan desde cero
 
     /* let descriptionValidation = ""; //movi descriptionValidation */
@@ -49,7 +50,6 @@ module.exports = function (dbInyectada) {
       message = `Usted ya ha registrado su ${descrptionTypeMarking.toUpperCase()} hoy.`;
       return { messages: message };
     }
-    /* console.log("Pasando por aqui addMarkingONsite2") */
     /* 📌 Verificar que primero ingrese entrada, antes de poder registrar break */
     let alreadyMarkedEntry = false; //aun no marca
     alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
@@ -66,7 +66,6 @@ module.exports = function (dbInyectada) {
       ].descripcion.toUpperCase()} primero.`;
       return { messages: message };
     }
-    
 
     /* 📌 Verificar que primero ingrese break, antes de poder registrar fin break */
     alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
@@ -83,8 +82,11 @@ module.exports = function (dbInyectada) {
       ].descripcion.toUpperCase()} primero.`;
       return { messages: message };
     }
-    
-    if (timeBreak && timeBreak.length > 0) {
+
+    if (
+      (timeBreak && timeBreak.length > 0) ||
+      idSchedule.IdHorarios == constant.flexibleSchedule
+    ) {
       /* 📌 Verificar que primero ingrese fin break, antes de poder registrar salida */
       alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
         body.idTypesMarking,
@@ -100,7 +102,7 @@ module.exports = function (dbInyectada) {
         ].descripcion.toUpperCase()} primero.`;
         return { messages: message };
       }
-    }else{
+    } else {
       /* 📌 Verificar que primero ingrese entrada, antes de poder registrar salida */
       alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
         body.idTypesMarking,
@@ -117,8 +119,7 @@ module.exports = function (dbInyectada) {
         return { messages: message };
       }
     }
-    
-    /* console.log("Pasando por aqui addMarkingONsite3") */
+
     /* 📌 Verificar si es su día de descanso */
     const daysOff = await db.queryGetDaysOff(
       constant.tableDaysOff,
@@ -126,23 +127,18 @@ module.exports = function (dbInyectada) {
       constant.tableUser,
       { IdUsuarios: body.idUser }
     );
-    /* console.log(daysOff, 'dia de descans o no laborable'); */
     if (daysOff.includes(dayOfWeekName)) {
       message = `Hoy ${dayOfWeekName.toUpperCase()} es su día no laborable.`;
       return { messages: message };
     }
-    /* console.log("Pasando por aqui addMarkingONsite4") */
-   
+
     /* 📌 Verificar si esta de vacaciones */
-    var haveVacation = await db.queryCheckVacation(
-      date,
-      body.idUser
-    );
+    var haveVacation = await db.queryCheckVacation(date, body.idUser);
     if (haveVacation && haveVacation.length > 0) {
-        message = `Está de vacaciones, disfrútelas al máximo`;
-        return { messages: message };
+      message = `Está de vacaciones, disfrútelas al máximo`;
+      return { messages: message };
     }
-   
+
     /* 📌 Verificar si trabajador tiene permiso todo el día */
     const havePermissionAllDay = await db.queryCheckPermissionAllDay(
       constant.tablePermissions,
@@ -170,15 +166,173 @@ module.exports = function (dbInyectada) {
     );
 
     if (locations.length > 0) {
-      
-      
+      //Si esta dentro del rango
+
       const firstLocationResult = locations[0];
       const nameAddress = firstLocationResult.Direccion;
 
-      let typesMarkings = await db.allInformationOfOneTable(constant.tableTypeMarking);
+      let typesMarkings = await db.allInformationOfOneTable(
+        constant.tableTypeMarking
+      );
       //Descripción de tipo de marcación (entrada, almuerzo, fin almuerzo, salida)
+      let getTypesValidation = await db.queryGetTypesValidation(); //Tipos de validación
 
-      let getTypesValidation = await db.queryGetTypesValidation();//Tipos de validación
+      //PARA HORARIO FLEXIBLE
+      var resultValidations;
+      //Si es horario 0 no verificar la hora de ingreso
+      if (idSchedule.IdHorarios == constant.flexibleSchedule) {
+        //Para registro de entrada e inicio de break
+        resultValidations = constant.cconformable;
+        //Para registro de fin break
+        if (body.idTypesMarking == constant.typeRegisterEndBreak) {
+          //Verificar hora de "inicio break" para permitir o no el registro
+          let refreshmentStartLog = await db.queryAttendanceRegistrationTime(
+            body.idUser,
+            constant.typeRegisterStartBreak
+          );
+
+          const timeRegisterBreakInMinutes = await helpers.parseHourToMinutes(
+            refreshmentStartLog[0].Hora
+          ); //Obtener la hora en minutos
+          const timeToShouldRegisterEndBreak =
+            timeRegisterBreakInMinutes + constant.timeBreakInMinutes;
+          resultValidations = constant.cconformable;
+
+          if (hourInMinutesNow < timeToShouldRegisterEndBreak) {
+            const timeToHaveOfBreak =
+              timeRegisterBreakInMinutes +
+              constant.timeBreakInMinutes -
+              hourInMinutesNow;
+            message = `Todavía dispone de ${timeToHaveOfBreak} minutos para poder registrar su ${descrptionTypeMarking.toUpperCase()}`;
+            return { messages: message };
+          }
+
+          if (
+            hourInMinutesNow >
+            timeToShouldRegisterEndBreak + constant.toleranceTime
+          ) {
+            resultValidations = constant.cdelay;
+            var timeToShouldRegisterEndBreaks =
+              await helpers.parseMinutesToHour(timeToShouldRegisterEndBreak);
+          }
+        }
+
+        //Para registro de salida
+        if (body.idTypesMarking == constant.typeRegisterDeparture) {
+          let entryStartLog = await db.queryAttendanceRegistrationTime(
+            body.idUser,
+            constant.typeRegisterEntry
+          ); //Hora de ingreso
+          let refreshmentStartLog = await db.queryAttendanceRegistrationTime(
+            body.idUser,
+            constant.typeRegisterStartBreak
+          ); //Hora de break
+          let refreshmentEndLog = await db.queryAttendanceRegistrationTime(
+            body.idUser,
+            constant.typeRegisterEndBreak
+          ); //Hora de fin break
+
+          let entryStartLogM = await helpers.parseHourToMinutes(
+            entryStartLog[0].Hora
+          ); //Hora de ingreso en minutos
+          let refreshmentStartLogM = await helpers.parseHourToMinutes(
+            refreshmentStartLog[0].Hora
+          ); //Hora de break en minutos
+          let refreshmentEndLogM = await helpers.parseHourToMinutes(
+            refreshmentEndLog[0].Hora
+          ); //Hora fin break en minutos
+
+          let timeoOfWorked =
+            refreshmentStartLogM -
+            entryStartLogM +
+            (hourInMinutesNow - refreshmentEndLogM); //Tiempo en minutos trabajado
+          //12:00 - 7:00 + (? - 13:00)
+              5 + 3
+          let timeWorked = refreshmentStartLogM - entryStartLogM; //Tiempo trabajado (inicio break - entrada)
+
+          let timeLeftToWork = constant.dailyWorkingHours - timeWorked; //Tiempo que queda por trabajar(8h diarios - tiempo trabajado)
+
+          let timeShouldRegisterEnd = refreshmentEndLogM + timeLeftToWork; //Hora que deberia registrar la salida
+          let timeShouldRegisterEndTolerance =
+            timeShouldRegisterEnd + constant.extraTimeDeparture; //Hora que deberia registrar la salida + tolerancia
+
+          var timeShouldRegisterEndH = await helpers.parseMinutesToHour(
+            timeShouldRegisterEnd
+          ); //Hora que deberia registrar la salida en horas
+          var timeShouldRegisterEndToleranceH =
+            await helpers.parseMinutesToHour(timeShouldRegisterEndTolerance); //Hora que deberia registrar la salida + tolerancia en horas
+          var descriptionVali = constant.cconformabled;
+
+          //Si esta registrando antes
+          if (timeoOfWorked < constant.dailyWorkingHours) {
+            resultValidations = constant.coutoftime;
+            descriptionVali = constant.coutoftimed;
+          }
+          //Si esta registrando despues de las 8 horas laboradas + 15 de tolerancia pero antes de las 8 horas + 30 min es fuera de horario
+          if (
+            timeoOfWorked >
+              constant.dailyWorkingHours + constant.extraTimeDeparture &&
+            timeoOfWorked >
+              constant.dailyWorkingHours + constant.extraTimeDeparture
+          ) {
+            resultValidations = constant.coutoftime;
+            descriptionVali = constant.coutoftimed;
+          }
+          //Si esta registrando despues de las 8 horas laboradas mas 30 min es sobretiempo
+          if (timeoOfWorked > constant.dailyWorkingHours + constant.extraTime) {
+            resultValidations = constant.covertime;
+            descriptionVali = constant.covertimed;
+          }
+        }
+
+        /* 📌 Se asignan los campos a guardar en la tabla asistencias */
+        const assists = {
+          IdUsuarios: body.idUser,
+          Direccion: body.address,
+          Fecha: date,
+          Hora: formattedTime,
+          idTMarcacion: body.idTypesMarking,
+          idValidacion: resultValidations,
+          idValidacionSecond: resultValidations,
+          Created_by: body.idUser,
+          Updated_at: "0000-00-00",
+          Updated_by: 0,
+          idHorario: idSchedule.IdHorarios,
+        };
+
+        await db.add(constant.tableAssist, assists);
+        if (
+          resultValidations !== constant.cconformable &&
+          body.idTypesMarking === constant.typeRegisterEndBreak
+        ) {
+          showForm = constant.showFormTrue;
+          return {
+            idTipoValidacion: resultValidations,
+            idMostrarForm: showForm,
+            "Registrado como": `La asistencia ha sido registrada como: ${constant.cdelayd.toUpperCase()}.`,
+            Detalle: `Ya que debio registrar su ${descrptionTypeMarking.toUpperCase()} hasta las ${timeToShouldRegisterEndBreaks}`,
+          };
+        }
+        if (
+          resultValidations !== constant.cconformable &&
+          body.idTypesMarking === constant.typeRegisterDeparture
+        ) {
+          showForm = constant.showFormTrue;
+
+          return {
+            idTipoValidacion: resultValidations,
+            idMostrarForm: showForm,
+            "Registrado como": `La asistencia ha sido registrada como: ${descriptionVali.toUpperCase()}.`,
+            Detalle: `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${timeShouldRegisterEndH} a ${timeShouldRegisterEndToleranceH}'. De tener algún inconveniente comuníquese con el área de RRHH.`,
+          };
+        }
+        return {
+          idTipoValidacion: resultValidations,
+          idMostrarForm: showForm,
+          "Registrado como": `La asistencia de ${descrptionTypeMarking.toUpperCase()} ha sido registrada como: ${constant.cconformabled.toUpperCase()}`,
+          Detalle: `Hora de registro: ${formattedTime} ¡gracias por su puntualidad!`,
+        };
+      } //TERMINA HORARIO FLEXIBLE
 
       const exceptionDay = await db.queryGetExceptionDays(
         constant.tableDaysOff,
@@ -189,14 +343,13 @@ module.exports = function (dbInyectada) {
 
       const IdExcepcion = await db.queryGetIdException(constant.tableSchedule, {
         IdHorarios: idSchedule.IdHorarios,
-      });//Obtener id de horario de día diferente
-     
+      }); //Obtener id de horario de día diferente
+
       /* 📌 Comprueba si inicio o fin de refrigerio - 2 o 3 */
       if (
         body.idTypesMarking == constant.typeRegisterStartBreak ||
         body.idTypesMarking == constant.typeRegisterEndBreak
       ) {
-        
         const timeInHoursFormat = await helpers.parseHourToMinutes(
           formattedTime
         ); //Convertir el tiempo en minutos
@@ -211,10 +364,10 @@ module.exports = function (dbInyectada) {
           getTypesValidation,
           idSchedule,
           formattedTime,
-          typesMarkings 
+          typesMarkings
         );
       }
-     
+
       let parametrization;
       if (exceptionDay.includes(dayOfWeekName)) {
         parametrization = await db.getTableParametrization(
@@ -239,24 +392,27 @@ module.exports = function (dbInyectada) {
         date
       );
       const startTimeAllowed = parametrization[0].HoraInicio; //Hora de inicio de jornada
-      
+
       const endTimeAllowed = parametrization[0].HoraFin; //Hora de fin de jornada
 
-      const startTimeAllowedInMinutes = await helpers.parseHourToMinutes(startTimeAllowed);
-      
+      const startTimeAllowedInMinutes = await helpers.parseHourToMinutes(
+        startTimeAllowed
+      );
+
       //Para que aparezca la notificación cuando ingresan una hora despues
       //75 porque es 60 min mas 15 que se da de tolerancia
       const entryOneHourAfter = startTimeAllowedInMinutes + 75;
-      
+
       //Cuando ingresen 30 minutos antes sera sobretiempo, menos 15 porque ya tiene 15 de tolerancia que harian 30 min
       const entryThirtyMinutesBefore = startTimeAllowedInMinutes - 15;
 
       //si tiene permiso restarle a su hora de ingreso normal
       //15 min mas porque ya estan como proroga
-      const entryMinutesBefore = startTimeAllowedInMinutes + 15 - timePermission * 60;
+      const entryMinutesBefore =
+        startTimeAllowedInMinutes + 15 - timePermission * 60;
 
-      const descrptionTypeMarking = parametrization[0].descripcion;
-    
+      descrptionTypeMarking = parametrization[0].descripcion;
+
       /* 📌 Verificar si tiene permiso por parte del lider */
       if (timePermission > 0 && body.idTypesMarking === 1) {
         if (
@@ -288,7 +444,7 @@ module.exports = function (dbInyectada) {
           };
         }
       }
-      
+
       /* 📌 Validar (Conforme, tardanza, fuera de horario, sobretiempo) */
       function validateTime(formattedTime) {
         const [hour, minutes] = formattedTime.split(":");
@@ -316,7 +472,7 @@ module.exports = function (dbInyectada) {
           return 5;
         }
         return 0;
-      };
+      }
 
       /* 📌 Descripción de resultados */
       const resultDescriptions = {
@@ -352,16 +508,16 @@ module.exports = function (dbInyectada) {
         Updated_by: 0,
         idHorario: idSchedule.IdHorarios,
       };
-      let showForm = 0;
+
       if (resultValidation !== 1 && body.idTypesMarking === 4) {
-        showForm = 1;
+        showForm = constant.showFormTrue;
       }
       if (hourInMinutesNow > entryOneHourAfter && body.idTypesMarking === 1) {
-        showForm = 1;
+        showForm = constant.showFormTrue;
       }
       const respuesta = await db.add(constant.tableAssist, assists);
 
-      if (resultValidation !== 1) {
+      if (resultValidation !== constant.showFormTrue) {
         return {
           idTipoValidacion: resultValidation,
           idMostrarForm: showForm,
@@ -373,51 +529,53 @@ module.exports = function (dbInyectada) {
         idTipoValidacion: resultValidation,
         idMostrarForm: showForm,
         "Registrado como": `La asistencia de ${descrptionTypeMarking.toUpperCase()} ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
-        Detalle: `Hora de registro: ${formattedTime}. ¡gracias por su puntualidad!`,
+        Detalle: `Hora de registro: ${formattedTime} ¡gracias por su puntualidad!`,
       };
     }
     message = `El rango para registrar su asistencia es de ${constant.radiusMeters} metros. Por favor, verifique que se encuentra dentro de ese rango.`;
     return { messages: message };
-  };
+  }
 
-  //////////////////////////////////////////////////////////////
   /* 📌 Para registrar asistencia modalidad presencial o virtual*/
   async function addMarking(body) {
-    
     /* 📌 Verificar usuario es correcto */
-    const data = await db.query(constant.tableUser, { IdUsuarios: body.idUser });
+    const data = await db.query(constant.tableUser, {
+      IdUsuarios: body.idUser,
+    });
     if (!data) {
       message = "Usuario incorrecto";
       return { messages: message };
     }
-    
+
     /* 📌 Verificar si es presencial o virtual */
     const workModality = await db.queryModalityValidation(constant.tableUser, {
       IdUsuarios: body.idUser,
     });
-    
+
     if (!workModality) {
       return await addMarkingOnSite(body);
     }
     return await addMarkingVirtual(body);
-  };
+  }
 
   /* 📌 Para registrar asistencia desde la web ya que, la ubicación falla mucho  */
   async function addMarkingVirtual(body) {
-    /* console.log("entrando a virtual"); */
     let initialDate = moment();
     let date = await helpers.getDateToday(initialDate);
     const formattedTime = await helpers.getTimeNow(initialDate);
     const dayOfWeekName = await helpers.getJustDay(initialDate);
     const hourInMinutesNow = await helpers.parseHourToMinutes(formattedTime); //Obtener la hora en minutos
-    let showForm = 0; //Movi showform aqui
+    let showForm = constant.showFormFalse; //Movi showform aqui
     let getTypesValidation = await db.queryGetTypesValidation();
 
-    let typesMarkings = await db.allInformationOfOneTable(constant.tableTypeMarking);
+    let typesMarkings = await db.allInformationOfOneTable(
+      constant.tableTypeMarking
+    );
     //Descripción de tipo de marcación (entrada, almuerzo, fin almuerzo, salida)
     const idSchedule = await db.queryGetIdSchedule(constant.tableUser, {
       IdUsuarios: body.idUser,
     }); //Obtener Id del horario
+
     const timeBreak = await db.queryGetTimeBreak(idSchedule.IdHorarios); //Obtener tiempo de break
 
     const descrptionTypeMarking =
@@ -425,7 +583,7 @@ module.exports = function (dbInyectada) {
 
     /* let idvalidation = 1; */
     let descriptionValidation = ""; //movi descriptionValidation
-    
+
     ///////VERFICACIONES
     /* 📌 Verificar si ya registro su entrada, break, fin break o salida del día */
     let userAlreadyMarked = false;
@@ -473,7 +631,10 @@ module.exports = function (dbInyectada) {
       return { messages: message };
     }
 
-    if (timeBreak && timeBreak.length > 0) {
+    if (
+      (timeBreak && timeBreak.length > 0) ||
+      idSchedule.IdHorarios == constant.flexibleSchedule
+    ) {
       /* 📌 Verificar que primero ingrese fin break, antes de poder registrar salida */
       alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
         body.idTypesMarking,
@@ -489,7 +650,7 @@ module.exports = function (dbInyectada) {
         ].descripcion.toUpperCase()} primero.`;
         return { messages: message };
       }
-    }else{
+    } else {
       /* 📌 Verificar que primero ingrese entrada, antes de poder registrar salida */
       alreadyMarkedEntry = await checkIfAlreadyRegisterPrevious(
         body.idTypesMarking,
@@ -520,13 +681,10 @@ module.exports = function (dbInyectada) {
     }
 
     /* 📌 Verificar si esta de vacaciones */
-    var haveVacation = await db.queryCheckVacation(
-      date,
-      body.idUser
-    );
+    var haveVacation = await db.queryCheckVacation(date, body.idUser);
     if (haveVacation && haveVacation.length > 0) {
-        message = `Está de vacaciones, disfrútelas al máximo`;
-        return { messages: message };
+      message = `Está de vacaciones, disfrútelas al máximo`;
+      return { messages: message };
     }
 
     /* 📌 Verificar si trabajador tiene permiso todo el día */
@@ -540,18 +698,175 @@ module.exports = function (dbInyectada) {
       return { messages: message };
     }
     ///FIN VERIFICACIONES
-    /* console.log("LLEGA HASTA INICION O IN REFRIGERIO"); */
+
+    //PARA HORARIO FLEXIBLE
+    var resultValidation;
+    //Si es horario 0 no verificar la hora de ingreso
+    if (idSchedule.IdHorarios == constant.flexibleSchedule) {
+      //Para registro de entrada e inicio de break
+      resultValidation = constant.cconformable;
+      //Para registro de fin break
+      if (body.idTypesMarking == constant.typeRegisterEndBreak) {
+        //Verificar hora de "inicio break" para permitir o no el registro
+        let refreshmentStartLog = await db.queryAttendanceRegistrationTime(
+          body.idUser,
+          constant.typeRegisterStartBreak
+        );
+
+        const timeRegisterBreakInMinutes = await helpers.parseHourToMinutes(
+          refreshmentStartLog[0].Hora
+        ); //Obtener la hora en minutos
+        const timeToShouldRegisterEndBreak =
+          timeRegisterBreakInMinutes + constant.timeBreakInMinutes;
+        resultValidation = constant.cconformable;
+
+        if (hourInMinutesNow < timeToShouldRegisterEndBreak) {
+          const timeToHaveOfBreak =
+            timeRegisterBreakInMinutes +
+            constant.timeBreakInMinutes -
+            hourInMinutesNow;
+          message = `Todavía dispone de ${timeToHaveOfBreak} minutos para poder registrar su ${descrptionTypeMarking.toUpperCase()}`;
+          return { messages: message };
+        }
+
+        if (
+          hourInMinutesNow >
+          timeToShouldRegisterEndBreak + constant.toleranceTime
+        ) {
+          resultValidation = constant.cdelay;
+          var timeToShouldRegisterEndBreaks = await helpers.parseMinutesToHour(
+            timeToShouldRegisterEndBreak
+          );
+        }
+      }
+
+      //Para registro de fin break
+      if (body.idTypesMarking == constant.typeRegisterDeparture) {
+        let entryStartLog = await db.queryAttendanceRegistrationTime(
+          body.idUser,
+          constant.typeRegisterEntry
+        ); //Hora de ingreso
+        let refreshmentStartLog = await db.queryAttendanceRegistrationTime(
+          body.idUser,
+          constant.typeRegisterStartBreak
+        ); //Hora de break
+        let refreshmentEndLog = await db.queryAttendanceRegistrationTime(
+          body.idUser,
+          constant.typeRegisterEndBreak
+        ); //Hora de fin break
+
+        let entryStartLogM = await helpers.parseHourToMinutes(
+          entryStartLog[0].Hora
+        ); //Hora de ingreso en minutos
+        let refreshmentStartLogM = await helpers.parseHourToMinutes(
+          refreshmentStartLog[0].Hora
+        ); //Hora de break en minutos
+        let refreshmentEndLogM = await helpers.parseHourToMinutes(
+          refreshmentEndLog[0].Hora
+        ); //Hora fin break en minutos
+
+        let timeoOfWorked =
+          refreshmentStartLogM -
+          entryStartLogM +
+          (hourInMinutesNow - refreshmentEndLogM); //Tiempo en minutos trabajado
+        let timeWorked = refreshmentStartLogM - entryStartLogM; //Tiempo trabajado (inicio break - entrada)
+
+        let timeLeftToWork = constant.dailyWorkingHours - timeWorked; //Tiempo que queda por trabajar(8h diarios - tiempo trabajado)
+
+        let timeShouldRegisterEnd = refreshmentEndLogM + timeLeftToWork; //Hora que deberia registrar la salida
+        let timeShouldRegisterEndTolerance =
+          timeShouldRegisterEnd + constant.extraTimeDeparture; //Hora que deberia registrar la salida + tolerancia
+
+        var timeShouldRegisterEndH = await helpers.parseMinutesToHour(
+          timeShouldRegisterEnd
+        ); //Hora que deberia registrar la salida en horas
+        var timeShouldRegisterEndToleranceH = await helpers.parseMinutesToHour(
+          timeShouldRegisterEndTolerance
+        ); //Hora que deberia registrar la salida + tolerancia en horas
+        var descriptionVali = constant.cconformabled;
+
+        //Si esta registrando antes
+        if (timeoOfWorked < constant.dailyWorkingHours) {
+          resultValidation = constant.coutoftime;
+          descriptionVali = constant.coutoftimed;
+        }
+        //Si esta registrando despues de las 8 horas laboradas + 15 de tolerancia pero antes de las 8 horas + 30 min es fuera de horario
+        if (
+          timeoOfWorked >
+            constant.dailyWorkingHours + constant.extraTimeDeparture &&
+          timeoOfWorked >
+            constant.dailyWorkingHours + constant.extraTimeDeparture
+        ) {
+          resultValidation = constant.coutoftime;
+          descriptionVali = constant.coutoftimed;
+        }
+        //Si esta registrando despues de las 8 horas laboradas mas 30 min es sobretiempo
+        if (timeoOfWorked > constant.dailyWorkingHours + constant.extraTime) {
+          resultValidation = constant.covertime;
+          descriptionVali = constant.covertimed;
+        }
+      }
+
+      /* 📌 Se asignan los campos a guardar en la tabla asistencias */
+      const assists = {
+        IdUsuarios: body.idUser,
+        Direccion: body.address,
+        Fecha: date,
+        Hora: formattedTime,
+        idTMarcacion: body.idTypesMarking,
+        idValidacion: resultValidation,
+        idValidacionSecond: resultValidation,
+        Created_by: body.idUser,
+        Updated_at: "0000-00-00",
+        Updated_by: 0,
+        idHorario: idSchedule.IdHorarios,
+      };
+
+      await db.add(constant.tableAssist, assists);
+      if (
+        resultValidation !== constant.cconformable &&
+        body.idTypesMarking === constant.typeRegisterEndBreak
+      ) {
+        showForm = 1;
+        return {
+          idTipoValidacion: resultValidation,
+          idMostrarForm: showForm,
+          "Registrado como": `La asistencia ha sido registrada como: ${constant.cdelayd.toUpperCase()}.`,
+          Detalle: `Ya que debio registrar su ${descrptionTypeMarking.toUpperCase()} hasta las ${timeToShouldRegisterEndBreaks}`,
+        };
+      }
+      if (
+        resultValidation !== constant.cconformable &&
+        body.idTypesMarking === constant.typeRegisterDeparture
+      ) {
+        showForm = constant.showFormTrue;
+
+        return {
+          idTipoValidacion: resultValidation,
+          idMostrarForm: showForm,
+          "Registrado como": `La asistencia ha sido registrada como: ${descriptionVali.toUpperCase()}.`,
+          Detalle: `Ya que el horario para ${descrptionTypeMarking.toUpperCase()} es de '${timeShouldRegisterEndH} a ${timeShouldRegisterEndToleranceH}'. De tener algún inconveniente comuníquese con el área de RRHH.`,
+        };
+      }
+      return {
+        idTipoValidacion: resultValidation,
+        idMostrarForm: showForm,
+        "Registrado como": `La asistencia de ${descrptionTypeMarking.toUpperCase()} ha sido registrada como: ${constant.cconformabled.toUpperCase()}`,
+        Detalle: `Hora de registro: ${formattedTime} ¡gracias por su puntualidad!`,
+      };
+    }
+    //TERMINA HORARIO FLEXIBLE
+
     /* 📌 Comprueba si inicio o fin de refrigerio - 2 o 3 */
     if (
       body.idTypesMarking == constant.typeRegisterStartBreak ||
       body.idTypesMarking == constant.typeRegisterEndBreak
     ) {
-      
       const timeInHoursFormat = await helpers.parseHourToMinutes(formattedTime); //Convertir el tiempo en minutos
       const typeMarkDescription = await db.queryGetNameTypeMark(
         body.idTypesMarking
       ); //Obtenemos el nombre de tipo de marcación
-    
+
       return await registerBreak(
         body,
         timeBreak,
@@ -599,7 +914,7 @@ module.exports = function (dbInyectada) {
       startTimeAllowed
     );
     const endTimeAllowed = parametrization[0].HoraFin; //Hora de fin de jornada
-    
+
     const timePermission = await db.queryCheckTimePermission(
       constant.tablePermissions,
       4,
@@ -616,11 +931,11 @@ module.exports = function (dbInyectada) {
 
     //si tiene permiso restarle a su hora de ingreso normal
     //15 min mas porque ya estan como proroga
-    const entryMinutesBefore = startTimeAllowedInMinutes + 15 - timePermission * 60;
+    const entryMinutesBefore =
+      startTimeAllowedInMinutes + 15 - timePermission * 60;
 
     /* 📌 Verificar si tiene permiso por parte del lider */
     if (timePermission > 0 && body.idTypesMarking === 1) {
-
       if (
         entryMinutesBefore <= hourInMinutesNow &&
         hourInMinutesNow < entryThirtyMinutesBefore
@@ -649,8 +964,7 @@ module.exports = function (dbInyectada) {
         };
       }
     }
-    
-    var resultValidation;
+
     /* 📌 Cuando intenta marcar antes de su hora de inicio */
     if (body.idTypesMarking == 1 || body.idTypesMarking == 4) {
       resultValidation = await validateTime(
@@ -669,7 +983,6 @@ module.exports = function (dbInyectada) {
           getTypesValidation[resultValidation - 1].descripcion;
       }
     }
-
 
     /* 📌 Se asignan los campos a guardar en la tabla asistencias */
     const assists = {
@@ -691,10 +1004,10 @@ module.exports = function (dbInyectada) {
 
     //Movi showform aqui
     if (resultValidation !== 1 && body.idTypesMarking === 4) {
-      showForm = 1;
+      showForm = constant.showFormTrue;
     }
     if (hourInMinutesNow > entryOneHourAfter && body.idTypesMarking === 1) {
-      showForm = 1;
+      showForm = constant.showFormTrue;
     }
 
     if (resultValidation !== 1) {
@@ -709,9 +1022,9 @@ module.exports = function (dbInyectada) {
       idTipoValidacion: resultValidation,
       idMostrarForm: showForm,
       "Registrado como": `La asistencia de ${descrptionTypeMarking.toUpperCase()} ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
-      Detalle: `Hora de registro: ${formattedTime}.¡gracias por su puntualidad!`,
+      Detalle: `Hora de registro: ${formattedTime} ¡gracias por su puntualidad!`,
     };
-  };
+  }
 
   /* 📌 Validar (Conforme, tardanza, fuera de horario, sobretiempo) */
   async function validateTime(
@@ -739,7 +1052,7 @@ module.exports = function (dbInyectada) {
       return 5; //fuera de horario
     }
     return 0;
-  };
+  }
 
   /* 📌 Para registrar inicio o fin de break*/
   async function registerBreak(
@@ -795,9 +1108,9 @@ module.exports = function (dbInyectada) {
           Updated_by: 0,
           idHorario: pIdSchedule.IdHorarios,
         };
-        
+
         await db.add(constant.tableAssist, assists);
-        
+
         if (idvalidation == 2) {
           return {
             idTipoValidacion: idvalidation,
@@ -815,7 +1128,7 @@ module.exports = function (dbInyectada) {
           idTipoValidacion: idvalidation,
           idMostrarForm: showForm,
           "Registrado como": `La asistencia de ${pTypeMarkDescription.descripcion.toUpperCase()} ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
-          Detalle: `Hora de registro: ${pFormattedTime}.¡gracias por su puntualidad!`,
+          Detalle: `Hora de registro: ${pFormattedTime} ¡gracias por su puntualidad!`,
         };
       }
 
@@ -855,7 +1168,7 @@ module.exports = function (dbInyectada) {
 
         var descriptionValidation = pGetTypesValidation[0].descripcion;
         var timeLateAfterMark = 0;
-        
+
         if (pTimeInHoursFormat > constant.timeLimitToRegisterEndBreak) {
           timeLateAfterMark = 1;
           idvalidation = 2;
@@ -885,7 +1198,7 @@ module.exports = function (dbInyectada) {
           idHorario: pIdSchedule.IdHorarios,
         };
         await db.add(constant.tableAssist, assists);
-        
+
         if (idvalidation == 2) {
           if (timeLateAfterMark == 1) {
             return {
@@ -911,13 +1224,13 @@ module.exports = function (dbInyectada) {
           idTipoValidacion: idvalidation,
           idMostrarForm: showForm,
           "Registrado como": `La asistencia de ${pTypeMarkDescription.descripcion.toUpperCase()} ha sido registrada como: ${descriptionValidation.toUpperCase()}`,
-          Detalle: `Hora de registro: ${pFormattedTime}.¡gracias por su puntualidad!`,
+          Detalle: `Hora de registro: ${pFormattedTime} ¡gracias por su puntualidad!`,
         };
       }
     }
     message = `No dispones de tiempo para descanso.`;
     return { messages: message };
-  };
+  }
 
   /* 📌 Función para comprobar si ya registro el registro previo para que pueda registrar el siguiente  */
   async function checkIfAlreadyRegisterPrevious(
@@ -941,7 +1254,7 @@ module.exports = function (dbInyectada) {
       }
     }
     return false;
-  };
+  }
 
   /* 📌 Función para comprobar que no registre doble el mismo tipo  */
   async function checkIfAlreadyRegister(
@@ -961,7 +1274,7 @@ module.exports = function (dbInyectada) {
     } else {
       return false;
     }
-  };
+  }
 
   /* 📌 Actualizar  */
   async function update(body) {
@@ -992,7 +1305,7 @@ module.exports = function (dbInyectada) {
     }
     message = "No tienes permiso para modificar.";
     return { messages: message };
-  };
+  }
 
   return {
     addMarking,

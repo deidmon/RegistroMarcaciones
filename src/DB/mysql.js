@@ -1770,7 +1770,7 @@ function queryReportAudit(table, table2, table3, table4,table5, consult, consult
                     MAX(CASE WHEN ex.IdTipoMarcacion = 4 AND ex.IdValidacion = 1 THEN ex.HoraInicio END) AS HoraFin_Excepcion
                 FROM ?? AS ex 
                 GROUP BY ex.IdExcepcion) AS exc ON h.IdExcepcion = exc.IdExcepcion
-                INNER JOIN descansos AS d ON h.IdDescanso = d.IdDescansos
+                LEFT JOIN descansos AS d ON h.IdDescanso = d.IdDescansos
                 WHERE h.IdEstado = 1
                 GROUP BY h.IdHorarios, h.IdDescanso
                 ) AS h_n ON a.idhorario = h_n.IdHorarios
@@ -2102,7 +2102,7 @@ function queryUpdateStateUsers(tabla, users) {
 /* 📌 Chequear si existe un horario*/
 function queryScheduleExist(tabla, consult1, ) {
     return new Promise((resolve, reject) => {
-        const query = `SELECT COALESCE((SELECT IdHorarios FROM ?? WHERE IdHorarios = ? GROUP BY IdHorarios), 0) AS schedule_Exist`;
+        const query = `SELECT COALESCE((SELECT IdHorarios FROM ?? WHERE IdHorarios = ? GROUP BY IdHorarios), -1) AS schedule_Exist`;
         const values = [tabla, consult1];
 
         conexion.query(query, values, (error, result) => {
@@ -2449,7 +2449,152 @@ function queryReportAuditNew(table, table2, table3, table4,table5, consult, cons
     });
 };
 
+/* 📌 Chequear la cantidad de feriados en una semana */
+function queryCountHolidayWeek(tabla, consult1, consult2) {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT COUNT(feriado) AS count_holiday
+            FROM ??  
+            WHERE feriado BETWEEN ? AND ?
+        `;
+        const values = [tabla, consult1, consult2];
 
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].count_holiday);
+
+        });
+    });
+};
+
+/* 📌 Encontrar los usuarios con horario H0 que se debe marcar inasistencia */
+function queryUserToMarkedAbsencesToday(table, table2, consult, consult2, consult3, consult4, consult5) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT us.idUsuarios
+        FROM ?? us
+        LEFT JOIN (
+            SELECT IdUsuarios
+            FROM ??
+            WHERE Fecha BETWEEN ? AND ?
+            AND idTMarcacion = ?
+            GROUP BY idUsuarios
+            HAVING COUNT(*) >= ? 
+        ) asis ON us.IdUsuarios = asis.IdUsuarios
+        WHERE asis.IdUsuarios IS NULL 
+        AND us.idUsuarios IN (?)
+        `;
+        const values = [table, table2, consult, consult2, consult3, consult4, consult5];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result.map((row) => row.idUsuarios));
+        });
+    });
+};
+
+/* 📌 Lista de usuarios que tienen registro de entrada(cualquier validacion) previamente por horarios */
+function queryUserAlreadyMarkedEntryToday(table, table2, consult, consult2, consult3, consult4) {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT a.IdUsuarios AS id
+            FROM ?? AS a INNER JOIN ?? AS us ON a.IdUsuarios = us.IdUsuarios
+            WHERE Fecha = ?
+            AND idTMarcacion = ?
+            AND us.IdHorarios IN (?)
+            AND us.IdUsuarios IN (?)
+        
+        `;
+        const values = [table, table2, consult, consult2, consult3, consult4];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result.map((row) => row.id));
+        });
+    });
+};
+
+/* 📌 Verificar los usuarios que tienen permiso hasta ayer y no tienen permiso hoy ni vacaciones */
+function queryUserWithPermissionUntilYesterday(tabla, tabla2, consult, consult2, consult3,consult4) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT s.idUsuario AS id 
+        FROM ?? AS s INNER JOIN ?? AS u ON s.idUsuario = u.IdUsuarios
+        WHERE idTipoSolicitud = 2
+        AND estadoSolicitudF = 2
+        AND FechaPermiso BETWEEN ? AND ?
+        AND u.IdUsuarios IN (?)
+        `;
+        const values = [tabla, tabla2, consult, consult2, consult3, consult4];
+
+        conexion.query(query, values, (error, result) => {
+           /*  return error ? reject(error) : resolve(result.map((row) => row.id)); */
+            return error ? reject(error) : resolve(result.length >  0 ? result.map((row) => row.id) : [0]);
+
+        });
+    });
+};
+/* 📌 Cantidad de permisos hasta ayer de usuarios que no tienen permiso hoy ni vacaciones */
+function queryCountWithPermissionUntilYesterday(tabla, tabla2, consult, consult2, consult3) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT COUNT(*) AS cantidad  
+        FROM ?? AS s INNER JOIN ?? AS u ON s.idUsuario = u.IdUsuarios
+        WHERE idTipoSolicitud = 2
+        AND estadoSolicitudF = 2
+        AND FechaPermiso BETWEEN ? AND ?
+        AND u.IdUsuarios IN (?)
+        `;
+        const values = [tabla, tabla2, consult, consult2, consult3];
+
+        conexion.query(query, values, (error, result) => {
+           /*  return error ? reject(error) : resolve(result.map((row) => row.id)); */
+            return error ? reject(error) : resolve(result[0].cantidad);
+
+        });
+    });
+};
+/* 📌 Verificar si las marcaciones hasta hoy del usuario son >= marcaciones minimas*/
+function queryVerifyCorrespondsFault(table, consult, consult2, consult3, consult4, consult5) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT 
+            CASE 
+                WHEN (
+                SELECT COUNT(*) 
+                FROM ?? 
+                WHERE Fecha BETWEEN ? AND ?
+                AND idTMarcacion = ?
+                AND idUsuarios = ?
+                ) >= ? THEN (
+                SELECT COUNT(*) 
+                FROM ?? 
+                WHERE Fecha BETWEEN ? AND ?
+                AND idTMarcacion = ?
+                AND idUsuarios = ?
+                )
+            ELSE 0
+        END AS cantidad
+        `;
+        const values = [table,consult, consult2, consult3, consult4, consult5, table, consult, consult2, consult3, consult4];
+        conexion.query(query, values, (error, result) => {
+            return error ? reject(error) : resolve(result[0].cantidad);
+        });
+    });
+};
+//Verificar hora de registro
+function queryAttendanceRegistrationTime(idUser, idTypeRegister) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT * FROM asistencias 
+        WHERE DATE(Fecha) = DATE(NOW())
+        AND idUsuarios = ?
+        AND idTMarcacion = ?;
+        `;
+        
+        const values = [idUser, idTypeRegister];
+        conexion.query(query, values, (error, result) => {
+            /* console.log(error);
+            console.log(result); */
+            return error ? reject(error) : resolve(result);
+        });
+    });
+}
 module.exports = {
     allInformationOfOneTable,
     add,
@@ -2580,5 +2725,12 @@ module.exports = {
     queryConsultIdProfile,
     queryProfileFilter,
     queryUserWithRol,
-    queryReportAuditNew
+    queryReportAuditNew,
+    queryCountHolidayWeek,
+    queryUserToMarkedAbsencesToday,
+    queryUserAlreadyMarkedEntryToday,
+    queryUserWithPermissionUntilYesterday,
+    queryCountWithPermissionUntilYesterday,
+    queryVerifyCorrespondsFault,
+    queryAttendanceRegistrationTime
 }

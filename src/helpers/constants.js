@@ -44,6 +44,24 @@ const stateInactive = 0; //Caracteres minimos de una contraseña
 const stateActive = 1; //Tiempo de expiración del código de verificación
 
 const pageSize = 15; //El numero de registros que devolvera por pagina
+const timeBreakInMinutes = 60;//Tiempo de refrigerio para los que tienen horario felxible
+const toleranceTime = 5; //Tiempo de tolerancia para ingreso
+
+//Tipos de validación de registro de asistencia
+const cconformable = 1; //Registro conforme
+const cdelay = 2; //Registro como tardanza
+const cabsence = 3; //Registrado como falta 
+const cjustified = 4; //Registrado como justificado
+const coutoftime = 5; //Registro como fuera de horario
+const covertime = 6; //Registro como sobretiempo
+
+//Tipos de validación de registro de asistencia(descripcion)
+const cconformabled = "Conforme"; //Registro conforme
+const cdelayd = "Tardanza"; //Registro como tardanza
+const cabsenced = "Falta"; //Registrado como falta 
+const cjustifiedd = "Justificado"; //Registrado como justificado
+const coutoftimed = "Fuera de horario"; //Restro como fuera de horario
+const covertimed = "Sobretiempo"; //Registro como sobretiempo
 
 //Correos
 const gmailHost = 'smtp.gmail.com';
@@ -55,6 +73,12 @@ const vmailHost = 'smtp-mail.outlook.com';
 const startTimeRefreshment = '12:00';//Tiempo de inicio de refrigerio
 const timeLimitToRegisterEndBreak = 965; //Tiempo limite para registrar fin de refrigerio
 const expirationTime  = 180; //Tiempo de expiración del código de verificación
+const showFormTrue = 1; //Muestra el formulario en front para que envien una justificación por tardanza o fuera de horario
+const showFormFalse = 0; //No muestra el formulario 
+const flexibleSchedule = 0;//Horario flexible es decir no valida hora de ingreso ni de inicio break
+const dailyWorkingHours = 480; //Horas laboradas diarias
+const extraTime = 30; //Pasado los 30 minutos es considerado tiempo extra
+const extraTimeDeparture = 15; //Tiempo de tolerancia para salida
 
 module.exports = {
     //Textos
@@ -104,6 +128,22 @@ module.exports = {
     stateInactive,
     stateActive, 
 
+    //Validaciones
+    cconformable,
+    cdelay,
+    cabsence,
+    cjustified,
+    coutoftime,
+    covertime,
+
+    //Validaciones descripción
+    cconformabled,
+    cdelayd,
+    cabsenced,
+    cjustifiedd,
+    coutoftimed,
+    covertimed,
+
     //Correos
     gmailHost,
     mailPort,
@@ -112,5 +152,13 @@ module.exports = {
     
     //Otros
     startTimeRefreshment,
-    expirationTime
+    expirationTime,
+    timeBreakInMinutes,
+    toleranceTime,
+    showFormTrue,
+    showFormFalse,
+    flexibleSchedule,
+    dailyWorkingHours,
+    extraTime,
+    extraTimeDeparture
 };

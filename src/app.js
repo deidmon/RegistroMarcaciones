@@ -18,6 +18,7 @@ const Justifications = require('./modulos/justifications/routes')
 const schedules = require('./modulos/schedules/routes')
 const addScheduleProgrammed = require('./modulos/cronjob/addSchedule')
 const addUsersProgrammed = require('./modulos/cronjob/addDataUsers')
+const cronjob_absencesH0 = require('./modulos/assistance/absences_h0');
 /* const addUprueba = require('./modulos/cronjob/prueba2') */
 const app = express();
 

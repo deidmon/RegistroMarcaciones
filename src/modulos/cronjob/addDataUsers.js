@@ -55,8 +55,11 @@ function modalityOfWork(userModality) {
   const regex = /40(\d{2})/; // Expresión regular que busca '40' 
   const match = schedule.match(regex);
   if (match) {
-  const scheduleUser = match[1]; 
+    const scheduleUser = match[1]; 
   return scheduleUser;
+  } 
+  if (schedule == '9998') {
+    return '0';
   } 
   return '10000';
  }
@@ -95,7 +98,7 @@ function modalityOfWork(userModality) {
         // Verificar el horario y modificarlo  ---------------- DESACTIVAR LA SEGUNDA VEZ QUE SE EJECUTE
         const consultUserSchedule = await db.queryGetIdSchedule(constant.tableUser, {CIP : row.EmpleadoCIP})
         let scheduleExist = await db.queryScheduleExist(constant.tableSchedule, scheduleUser)
-        if (scheduleExist === 0){
+        if (scheduleExist === -1){
           scheduleExist = 8;
         }
         if( consultUserSchedule !== scheduleExist){
@@ -125,7 +128,7 @@ function modalityOfWork(userModality) {
         const nombres = userNames[1];
         password = await bcrypt.hash(row.EmpleadoNumDoc.toString(), 5);
         let scheduleExist = await db.queryScheduleExist(constant.tableSchedule, scheduleUser)
-        if (scheduleExist === 0){
+        if (scheduleExist === -1){
           scheduleExist = 8;
         }
         const usuario = {

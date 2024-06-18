@@ -18,6 +18,7 @@ router.get('/getAllWorkersAmount', getAllWorkersAmount);
 router.put('/activateUsers', activateUsers);
 router.post('/getLeaders', getLeaders);
 router.put('/putUpdateRolOfWorkers', updateRolOfWorkers);
+router.put("/putupdatePasswordForgot", security(), updatePasswordOfUserForgot);
 router.put('/putupdatePassword', updatePasswordOfUser);
 router.post('/sendCodeVerfication', sendCodeVerfication);
 router.post('/verificationOfCode', verificationOfCode);
@@ -220,6 +221,19 @@ async function consultUserArea(req, res, next) {
     }catch(err){
         /* next(err); */
          response.error(req, res, false, errorMessageUser, 500);
+    }
+};
+
+async function updatePasswordOfUserForgot(req, res, next) {
+    try{
+        const responseInfo = await controller.updatePasswordOfUserForgot(req.body);
+        if(!responseInfo.messages){
+            response.success(req, res, responseInfo, "", 200);
+        }else{
+            response.failure(req, res, responseInfo.messages, '' , 200);
+        }
+    }catch(err){
+        response.error(req, res,false, errorMessageUser, 500);
     }
 };
 

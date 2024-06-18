@@ -14,6 +14,7 @@ const tableAssignmentStaff = "asignacionpersonal";
 const tableLeader = "lider";
 const tableDaysOff = "descansos";
 const tableSchedule = "horarios";
+const tableHoliday = 'feriados';
 const PageSiize = constant.pageSize;
 var date;
 const apiClave = "sTSR8wr4HeS5GAIR5ESP4TEFA76GojVlHAVj0RBHrEHdLUAniKij3AhIWQ8Ed";
@@ -108,17 +109,25 @@ module.exports = function (dbInyectada) {
         fechaActual.setHours(fechaActual.getHours() - 16);
     var dateObject = new Date(fechaString);
 
-    console.log("fechaActual", fechaActual);
-    console.log("dateObject", dateObject);
+    /* console.log("fechaActual", fechaActual);
+    console.log("dateObject", dateObject); */
 
     if (dateObject < fechaActual){
       message = `La fecha de solicitud no puede ser anterior a la fecha actual`;
       return { messages: message };
     }
-
+    
     if (daysOff.includes(dayOfWeekName)) {
       message = `Debes elegir un día laborable para pedir permiso`;
       return { messages: message };
+    }
+    
+    let date_holiday = moment(fechaString, 'YYYY/MM/DD', true).format('DD-MM-YYYY');
+    const is_holiday = await db.queryCheckHoliday( tableHoliday, date_holiday);
+    if (is_holiday ===1){
+      message = 'La fecha de solicitud no puede ser un feriado';
+      return { messages: message };
+      
     }
     const checkPermissions = await db.queryCheckPermission(
       tablePermissions,
